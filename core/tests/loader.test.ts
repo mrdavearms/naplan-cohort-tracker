@@ -11,11 +11,14 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   atsiCombined,
+  buildStore,
   cleanStudentReports,
   cleanStudentResults,
   detectDomainAndYear,
+  detectYearOfTestFromName,
   difficultyBand,
   parseWorkbook,
+  type ParsedWorkbook,
 } from "../src/index";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -88,5 +91,74 @@ describe("loader parity with the Python oracle (synthetic fixture)", () => {
     const charlie = reports.find((r) => r.studentId === "TESTPSI003")!;
     expect(charlie.localStudentId).toBeNull(); // dropped from cross-year keying
     expect(charlie.localStudentIdDisplay).toBe("TESTPSI003*");
+  });
+});
+
+describe("detectYearOfTestFromName", () => {
+  it("extracts the year from a folder name", () => {
+    expect(detectYearOfTestFromName("Naplan 2026")).toBe(2026);
+  });
+  it("extracts the year from a file name", () => {
+    expect(detectYearOfTestFromName("SSSR Extract Reading 2024.xlsx")).toBe(2024);
+  });
+  it("returns null when no year is present", () => {
+    expect(detectYearOfTestFromName("SSSR Extract Reading.xlsx")).toBeNull();
+  });
+});
+
+describe("buildStore", () => {
+  /** Build a single-sheet ParsedWorkbook by reusing a real parsed sheet. */
+  function oneSheet(wb: ParsedWorkbook, name: string): ParsedWorkbook {
+    const sheet = wb.sheet(name);
+    return { sheetNames: [name], sheet: (n) => (n === name ? sheet : null) };
+  }
+
+  it("registers a full (2026-format) workbook as one entry", async () => {
+    const wb = await parseWorkbook(fixtureBytes);
+    const { store, skipped } = buildStore([
+      { filename: "SSSR Extract Reading 2026.xlsx", yearOfTest: 2026, workbook: wb },
+    ]);
+    expect(skipped).toEqual([]);
+    expect(store.size).toBe(1);
+    const entry = store.get("2026|7|Reading")!;
+    expect(entry.domain).toBe("Reading");
+    expect(entry.yearLevel).toBe(7);
+    expect(entry.participants).toBe(5);
+    expect(entry.totalStudents).toBe(6);
+  });
+
+  it("pairs a 2025-format split (Reports file + Results file)", async () => {
+    const wb = await parseWorkbook(fixtureBytes);
+    const { store, skipped } = buildStore([
+      {
+        filename: "Student Reports Reading 2025.xlsx",
+        yearOfTest: 2025,
+        workbook: oneSheet(wb, "Student Reports"),
+      },
+      {
+        filename: "Student Results Table Reading 2025.xlsx",
+        yearOfTest: 2025,
+        workbook: oneSheet(wb, "Student Results Table"),
+      },
+    ]);
+    expect(skipped).toEqual([]);
+    expect(store.size).toBe(1);
+    const entry = store.get("2025|7|Reading")!;
+    expect(entry.participants).toBe(5);
+    expect(entry.sourceFilename).toContain(" + ");
+  });
+
+  it("skips a split file with no pairing partner", async () => {
+    const wb = await parseWorkbook(fixtureBytes);
+    const { store, skipped } = buildStore([
+      {
+        filename: "Student Reports Reading 2025.xlsx",
+        yearOfTest: 2025,
+        workbook: oneSheet(wb, "Student Reports"),
+      },
+    ]);
+    expect(store.size).toBe(0);
+    expect(skipped).toHaveLength(1);
+    expect(skipped[0]!.reason).toContain("missing Student Results Table");
   });
 });

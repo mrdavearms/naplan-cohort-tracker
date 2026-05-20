@@ -8,8 +8,8 @@
  */
 
 import ExcelJS from "exceljs";
-import { VALID_DOMAINS, VALID_YEAR_LEVELS } from "./constants";
-import type { StudentReportRow, StudentResultRow } from "./types";
+import { PARTICIPATED, VALID_DOMAINS, VALID_YEAR_LEVELS } from "./constants";
+import type { LoadedFile, StudentReportRow, StudentResultRow } from "./types";
 
 export class LoaderError extends Error {
   constructor(message: string) {
@@ -256,4 +256,156 @@ export function detectDomainAndYear(reports: readonly StudentReportRow[]): {
     throw new LoaderError(`Unexpected year level '${yearLevel}'. Expected 7 or 9.`);
   }
   return { domain, yearLevel };
+}
+
+/** Detect the single domain + year level from a cleaned Student Results Table
+ *  (used to key a results-only file in the 2025 split-file format). */
+function detectDomainAndYearFromResults(results: readonly StudentResultRow[]): {
+  domain: string;
+  yearLevel: number;
+} {
+  const domains = [...new Set(results.map((r) => r.domain).filter((d): d is string => d != null))];
+  const years = [...new Set(results.map((r) => r.yearLevel).filter((y): y is number => y != null))];
+  if (domains.length !== 1 || years.length !== 1) {
+    throw new LoaderError("could not determine a single domain/year from Student Results Table");
+  }
+  return { domain: domains[0]!, yearLevel: years[0]! };
+}
+
+/** Best-effort year-of-test from a folder/file name (first 20xx found).
+ *  The Tauri layer typically supplies the year from the folder name. */
+export function detectYearOfTestFromName(name: string): number | null {
+  const m = name.match(/\b(20\d{2})\b/);
+  return m ? Number(m[1]) : null;
+}
+
+// ── Store assembly ──────────────────────────────────────────────────────────
+// The in-memory store is keyed by (yearOfTest, yearLevel, domain). Two SSSR
+// export formats are handled: 2026 (one workbook with both sheets) and 2025
+// (one workbook per sheet, paired by (yearLevel, domain) within a year).
+
+const SHEET_REPORTS = "Student Reports";
+const SHEET_RESULTS = "Student Results Table";
+
+export function storeKey(yearOfTest: number, yearLevel: number, domain: string): string {
+  return `${yearOfTest}|${yearLevel}|${domain}`;
+}
+
+/** A parsed workbook plus the year-of-test the caller (Tauri layer) resolved. */
+export interface WorkbookInput {
+  filename: string;
+  yearOfTest: number;
+  workbook: ParsedWorkbook;
+}
+
+export interface SkippedFile {
+  filename: string;
+  reason: string;
+}
+
+export interface BuildStoreResult {
+  store: Map<string, LoadedFile>;
+  skipped: SkippedFile[];
+}
+
+function makeLoadedFile(
+  yearOfTest: number,
+  yearLevel: number,
+  domain: string,
+  reports: StudentReportRow[],
+  results: StudentResultRow[],
+  sourceFilename: string,
+): LoadedFile {
+  const participants = reports.filter((r) => r.participationCode === PARTICIPATED).length;
+  return {
+    yearOfTest,
+    yearLevel,
+    domain,
+    studentReports: reports,
+    studentResults: results,
+    sourceFilename,
+    participants,
+    totalStudents: reports.length,
+  };
+}
+
+/**
+ * Assemble the keyed store from a set of parsed workbooks. Full workbooks
+ * (both sheets) register directly; single-sheet workbooks are paired by
+ * (yearOfTest, yearLevel, domain). Files that fail to clean, or that lack a
+ * pairing partner, are returned in `skipped` rather than throwing.
+ */
+export function buildStore(inputs: readonly WorkbookInput[]): BuildStoreResult {
+  const store = new Map<string, LoadedFile>();
+  const skipped: SkippedFile[] = [];
+
+  interface PendingReports {
+    filename: string;
+    reports: StudentReportRow[];
+    yearOfTest: number;
+    yearLevel: number;
+    domain: string;
+  }
+  const pairSr = new Map<string, PendingReports>();
+  const pairSrt = new Map<string, { filename: string; results: StudentResultRow[] }>();
+
+  for (const { filename, yearOfTest, workbook } of inputs) {
+    const names = new Set(workbook.sheetNames);
+    const hasSr = names.has(SHEET_REPORTS);
+    const hasSrt = names.has(SHEET_RESULTS);
+    try {
+      if (hasSr && hasSrt) {
+        const reports = cleanStudentReports(workbook.sheet(SHEET_REPORTS)!);
+        const results = cleanStudentResults(workbook.sheet(SHEET_RESULTS)!);
+        const { domain, yearLevel } = detectDomainAndYear(reports);
+        store.set(
+          storeKey(yearOfTest, yearLevel, domain),
+          makeLoadedFile(yearOfTest, yearLevel, domain, reports, results, filename),
+        );
+      } else if (hasSr) {
+        const reports = cleanStudentReports(workbook.sheet(SHEET_REPORTS)!);
+        const { domain, yearLevel } = detectDomainAndYear(reports);
+        pairSr.set(storeKey(yearOfTest, yearLevel, domain), {
+          filename,
+          reports,
+          yearOfTest,
+          yearLevel,
+          domain,
+        });
+      } else if (hasSrt) {
+        const results = cleanStudentResults(workbook.sheet(SHEET_RESULTS)!);
+        const { domain, yearLevel } = detectDomainAndYearFromResults(results);
+        pairSrt.set(storeKey(yearOfTest, yearLevel, domain), { filename, results });
+      } else {
+        skipped.push({ filename, reason: `no '${SHEET_REPORTS}' or '${SHEET_RESULTS}' sheet` });
+      }
+    } catch (e) {
+      skipped.push({ filename, reason: e instanceof Error ? e.message : String(e) });
+    }
+  }
+
+  // Pair the 2025 split-file format.
+  for (const key of [...new Set([...pairSr.keys(), ...pairSrt.keys()])].sort()) {
+    const sr = pairSr.get(key);
+    const srt = pairSrt.get(key);
+    if (sr && srt) {
+      store.set(
+        key,
+        makeLoadedFile(
+          sr.yearOfTest,
+          sr.yearLevel,
+          sr.domain,
+          sr.reports,
+          srt.results,
+          `${sr.filename} + ${srt.filename}`,
+        ),
+      );
+    } else {
+      const present = sr ?? srt!;
+      const missing = sr ? SHEET_RESULTS : SHEET_REPORTS;
+      skipped.push({ filename: present.filename, reason: `missing ${missing} for ${key}` });
+    }
+  }
+
+  return { store, skipped };
 }
