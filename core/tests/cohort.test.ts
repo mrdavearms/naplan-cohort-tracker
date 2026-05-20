@@ -113,12 +113,17 @@ function sr(
   participation = "Participated",
 ): StudentReportRow {
   return {
+    studentId: id,
     localStudentId: id,
+    localStudentIdDisplay: id ?? "*",
+    yearLevel: 7,
     classGroups: null,
+    domain: "Reading",
     proficiencyLevel: proficiency,
-    lboteStatus: null,
-    atsiGroup: null,
     participationCode: participation,
+    indigenousStatus: null,
+    lboteStatus: null,
+    atsiGroup: "Not reported",
   };
 }
 

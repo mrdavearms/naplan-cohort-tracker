@@ -13,5 +13,6 @@ export * from "./constants";
 export * from "./types";
 export * from "./stats";
 export * from "./cohort";
+export * from "./loader";
 
 export const CORE_PACKAGE = "@naplan-throughline/core" as const;

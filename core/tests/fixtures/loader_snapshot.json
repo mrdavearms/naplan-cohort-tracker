@@ -1,0 +1,113 @@
+{
+  "_comment": "Oracle snapshot from legacy naplan.loader. Regenerate via verification/gen_loader_snapshot.py.",
+  "domain": "Reading",
+  "yearLevel": 7,
+  "participants": 5,
+  "totalStudents": 6,
+  "studentReports": [
+    {
+      "studentId": "TESTPSI001",
+      "localStudentId": "L001",
+      "localStudentIdDisplay": "L001",
+      "yearLevel": 7,
+      "classGroups": "07A",
+      "domain": "Reading",
+      "proficiencyLevel": "Strong",
+      "participationCode": "Participated",
+      "indigenousStatus": "Neither Aboriginal nor Torres Strait Islander origin",
+      "lboteStatus": "N",
+      "atsiGroup": "Non-ATSI"
+    },
+    {
+      "studentId": "TESTPSI002",
+      "localStudentId": "L002",
+      "localStudentIdDisplay": "L002",
+      "yearLevel": 7,
+      "classGroups": "07A",
+      "domain": "Reading",
+      "proficiencyLevel": "Needs additional support",
+      "participationCode": "Participated",
+      "indigenousStatus": "Aboriginal but not Torres Strait Islander origin",
+      "lboteStatus": "Y",
+      "atsiGroup": "ATSI"
+    },
+    {
+      "studentId": "TESTPSI003",
+      "localStudentId": null,
+      "localStudentIdDisplay": "TESTPSI003*",
+      "yearLevel": 7,
+      "classGroups": "07A",
+      "domain": "Reading",
+      "proficiencyLevel": "Developing",
+      "participationCode": "Participated",
+      "indigenousStatus": null,
+      "lboteStatus": null,
+      "atsiGroup": "Not reported"
+    },
+    {
+      "studentId": "TESTPSI004",
+      "localStudentId": "L004",
+      "localStudentIdDisplay": "L004",
+      "yearLevel": 7,
+      "classGroups": "07A",
+      "domain": "Reading",
+      "proficiencyLevel": "Exceeding",
+      "participationCode": "Participated",
+      "indigenousStatus": "Neither Aboriginal nor Torres Strait Islander origin",
+      "lboteStatus": "Y",
+      "atsiGroup": "Non-ATSI"
+    },
+    {
+      "studentId": "TESTPSI005",
+      "localStudentId": "L005",
+      "localStudentIdDisplay": "L005",
+      "yearLevel": 7,
+      "classGroups": "07A",
+      "domain": "Reading",
+      "proficiencyLevel": "Strong",
+      "participationCode": "Participated",
+      "indigenousStatus": "Neither Aboriginal nor Torres Strait Islander origin",
+      "lboteStatus": "Y",
+      "atsiGroup": "Non-ATSI"
+    },
+    {
+      "studentId": "TESTPSI006",
+      "localStudentId": "L006",
+      "localStudentIdDisplay": "L006",
+      "yearLevel": 7,
+      "classGroups": "07A",
+      "domain": "Reading",
+      "proficiencyLevel": "Strong",
+      "participationCode": "Withdrawn",
+      "indigenousStatus": "Neither Aboriginal nor Torres Strait Islander origin",
+      "lboteStatus": "N",
+      "atsiGroup": "Non-ATSI"
+    }
+  ],
+  "studentResults": [
+    {
+      "studentPsi": "TESTPSI001",
+      "yearLevel": 7,
+      "classGroups": "07A",
+      "itemId": "tx001",
+      "itemDifficulty": 450.0,
+      "domain": "Reading",
+      "subdomain": "Comprehension",
+      "descriptor": "Identifies main idea",
+      "studentMarkedResponse": "Correct",
+      "difficultyBand": "Below 480"
+    },
+    {
+      "studentPsi": "TESTPSI002",
+      "yearLevel": 7,
+      "classGroups": "07A",
+      "itemId": "tx001",
+      "itemDifficulty": 450.0,
+      "domain": "Reading",
+      "subdomain": "Comprehension",
+      "descriptor": "Identifies main idea",
+      "studentMarkedResponse": "Incorrect",
+      "difficultyBand": "Below 480"
+    }
+  ]
+}

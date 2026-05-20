@@ -8,12 +8,47 @@
  * cleaning, but may still be null if no identifier was present at all.
  */
 export interface StudentReportRow {
+  studentId: string | null;
   localStudentId: string | null;
+  /** {studentId}* fallback when localStudentId is blank — for display only,
+   *  NOT used for cross-year keying (build_paired_cohort drops null-LSID rows). */
+  localStudentIdDisplay: string;
+  yearLevel: number | null;
   classGroups: string | null;
+  domain: string | null;
   proficiencyLevel: string | null;
-  lboteStatus: string | null;
-  atsiGroup: string | null;
   participationCode: string | null;
+  indigenousStatus: string | null;
+  lboteStatus: string | null;
+  /** Derived from indigenousStatus: "ATSI" | "Non-ATSI" | "Not reported". */
+  atsiGroup: string;
+}
+
+/** One row of a cleaned Student Results Table sheet. */
+export interface StudentResultRow {
+  studentPsi: string | null;
+  yearLevel: number | null;
+  classGroups: string | null;
+  itemId: string | null;
+  itemDifficulty: number | null;
+  domain: string | null;
+  subdomain: string | null;
+  descriptor: string | null;
+  studentMarkedResponse: string | null;
+  /** Derived from itemDifficulty: "Below 480" | "480-580" | "Above 580" | "Unknown". */
+  difficultyBand: string;
+}
+
+/** A loaded SSSR entry, keyed by (yearOfTest, yearLevel, domain). */
+export interface LoadedFile {
+  yearOfTest: number;
+  yearLevel: number;
+  domain: string;
+  studentReports: StudentReportRow[];
+  studentResults: StudentResultRow[];
+  sourceFilename: string;
+  participants: number;
+  totalStudents: number;
 }
 
 /** A student present (and proficiency-scored) in BOTH Y7 and Y9.
