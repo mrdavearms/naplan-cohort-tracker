@@ -1,0 +1,20 @@
+{
+  "name": "naplan-throughline",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cross-platform desktop app for NAPLAN cohort analysis (Tauri + React + TypeScript).",
+  "workspaces": [
+    "core"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -b"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  }
+}

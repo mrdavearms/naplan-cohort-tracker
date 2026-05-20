@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Tauri / Rust build output (shell phase)
+src-tauri/target/
+src-tauri/gen/
+
+# Test coverage
+coverage/
+
+# Source data — must NEVER enter the repo (raw SSSR student data)
+*.xlsx
+*.xls
+# ...except committed synthetic test fixtures (fake data only)
+!core/tests/fixtures/*.xlsx
+
+# Logs
+*.log
+npm-debug.log*
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local agent scratch
+.superpowers/
