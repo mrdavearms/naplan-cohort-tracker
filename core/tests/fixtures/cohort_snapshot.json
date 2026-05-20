@@ -1,0 +1,53 @@
+{
+  "_comment": "Oracle snapshot from legacy naplan.cohort. Regenerate via verification/gen_cohort_snapshot.py.",
+  "domain": "Reading",
+  "paired": 5,
+  "leavers": 2,
+  "joiners": 2,
+  "pairedFilteredCount": 1,
+  "y7NasCount": 2,
+  "y9NasCount": 2,
+  "y7NasPct": 40.0,
+  "y9NasPct": 40.0,
+  "mcnemar": {
+    "stayersNas": 1,
+    "stayersNotNas": 2,
+    "movedOutOfNas": 1,
+    "movedIntoNas": 1,
+    "pValue": 1.0
+  },
+  "transitionMatrix": [
+    [
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "wilsonY7Nas": [
+    0.11762077423264788,
+    0.7692757187239871
+  ],
+  "wilsonY9Nas": [
+    0.11762077423264788,
+    0.7692757187239871
+  ]
+}
