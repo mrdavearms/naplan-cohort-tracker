@@ -5,8 +5,13 @@
  * Python oracle (`verification/verify_cohort.py` in the legacy repo) and must
  * stay independently unit-testable.
  *
- * Phase 1 populates this with the loader (parse / alias / keying),
- * `buildPairedCohort`, `wilsonCi`, `mcnemarPaired`, and `transitionMatrix`.
- * For now this is a scaffold smoke test that proves the workspace wiring.
+ * Phase 1: constants, types, stats (Wilson CI + McNemar), and cohort pairing.
+ * The loader (parse / alias / keying) and the file-source injection boundary
+ * land next; folder discovery + file reads stay in the Tauri layer.
  */
+export * from "./constants";
+export * from "./types";
+export * from "./stats";
+export * from "./cohort";
+
 export const CORE_PACKAGE = "@naplan-throughline/core" as const;
