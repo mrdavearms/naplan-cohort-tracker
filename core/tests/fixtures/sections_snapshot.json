@@ -1,0 +1,39 @@
+{
+  "_comment": "Oracle snapshot from legacy section helpers. Regenerate via verification/gen_sections_snapshot.py.",
+  "participation": {
+    "breakdown": {
+      "Participated": 5,
+      "Absent": 0,
+      "Withdrawn": 1
+    },
+    "total": 6,
+    "participated": 5,
+    "rate": 83.33333333333334
+  },
+  "proficiency": {
+    "counts": {
+      "Needs additional support": 1,
+      "Developing": 1,
+      "Strong": 2,
+      "Exceeding": 1
+    },
+    "percentages": {
+      "Needs additional support": 20.0,
+      "Developing": 20.0,
+      "Strong": 40.0,
+      "Exceeding": 20.0
+    }
+  },
+  "classDistribution": [
+    {
+      "classGroup": "07A",
+      "n": 5,
+      "percentages": {
+        "Needs additional support": 20.0,
+        "Developing": 20.0,
+        "Strong": 40.0,
+        "Exceeding": 20.0
+      }
+    }
+  ]
+}
