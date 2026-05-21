@@ -15,5 +15,6 @@ export * from "./stats";
 export * from "./cohort";
 export * from "./loader";
 export * from "./sections/index";
+export * from "./charts/index";
 
 export const CORE_PACKAGE = "@naplan-throughline/core" as const;
