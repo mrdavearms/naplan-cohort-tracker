@@ -9,14 +9,20 @@ import { fileURLToPath } from "node:url";
 
 import { beforeAll, describe, expect, it } from "vitest";
 import {
+  accuracyBySubdomainAndBand,
+  bottomDescriptors,
   classDistribution,
   cleanStudentReports,
+  cleanStudentResults,
   parseWorkbook,
   participationBreakdown,
   participationSummary,
   proficiencyCounts,
   proficiencyPercentages,
+  rankDomainsByNas,
+  type ProficiencyPercentages,
   type StudentReportRow,
+  type StudentResultRow,
 } from "../src/index";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -34,12 +40,25 @@ const snap = JSON.parse(
     percentages: Record<string, number>;
   };
   classDistribution: Array<{ classGroup: string; n: number; percentages: Record<string, number> }>;
+  skillGap: {
+    accuracyBySubdomainBand: Array<{ subdomain: string; band: string; accuracyPct: number; nResponses: number }>;
+    bottomDescriptors: Array<{
+      itemId: string;
+      descriptor: string;
+      subdomain: string;
+      itemDifficulty: number | null;
+      accuracyPct: number;
+      studentsAttempted: number;
+    }>;
+  };
 };
 
 let reports: StudentReportRow[];
+let results: StudentResultRow[];
 beforeAll(async () => {
   const wb = await parseWorkbook(readFileSync(join(here, "fixtures/synthetic_raw_2026.xlsx")));
   reports = cleanStudentReports(wb.sheet("Student Reports")!);
+  results = cleanStudentResults(wb.sheet("Student Results Table")!);
 });
 
 describe("Section 1 — participation", () => {
@@ -81,6 +100,59 @@ describe("Section 7 — class distribution", () => {
       for (const [lvl, expected] of Object.entries(want.percentages)) {
         expect(got.percentages[lvl as keyof typeof got.percentages]).toBeCloseTo(expected, 10);
       }
+    }
+  });
+});
+
+describe("Section 4 — rank domains by NAS", () => {
+  const pct = (nas: number): ProficiencyPercentages => ({
+    "Needs additional support": nas,
+    Developing: 0,
+    Strong: 0,
+    Exceeding: 100 - nas,
+  });
+  it("ranks weakest (highest NAS) first", () => {
+    const ranked = rankDomainsByNas({
+      Reading: pct(5),
+      Numeracy: pct(20),
+      Spelling: pct(12),
+    });
+    expect(ranked.map((r) => r.domain)).toEqual(["Numeracy", "Spelling", "Reading"]);
+    expect(ranked[0]!.nasPct).toBe(20);
+    expect(ranked.at(-1)!.nasPct).toBe(5);
+  });
+  it("keeps input order for ties", () => {
+    const ranked = rankDomainsByNas({ Reading: pct(10), Numeracy: pct(10) });
+    expect(ranked.map((r) => r.domain)).toEqual(["Reading", "Numeracy"]);
+  });
+});
+
+describe("Section 5 — skill gap", () => {
+  it("subdomain × band accuracy matches the oracle", () => {
+    const got = accuracyBySubdomainAndBand(results);
+    expect(got).toHaveLength(snap.skillGap.accuracyBySubdomainBand.length);
+    for (let i = 0; i < got.length; i++) {
+      const g = got[i]!;
+      const w = snap.skillGap.accuracyBySubdomainBand[i]!;
+      expect(g.subdomain).toBe(w.subdomain);
+      expect(g.band).toBe(w.band);
+      expect(g.nResponses).toBe(w.nResponses);
+      expect(g.accuracyPct).toBeCloseTo(w.accuracyPct, 10);
+    }
+  });
+
+  it("bottom descriptors match the oracle", () => {
+    const got = bottomDescriptors(results, 10);
+    expect(got).toHaveLength(snap.skillGap.bottomDescriptors.length);
+    for (let i = 0; i < got.length; i++) {
+      const g = got[i]!;
+      const w = snap.skillGap.bottomDescriptors[i]!;
+      expect(g.itemId).toBe(w.itemId);
+      expect(g.descriptor).toBe(w.descriptor);
+      expect(g.subdomain).toBe(w.subdomain);
+      expect(g.itemDifficulty).toBe(w.itemDifficulty);
+      expect(g.studentsAttempted).toBe(w.studentsAttempted);
+      expect(g.accuracyPct).toBeCloseTo(w.accuracyPct, 10);
     }
   });
 });

@@ -30,6 +30,10 @@ from naplan.sections.s2_proficiency import (  # noqa: E402
     proficiency_counts,
     proficiency_percentages,
 )
+from naplan.sections.s5_skill_gap import (  # noqa: E402
+    _accuracy_by_subdomain_and_band,
+    _bottom_descriptors,
+)
 from naplan.sections.s7_class_groups import _class_distribution  # noqa: E402
 
 FIXTURES = Path(__file__).resolve().parent.parent / "core" / "tests" / "fixtures"
@@ -63,6 +67,30 @@ def main() -> None:
         classes.setdefault(raw, {"classGroup": raw, "n": int(class_n.get(raw, 0)), "percentages": {}})
         classes[raw]["percentages"][row["Level"]] = float(row["Percentage"])
 
+    # Section 5 — item-level
+    acc = _accuracy_by_subdomain_and_band(srt)
+    acc_list = [
+        {
+            "subdomain": row["Subdomain"],
+            "band": row["Difficulty band"],
+            "accuracyPct": float(row["Accuracy %"]),
+            "nResponses": int(row["n_responses"]),
+        }
+        for _, row in acc.iterrows()
+    ]
+    bottom = _bottom_descriptors(srt, n=10)
+    bottom_list = [
+        {
+            "itemId": row["Item ID"],
+            "descriptor": row["Descriptor"],
+            "subdomain": row["Subdomain"],
+            "itemDifficulty": None if pd.isna(row["Item difficulty"]) else int(row["Item difficulty"]),
+            "accuracyPct": float(row["Accuracy %"]),
+            "studentsAttempted": int(row["Students attempted"]),
+        }
+        for _, row in bottom.iterrows()
+    ]
+
     snapshot = {
         "_comment": "Oracle snapshot from legacy section helpers. Regenerate via verification/gen_sections_snapshot.py.",
         "participation": {
@@ -76,6 +104,10 @@ def main() -> None:
             "percentages": proficiency_percentages(entry),
         },
         "classDistribution": sorted(classes.values(), key=lambda c: c["classGroup"]),
+        "skillGap": {
+            "accuracyBySubdomainBand": acc_list,
+            "bottomDescriptors": bottom_list,
+        },
     }
     OUT.write_text(json.dumps(snapshot, indent=2) + "\n")
     print(f"wrote {OUT}")

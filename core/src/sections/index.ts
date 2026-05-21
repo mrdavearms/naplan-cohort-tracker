@@ -3,3 +3,5 @@
 export * from "./participation";
 export * from "./proficiency";
 export * from "./classGroups";
+export * from "./crossDomain";
+export * from "./skillGap";

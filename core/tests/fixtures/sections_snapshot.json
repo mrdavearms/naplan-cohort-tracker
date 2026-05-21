@@ -35,5 +35,25 @@
         "Exceeding": 20.0
       }
     }
-  ]
+  ],
+  "skillGap": {
+    "accuracyBySubdomainBand": [
+      {
+        "subdomain": "Comprehension",
+        "band": "Below 480",
+        "accuracyPct": 50.0,
+        "nResponses": 2
+      }
+    ],
+    "bottomDescriptors": [
+      {
+        "itemId": "tx001",
+        "descriptor": "Identifies main idea",
+        "subdomain": "Comprehension",
+        "itemDifficulty": 450,
+        "accuracyPct": 50.0,
+        "studentsAttempted": 2
+      }
+    ]
+  }
 }
