@@ -8,3 +8,4 @@ export * from "./skillGap";
 export * from "./equity";
 export * from "./targetedSupport";
 export * from "./yearOnYear";
+export * from "./cohortTracking";

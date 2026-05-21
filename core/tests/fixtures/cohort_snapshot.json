@@ -49,5 +49,93 @@
   "wilsonY9Nas": [
     0.11762077423264788,
     0.7692757187239871
-  ]
+  ],
+  "drilldowns": {
+    "headline": {
+      "pairedN": 5,
+      "y7NasPct": 40.0,
+      "y9NasPct": 40.0,
+      "deltaNasPp": 0.0,
+      "y7MeetingPct": 40.0,
+      "y9MeetingPct": 60.0,
+      "deltaMeetingPp": 20.0
+    },
+    "attrition": {
+      "stayersN": 5,
+      "leaversN": 2,
+      "stayersY7Distribution": {
+        "Needs additional support": 40.0,
+        "Developing": 20.0,
+        "Strong": 40.0,
+        "Exceeding": 0.0
+      },
+      "leaversY7Distribution": {
+        "Needs additional support": 50.0,
+        "Developing": 50.0,
+        "Strong": 0.0,
+        "Exceeding": 0.0
+      },
+      "stayersNasCount": 2,
+      "leaversNasCount": 1,
+      "stayersNasPct": 40.0,
+      "leaversNasPct": 50.0
+    },
+    "equitySubCohorts": [
+      {
+        "subgroup": "LBOTE Yes (Y7)",
+        "n": 0,
+        "suppressed": true,
+        "caveat": false,
+        "y7NasPct": null,
+        "y9NasPct": null
+      },
+      {
+        "subgroup": "LBOTE No (Y7)",
+        "n": 0,
+        "suppressed": true,
+        "caveat": false,
+        "y7NasPct": null,
+        "y9NasPct": null
+      },
+      {
+        "subgroup": "Aboriginal and/or TSI (Y7)",
+        "n": 1,
+        "suppressed": true,
+        "caveat": false,
+        "y7NasPct": null,
+        "y9NasPct": null
+      },
+      {
+        "subgroup": "Non-Indigenous (Y7)",
+        "n": 4,
+        "suppressed": true,
+        "caveat": false,
+        "y7NasPct": null,
+        "y9NasPct": null
+      }
+    ],
+    "classGroups": [
+      {
+        "y7Class": "Class A",
+        "total": 7,
+        "stayed": 5,
+        "left": 2,
+        "y7NasCount": 3,
+        "y7NasPct": 42.857142857142854,
+        "pairedSubsetN": 5,
+        "y9NasCount": 2,
+        "y9NasPct": 40.0,
+        "destinations": [
+          {
+            "y9Class": "Class A",
+            "n": 5
+          },
+          {
+            "y9Class": "left WHS",
+            "n": 2
+          }
+        ]
+      }
+    ]
+  }
 }
