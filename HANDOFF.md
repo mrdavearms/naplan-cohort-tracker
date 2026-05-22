@@ -60,15 +60,16 @@ pass of the packaged app (charts look right, PDF layout reads well). See
 ## GitHub builds + ships the apps — DONE (incl. auto-update)
 
 - **CI builds the installers** (`.github/workflows/release.yml`, on a version tag):
-  macOS `.dmg` + Windows `.exe`/`.msi`, all signed for the updater, + `latest.json`.
-- **`v0.1.0` is published** (no longer a draft) in the private source repo:
-  https://github.com/mrdavearms/naplan-throughline/releases/tag/v0.1.0
-- **Auto-update is LIVE.** Installers + `latest.json` are mirrored to the public
-  feed repo **`mrdavearms/naplan-throughline-releases`** (binaries only — source
-  stays private, per Option B). Verified end-to-end: the app's baked-in endpoint
-  `…/naplan-throughline-releases/releases/latest/download/latest.json` returns
-  HTTP 200 with the correct, signed manifest, and the referenced installer
-  downloads unauthenticated.
+  a **universal macOS `.dmg`** (Intel + Apple Silicon) + Windows `.exe`/`.msi`,
+  all signed for the updater, + `latest.json`.
+- **Current release: `v0.1.1`** (the branded-icon build), published in both repos.
+- **Auto-update is LIVE and proven end-to-end.** Installers + `latest.json` are
+  mirrored to the public feed repo **`mrdavearms/naplan-throughline-releases`**
+  (binaries only — source stays private, per Option B). Confirmed: the app's
+  baked-in endpoint `…/naplan-throughline-releases/releases/latest/download/latest.json`
+  serves the latest version, signed, and the installer downloads unauthenticated.
+  The v0.1.0 → v0.1.1 bump verified an installed app would correctly detect the
+  newer version (the universal build covers both `darwin-aarch64` + `darwin-x86_64`).
 - **Signing secrets** (`TAURI_SIGNING_PRIVATE_KEY` + `…_PASSWORD`) are set in the
   source repo; the private key is at `~/.naplan-throughline-updater.key`.
 
