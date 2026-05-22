@@ -32,12 +32,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # One universal macOS .dmg (Intel + Apple Silicon) built on the
+          # always-available ARM runner — avoids the scarce Intel runner queue.
           - platform: macos-latest
-            args: "--target aarch64-apple-darwin"
-            rust-target: aarch64-apple-darwin
-          - platform: macos-13
-            args: "--target x86_64-apple-darwin"
-            rust-target: x86_64-apple-darwin
+            args: "--target universal-apple-darwin"
+            rust-target: "aarch64-apple-darwin,x86_64-apple-darwin"
           - platform: windows-latest
             args: ""
             rust-target: ""
