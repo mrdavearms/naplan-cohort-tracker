@@ -21,7 +21,13 @@ export function makeState(store: Store, overrides: Partial<AppState> = {}): AppS
 
 export function renderWithApp(
   ui: ReactElement,
-  opts: { store: Store; state?: Partial<AppState>; settings?: Settings; view?: ViewId } = {} as never,
+  opts: {
+    store: Store;
+    state?: Partial<AppState>;
+    settings?: Settings;
+    view?: ViewId;
+    callbacks?: Partial<Omit<AppContextValue, "state">>;
+  } = {} as never,
 ) {
   const state = makeState(opts.store, {
     ...(opts.settings ? { settings: opts.settings } : {}),
@@ -34,6 +40,7 @@ export function renderWithApp(
     setPrimaryYear: () => {},
     setView: () => {},
     updateSettings: () => {},
+    ...opts.callbacks,
   };
   return render(<AppContext.Provider value={value}>{ui}</AppContext.Provider>);
 }
