@@ -35,10 +35,6 @@ const ATTR_Y7 =
 const ATTR_Y9 =
   "Year 9 reflects the secondary school's contribution (the cohort has had about two years here). NAPLAN is diagnostic evidence, not a target instrument.";
 
-function nasOf(p: ProficiencyPercentages): number {
-  return p[NAS];
-}
-
 async function yearLevelSection(store: Store, primaryYear: number, yearLevel: number): Promise<Content[]> {
   const domains = domainsFor(store, primaryYear, yearLevel);
   if (domains.length === 0) return [];

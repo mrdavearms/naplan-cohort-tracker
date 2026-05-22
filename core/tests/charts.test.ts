@@ -39,7 +39,6 @@ const pc: PairedCohort = {
   pairedFilteredCount: 0,
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 describe("transitionSankeyFigure", () => {
   const fig = transitionSankeyFigure(pc, 2024, 2026);
   const trace = fig.data[0] as any;
@@ -112,4 +111,3 @@ describe("wilsonCiDotPlotFigure", () => {
     expect(y7.error_x.arrayminus).toHaveLength(1);
   });
 });
-/* eslint-enable @typescript-eslint/no-explicit-any */

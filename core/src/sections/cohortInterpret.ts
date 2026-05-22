@@ -369,7 +369,6 @@ export function interpretWilson(pc: PairedCohort): string[] {
   const y9Count = pc.paired.filter((s) => s.proficiencyY9 === NAS).length;
   const [y7Lo, y7Hi] = wilsonCi(y7Count, n);
   const [y9Lo, y9Hi] = wilsonCi(y9Count, n);
-  const y7Pct = n > 0 ? (y7Count / n) * 100 : 0;
   const y9Pct = n > 0 ? (y9Count / n) * 100 : 0;
   const y7Width = (y7Hi - y7Lo) * 100;
   const y9Width = (y9Hi - y9Lo) * 100;

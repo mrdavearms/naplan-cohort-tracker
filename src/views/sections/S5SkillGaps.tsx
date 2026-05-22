@@ -40,7 +40,8 @@ export function S5SkillGaps() {
   const entry = effectiveDomain
     ? getEntry(store, primaryYear, yearLevel, effectiveDomain)
     : undefined;
-  const results = entry?.studentResults ?? [];
+  // Stable reference so the useMemo hooks below don't recompute every render.
+  const results = useMemo(() => entry?.studentResults ?? [], [entry]);
 
   // Pivot the (subdomain × band) accuracy array into one row per subdomain.
   const subdomainRows = useMemo(() => {

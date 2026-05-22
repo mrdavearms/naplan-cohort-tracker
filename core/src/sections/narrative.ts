@@ -175,7 +175,7 @@ function yearOnYearLines(allEntries: LoadedFile[], ctx: NarrativeContext): strin
   return lines;
 }
 
-function schoolRecommendations(entries: LoadedFile[], ctx: NarrativeContext): string[] {
+function schoolRecommendations(entries: LoadedFile[]): string[] {
   const recs: string[] = [];
 
   const nasRanked = rankBy(entries, (e) => nasPct(e.studentReports));
@@ -187,7 +187,12 @@ function schoolRecommendations(entries: LoadedFile[], ctx: NarrativeContext): st
       for (const b of bottom) subCounts.set(b.subdomain, (subCounts.get(b.subdomain) ?? 0) + 1);
       let topSub = "";
       let topCount = -1;
-      for (const [sub, c] of subCounts) if (c > topCount) ((topSub = sub), (topCount = c));
+      for (const [sub, c] of subCounts) {
+        if (c > topCount) {
+          topSub = sub;
+          topCount = c;
+        }
+      }
       recs.push(
         `Prioritise teacher professional learning on ${topSub} in Year ${top.yearLevel} ${top.domain}: ` +
           `${topCount} of the 10 lowest-accuracy items fall in this subdomain.`,
@@ -239,7 +244,7 @@ export function buildSchoolNarrative(
     strengths: strengths(entries),
     concerns: concerns(entries),
     yearOnYear: yearOnYearLines([...allEntries], ctx),
-    recommendations: schoolRecommendations(entries, ctx),
+    recommendations: schoolRecommendations(entries),
   };
 }
 

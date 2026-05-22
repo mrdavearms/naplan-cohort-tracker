@@ -11,7 +11,6 @@ import {
   classDistribution,
   domainsFor,
   getEntry,
-  PROFICIENCY_LEVELS,
   stackedProficiencyBarFigure,
   type StackedBarRow,
 } from "@naplan-throughline/core";
