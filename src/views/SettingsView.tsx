@@ -12,6 +12,7 @@ import {
 } from "@naplan-throughline/core";
 import { useApp } from "../state/AppState";
 import { Card, SectionHeading } from "../components/ui";
+import { TauriTools } from "../components/TauriTools";
 
 const inputCls =
   "w-full rounded-lg border border-alabaster bg-white px-3 py-2 text-sm text-graphite shadow-sm focus:border-coral focus:ring-coral";
@@ -211,6 +212,8 @@ export function SettingsView() {
         </button>
         {saved && <span className="text-sm text-sage-text">Saved.</span>}
       </div>
+
+      <TauriTools />
     </div>
   );
 }

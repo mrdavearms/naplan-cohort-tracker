@@ -1,0 +1,60 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Naplan Throughline",
+  "version": "0.1.0",
+  "identifier": "com.dandsarmstrong.naplanthroughline",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Naplan Throughline",
+        "width": 1280,
+        "height": 832,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": true,
+    "category": "Education",
+    "shortDescription": "On-device NAPLAN cohort analysis",
+    "longDescription": "Naplan Throughline analyses NAPLAN SSSR data on-device: participation, proficiency, equity, skill gaps and the Year 7 to Year 9 matched-cohort value-add. Local-only; no student data leaves the machine.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "fixedRuntime",
+        "path": "./Microsoft.WebView2.FixedVersionRuntime/"
+      }
+    },
+    "android": {
+      "debugApplicationIdSuffix": ".debug"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/mrdavearms/naplan-throughline-releases/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEYxMzJDNEQyQTk2QzUwRDgKUldUWVVHeXAwc1F5OGZGd2kyd0RJaGFnaGlONE80b1VTSXVKUk05eVNlNmFyOHl6bGdTMytqeHAK"
+    }
+  }
+}

@@ -1,10 +1,10 @@
 /**
- * Native folder loading for the Tauri shell. Stub for now — the real
- * implementation (native dialog via @tauri-apps/plugin-dialog + recursive read
- * via @tauri-apps/plugin-fs) is wired in the shell phase, once those plugins are
- * installed. Keeping it behind this seam lets the browser dev build stay free of
- * Tauri JS deps.
+ * Native folder loading for the Tauri shell. The native dialog picks a folder;
+ * a Rust command (`read_workbook_folder`) walks it and returns workbook bytes.
+ * core/ stays filesystem-free — it only ever sees the injected bytes.
  */
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import type { RawWorkbookFile } from "@naplan-throughline/core";
 
 export interface PickedFolder {
@@ -12,8 +12,43 @@ export interface PickedFolder {
   files: RawWorkbookFile[];
 }
 
+/** Shape returned by the Rust `read_workbook_folder` command. */
+interface NativeRawFile {
+  name: string;
+  relativePath: string;
+  bytes: number[];
+}
+
 export async function loadFolderViaTauri(): Promise<PickedFolder | null> {
-  // Replaced in the Tauri shell phase.
-  console.warn("loadFolderViaTauri called outside a wired Tauri build");
-  return null;
+  const dir = await open({ directory: true, multiple: false, title: "Choose your NAPLAN folder" });
+  if (typeof dir !== "string") return null; // cancelled
+
+  const native = await invoke<NativeRawFile[]>("read_workbook_folder", { dir });
+  const files: RawWorkbookFile[] = native.map((f) => ({
+    name: f.name,
+    relativePath: f.relativePath,
+    bytes: Uint8Array.from(f.bytes),
+  }));
+
+  const label = dir.split(/[/\\]/).filter(Boolean).at(-1) ?? null;
+  return { label, files };
+}
+
+/** Read app version + OS/arch for the diagnostics export (no student data). */
+export async function appInfo(): Promise<{ version: string; os: string; arch: string }> {
+  return invoke("app_info");
+}
+
+/** Persist a plain-text diagnostics file via a native save dialog. Returns the
+ *  saved path, or null if cancelled. Contents must contain no student data. */
+export async function saveDiagnostics(contents: string, suggestedName: string): Promise<string | null> {
+  const { save } = await import("@tauri-apps/plugin-dialog");
+  const path = await save({
+    title: "Export diagnostics",
+    defaultPath: suggestedName,
+    filters: [{ name: "Text", extensions: ["txt"] }],
+  });
+  if (typeof path !== "string") return null;
+  await invoke("save_text_file", { path, contents });
+  return path;
 }

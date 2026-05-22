@@ -13,10 +13,12 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -b && tsc -p tsconfig.app.json --noEmit"
+    "typecheck": "tsc -b && tsc -p tsconfig.app.json --noEmit",
+    "tauri": "tauri"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.0",
+    "@tauri-apps/cli": "^2.11.2",
     "@types/node": "^22.10.5",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
@@ -32,6 +34,11 @@
     "@fontsource/roboto-slab": "^5.2.8",
     "@fontsource/syne": "^5.2.7",
     "@heroicons/react": "^2.2.0",
+    "@tauri-apps/api": "^2.11.0",
+    "@tauri-apps/plugin-dialog": "^2.7.1",
+    "@tauri-apps/plugin-fs": "^2.5.1",
+    "@tauri-apps/plugin-log": "^2.8.0",
+    "@tauri-apps/plugin-updater": "^2.10.1",
     "clsx": "^2.1.1",
     "plotly.js-dist-min": "^3.5.1",
     "react": "^19.2.6",
