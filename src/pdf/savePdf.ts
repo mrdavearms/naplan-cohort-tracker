@@ -13,6 +13,17 @@ function getBuffer(doc: TDocumentDefinitions): Promise<Uint8Array> {
   });
 }
 
+/** Base64-encode bytes in chunks (avoids a call-stack overflow on large PDFs).
+ *  Sent to the Rust command as a compact string rather than a JSON number array. */
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
+
 /** Returns the saved path (Tauri), "downloaded" (browser), or null if cancelled. */
 export async function savePdf(doc: TDocumentDefinitions, filename: string): Promise<string | null> {
   if (!isTauri()) {
@@ -28,6 +39,6 @@ export async function savePdf(doc: TDocumentDefinitions, filename: string): Prom
   });
   if (typeof path !== "string") return null;
   const bytes = await getBuffer(doc);
-  await invoke("save_binary_file", { path, bytes: Array.from(bytes) });
+  await invoke("save_binary_file", { path, b64: bytesToBase64(bytes) });
   return path;
 }
