@@ -6,15 +6,18 @@ _Last updated: end of the autonomous overnight session._
 
 ## TL;DR
 
-Phases 4–7 are built, committed and pushed to `origin/main`. The app runs in the
-browser (`npm run dev`) and as a native macOS app (`npm run tauri build` → a
-`.dmg`). 98 core tests pass; both typechecks and the web build are green. The
+Phases 4–7 are built, committed and pushed to `origin/main`, and **GitHub
+Actions now builds the Mac + Windows installers** (release `v0.1.0`, a draft, has
+them attached). **118 tests pass** (analysis core + UI + PDF rendering); both
+typechecks and the web build are green; CI is green on macOS + Windows. The
 **real OneDrive data was smoke-tested through the analysis pipeline** (73 of 92
 Year 9 students matched back to Year 7 — ~79%, matching the legacy ~80%).
 
-The main thing I **could not** do headlessly is click through the *native* app's
-GUI (file dialog → charts → PDF export). That's the one morning task — see
-"Verify in the morning". Everything underneath it is individually validated.
+Automated tests now render **all 10 section views + Home + Settings + the
+match-rate banner** against real synthetic data, and **both PDF reports** build
+to actual PDF bytes — so the only thing left that needs eyes-on is a quick visual
+pass of the packaged app (charts look right, PDF layout reads well). See
+"Verify in the morning" (now low-risk).
 
 ## Where things stand
 
@@ -23,8 +26,9 @@ GUI (file dialog → charts → PDF export). That's the one morning task — see
 | 0–3 (analysis core) | Complete, oracle-validated (pre-session). |
 | 4 — Tauri + React shell | **Done.** Frontend, all 10 section views, Settings, match-rate banner, native folder picker, logging, updater wired. |
 | 5 — PDF reports | **Done.** Overview (S1–9) + cohort (S10) PDFs via pdfmake + Plotly PNG. |
-| 6 — Packaging + updater | **macOS done locally** (unsigned `.dmg`/`.app` + signed updater artifacts built). CI release workflow ready. Windows + releases-repo = NEEDS DAVE. |
+| 6 — Packaging + updater | **Done on CI.** `v0.1.0` draft release built by GitHub Actions has the macOS `.dmg` + Windows `.exe`/`.msi` (signed) + `latest.json`. Auto-update's public feed = your A/B choice (NEEDS DAVE #3). |
 | 7 — Polish | **Done.** User guide, README, error/empty/loading states. |
+| Testing | **118 tests** — analysis core (oracle-validated) + UI view rendering + PDF generation, green on macOS + Windows CI. |
 
 ## Completed this session (detail)
 
@@ -117,24 +121,25 @@ Until one of these is done, auto-update will report "could not check for updates
   Revisit Windows Authenticode **before** any rollout to managed Dept-of-Education
   Windows fleets — policy there can hard-block unsigned installers.
 
-## Verify in the morning (5–10 min GUI smoke — not a blocker, just unverifiable headlessly)
+## Verify in the morning (5 min visual pass — low-risk now)
 
-The built app is at:
-`src-tauri/target/release/bundle/dmg/Naplan Throughline_0.1.0_aarch64.dmg`
-(also the `.app` in `…/bundle/macos/`). Or run `npm run tauri dev`.
+Automated tests already cover that every view renders and both PDFs generate;
+this is just an eyes-on confirmation in the packaged app. Download from the
+`v0.1.0` draft release (`gh release view v0.1.0 --web`), or run `npm run tauri dev`,
+or use the local build at
+`src-tauri/target/release/bundle/dmg/Naplan Throughline_0.1.0_aarch64.dmg`.
 
-1. Open the app → **Choose your NAPLAN folder** → pick the OneDrive folder that
-   contains `Naplan 2024/2025/2026`. (Don't commit any of that data.)
-2. Confirm the match-rate banner shows ~"73 of 92 (79%)" for 2026.
-3. Click through all 10 sections — charts should render (this exercises the CSP +
-   Plotly under the bundled webview, which I couldn't verify headlessly).
-4. **Export overview PDF** (Overview screen) and **Export cohort PDF** (Section
-   10) — confirm both save and look right. (PDF chart→PNG only runs in the GUI.)
-5. Settings → **Export diagnostics** → confirm it writes a `.txt` with no student data.
+1. **Choose your NAPLAN folder** → the OneDrive folder with `Naplan 2024/2025/2026`.
+   (Don't commit that data.)
+2. Match-rate banner should read ~"73 of 92 (79%)" for 2026.
+3. Click through the 10 sections — confirm charts look right (the component tests
+   prove they render under the stubbed Plotly; this confirms real Plotly + the CSP
+   in the bundled webview, the one thing not machine-tested).
+4. **Export overview PDF** + **Export cohort PDF** — confirm they look well laid out.
+5. Settings → **Export diagnostics** → confirm a `.txt` with no student data.
 
-If charts or PDFs misbehave under the CSP, the quickest fallback is to loosen
-`app.security.csp` in `tauri.conf.json` (or temporarily set it to `null`) and
-rebuild — but they're expected to work.
+If charts/PDFs misbehave under the CSP (unlikely), loosen `app.security.csp` in
+`tauri.conf.json` and rebuild.
 
 ## Known issues / TODOs
 
@@ -164,7 +169,7 @@ rebuild — but they're expected to work.
 cd /Users/davidarmstrong/Antigravity/naplan-throughline
 npm install
 npm run dev        # Vite dev server (browser) — folder picker uses a directory <input>
-npm test           # vitest — 98 tests
+npm test           # vitest — 118 tests (core + UI + PDF)
 npm run typecheck  # tsc -b (core) + app typecheck
 npm run build      # production web build
 ```
