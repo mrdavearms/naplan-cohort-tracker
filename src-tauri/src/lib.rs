@@ -92,9 +92,14 @@ fn app_info() -> AppInfo {
 }
 
 /// Write a plain-text file (used by "Export diagnostics"). The path comes from a
-/// native save dialog; contents must never include student data.
+/// native save dialog; contents must never include student data. Guarded to an
+/// absolute `.txt` path so the command can't be repurposed to write elsewhere.
 #[tauri::command]
 fn save_text_file(path: String, contents: String) -> Result<(), String> {
+    let p = Path::new(&path);
+    if !p.is_absolute() || p.extension().and_then(|e| e.to_str()) != Some("txt") {
+        return Err("refusing to write: path must be an absolute .txt file".into());
+    }
     std::fs::write(&path, contents).map_err(|e| format!("{path}: {e}"))
 }
 
@@ -116,8 +121,7 @@ pub fn run() {
 
     let mut builder = tauri::Builder::default()
         .plugin(log_plugin)
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_fs::init());
+        .plugin(tauri_plugin_dialog::init());
 
     #[cfg(desktop)]
     {

@@ -3,14 +3,7 @@
  * pattern; no router). Holds the loaded analysis store, the selected primary
  * year, school-identity settings, and the active view.
  */
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useReducer,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
 import {
   availableYears,
   defaultSettings,
@@ -117,12 +110,13 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState);
-
-  // Hydrate persisted settings once on mount.
-  useEffect(() => {
-    dispatch({ type: "setSettings", settings: loadSettings() });
-  }, []);
+  // Hydrate persisted settings synchronously via lazy init so a SettingsView
+  // mounted on first paint never captures blank defaults (which a Save would
+  // then persist over the real settings).
+  const [state, dispatch] = useReducer(reducer, initialState, (s) => ({
+    ...s,
+    settings: loadSettings(),
+  }));
 
   const value = useMemo<AppContextValue>(
     () => ({
