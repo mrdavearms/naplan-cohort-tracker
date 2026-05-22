@@ -20,7 +20,7 @@ import {
   mcnemarPaired,
   NAS,
   parseWorkbook,
-  readingSubdomainMovement,
+  subdomainMovement,
   transitionMatrix,
   wilsonCi,
   type StudentResultRow,
@@ -220,7 +220,7 @@ describe("readingSubdomainMovement", () => {
   it("computes Y7 vs Y9 % correct per subdomain", () => {
     const y7 = [res("Comprehension", "Correct"), res("Comprehension", "Incorrect"), res("Language", "Correct"), res("Language", "Correct")];
     const y9 = [res("Comprehension", "Correct"), res("Comprehension", "Correct"), res("Literature", "Correct")];
-    const m = readingSubdomainMovement(y7, y9);
+    const m = subdomainMovement(y7, y9);
     expect(m.map((x) => x.subdomain)).toEqual(["Comprehension", "Language", "Literature"]);
     const comp = m.find((x) => x.subdomain === "Comprehension")!;
     expect(comp.y7PctCorrect).toBeCloseTo(50, 10);

@@ -25,7 +25,7 @@ import {
   interpretWilson,
   LEFT_WHS,
   mcnemarPaired,
-  readingSubdomainMovement,
+  subdomainMovement,
   transitionHeatmapFigure,
   transitionSankeyFigure,
   wilsonCiDotPlotFigure,
@@ -239,7 +239,7 @@ function DomainDrilldown({
   const isReading = pc.domain === "Reading";
   const y7Reading = isReading ? getEntry(store, y7Year, 7, "Reading")?.studentResults ?? [] : [];
   const y9Reading = isReading ? getEntry(store, y9Year, 9, "Reading")?.studentResults ?? [] : [];
-  const subdomainMovement = isReading ? readingSubdomainMovement(y7Reading, y9Reading) : [];
+  const subdomainMoves = isReading ? subdomainMovement(y7Reading, y9Reading) : [];
 
   return (
     <div className="space-y-6">
@@ -419,7 +419,7 @@ function DomainDrilldown({
       </Card>
 
       {/* Reading subdomains (Reading only) */}
-      {isReading && subdomainMovement.length > 0 && (
+      {isReading && subdomainMoves.length > 0 && (
         <Card>
           <h2 className="mb-1 text-lg font-semibold text-graphite">Reading subdomains — Y7 vs Y9 % correct</h2>
           <p className="mb-3 text-xs text-graphite/60">
@@ -435,7 +435,7 @@ function DomainDrilldown({
               </tr>
             </thead>
             <tbody>
-              {subdomainMovement.map((s) => (
+              {subdomainMoves.map((s) => (
                 <tr key={s.subdomain} className="border-b border-alabaster/60 last:border-0">
                   <td className="py-2 font-medium text-graphite">{s.subdomain}</td>
                   <td className="py-2 text-right tabular-nums">{pct(s.y7PctCorrect)}</td>

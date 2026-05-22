@@ -255,8 +255,9 @@ function accuracyBySubdomain(results: readonly StudentResultRow[]): Map<string, 
   return out;
 }
 
-/** Y7 vs Y9 % correct per subdomain (capability against year-level standard). */
-export function readingSubdomainMovement(
+/** Y7 vs Y9 % correct per subdomain (capability against the year-level
+ *  standard). Domain-agnostic — pass either year's Student Results rows. */
+export function subdomainMovement(
   y7Results: readonly StudentResultRow[],
   y9Results: readonly StudentResultRow[],
 ): SubdomainMovement[] {

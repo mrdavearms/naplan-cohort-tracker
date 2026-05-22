@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bandMovement, declinedOrStalled, type PairedCohort, type PairedStudent } from "../src/index";
+import { bandMovement, declinedOrStalled, subdomainMovement, type PairedCohort, type PairedStudent, type StudentResultRow } from "../src/index";
 
 const NAS = "Needs additional support";
 
@@ -74,5 +74,28 @@ describe("bandMovement", () => {
   it("returns zeroes (no NaN) for an empty cohort", () => {
     const m = bandMovement(cohort([]));
     expect(m).toEqual({ up: 0, stayed: 0, down: 0, total: 0, upPct: 0, stayedPct: 0, downPct: 0 });
+  });
+});
+
+describe("subdomainMovement", () => {
+  const r = (subdomain: string, marked: string): StudentResultRow => ({
+    studentPsi: "p",
+    yearLevel: 9,
+    classGroups: null,
+    itemId: "i",
+    itemDifficulty: 500,
+    domain: "Numeracy",
+    subdomain,
+    descriptor: "d",
+    studentMarkedResponse: marked,
+    difficultyBand: "480-580",
+  });
+
+  it("computes Y7 vs Y9 % correct per subdomain for any domain", () => {
+    const y7 = [r("Number", "Correct"), r("Number", "Incorrect")]; // 50%
+    const y9 = [r("Number", "Correct"), r("Number", "Correct")]; // 100%
+    const out = subdomainMovement(y7, y9);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({ subdomain: "Number", y7PctCorrect: 50, y9PctCorrect: 100, deltaPp: 50 });
   });
 });
