@@ -28,6 +28,22 @@ export default defineConfig({
   },
   build: {
     target: "es2022",
-    chunkSizeWarningLimit: 1200,
+    // Plotly (~4.8 MB) is inherently large; this is a bundled desktop app, so
+    // chunk size isn't a network concern. Raise the warning threshold.
+    chunkSizeWarningLimit: 5000,
+    rollupOptions: {
+      output: {
+        // Split the heavy vendors into their own chunks (better caching, no
+        // single oversized bundle). Plotly, pdfmake and exceljs are the big ones.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("plotly")) return "vendor-plotly";
+          if (id.includes("pdfmake")) return "vendor-pdf";
+          if (id.includes("exceljs")) return "vendor-xlsx";
+          if (id.includes("react")) return "vendor-react";
+          return undefined;
+        },
+      },
+    },
   },
 });
