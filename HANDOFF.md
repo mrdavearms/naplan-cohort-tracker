@@ -7,17 +7,36 @@ _Last updated: end of the autonomous overnight session._
 ## TL;DR
 
 Phases 4–7 are built, committed and pushed to `origin/main`, and **GitHub
-Actions now builds the Mac + Windows installers** (release `v0.1.0`, a draft, has
-them attached). **118 tests pass** (analysis core + UI + PDF rendering); both
-typechecks and the web build are green; CI is green on macOS + Windows. The
-**real OneDrive data was smoke-tested through the analysis pipeline** (73 of 92
-Year 9 students matched back to Year 7 — ~79%, matching the legacy ~80%).
+Actions builds + ships the Mac + Windows installers** with working auto-update
+(current release **v0.1.2**). **120 tests pass** (analysis core + UI + PDF
+rendering + crash-safety); ESLint, both typechecks and the web build are green;
+CI runs lint + typecheck + tests green on macOS + Windows. The **real OneDrive
+data matches the Python oracle exactly** (73 of 92 Year 9 matched to Year 7,
+~79%). A **deep stability review** was done and acted on (see below).
 
 Automated tests now render **all 10 section views + Home + Settings + the
 match-rate banner** against real synthetic data, and **both PDF reports** build
 to actual PDF bytes — so the only thing left that needs eyes-on is a quick visual
 pass of the packaged app (charts look right, PDF layout reads well). See
 "Verify in the morning" (now low-risk).
+
+## Deep stability review — done (v0.1.2)
+
+A full review (a reviewer agent + ESLint) hunted for crashes, lint problems and
+instability. The codebase was largely clean (Rust had no panic risks, hooks were
+correct, edge cases handled, the CSP is actually correct for Plotly). Fixes made
+and shipped in v0.1.2:
+
+- **React `ErrorBoundary`** at the root and around the active view — any
+  component throw now shows a recoverable message instead of white-screening the
+  whole window (the top crash risk; there was none before).
+- **`SectionRouter` guard** for the `primaryYear == null` edge case.
+- **Folder-read failures are surfaced** in the picker instead of failing silently.
+- **ESLint** (flat config: typescript-eslint + react-hooks + a guard keeping
+  `core/` filesystem-free) added and wired into CI; all findings fixed (dead
+  code/imports, a comma-expression rewritten, `MatchRateBanner`/S5 memoised).
+- **PDF→disk over IPC uses base64** (compact string) instead of a multi-MB JSON
+  number array (a low-spec-Windows risk).
 
 ## Where things stand
 
