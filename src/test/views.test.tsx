@@ -80,3 +80,11 @@ describe("cross-domain overview", () => {
     expect(screen.getByText(/Band movement/i)).toBeInTheDocument();
   });
 });
+
+describe("Section 10 per-domain additions", () => {
+  it("renders movement, subdomains and the follow-up list for the synthetic cohort", () => {
+    renderWithApp(<S10CohortTracking />, { store });
+    expect(screen.getAllByText(/band movement/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/students to follow up/i).length).toBeGreaterThan(0);
+  });
+});

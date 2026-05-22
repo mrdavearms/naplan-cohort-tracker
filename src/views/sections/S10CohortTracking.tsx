@@ -9,11 +9,13 @@
 import { useMemo, useState } from "react";
 import {
   attritionAnalysis,
+  bandMovement,
   buildCohortNarrative,
   buildCohortPairings,
   classGroupTracking,
   cohortHeadline,
   cohortYears,
+  declinedOrStalled,
   equitySubCohorts,
   getEntry,
   interpretAttrition,
@@ -25,6 +27,7 @@ import {
   interpretWilson,
   LEFT_WHS,
   mcnemarPaired,
+  movementStackedFigure,
   subdomainMovement,
   transitionHeatmapFigure,
   transitionSankeyFigure,
@@ -239,10 +242,10 @@ function DomainDrilldown({
   const subCohorts = equitySubCohorts(pc);
   const classRows = classGroupTracking(pc);
 
+  const y7Results = getEntry(store, y7Year, 7, pc.domain)?.studentResults ?? [];
+  const y9Results = getEntry(store, y9Year, 9, pc.domain)?.studentResults ?? [];
+  const subdomainMoves = subdomainMovement(y7Results, y9Results);
   const isReading = pc.domain === "Reading";
-  const y7Reading = isReading ? getEntry(store, y7Year, 7, "Reading")?.studentResults ?? [] : [];
-  const y9Reading = isReading ? getEntry(store, y9Year, 9, "Reading")?.studentResults ?? [] : [];
-  const subdomainMoves = isReading ? subdomainMovement(y7Reading, y9Reading) : [];
 
   return (
     <div className="space-y-6">
@@ -259,6 +262,18 @@ function DomainDrilldown({
         <div className="mt-3">
           <Bullets items={interpretTransition(pc)} />
         </div>
+      </Card>
+
+      {/* Band movement bar */}
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} — band movement</h2>
+        <p className="mb-3 text-xs text-graphite/60">
+          Share of the matched cohort that moved up a proficiency band, held, or slipped down.
+        </p>
+        <Chart
+          figure={movementStackedFigure([{ label: `${pc.domain} (n=${pc.paired.length})`, movement: bandMovement(pc) }])}
+          height={150}
+        />
       </Card>
 
       {/* NAS Wilson CI + McNemar */}
@@ -421,12 +436,13 @@ function DomainDrilldown({
         </div>
       </Card>
 
-      {/* Reading subdomains (Reading only) */}
-      {isReading && subdomainMoves.length > 0 && (
+      {/* Subdomains — all domains */}
+      {subdomainMoves.length > 0 ? (
         <Card>
-          <h2 className="mb-1 text-lg font-semibold text-graphite">Reading subdomains — Y7 vs Y9 % correct</h2>
+          <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} subdomains — Y7 vs Y9 % correct</h2>
           <p className="mb-3 text-xs text-graphite/60">
-            Capability against the year-level standard per subdomain (item-level accuracy).
+            Capability against the year-level standard, weakest first. This is a <strong>directional</strong>{" "}
+            signal, not true growth — the Y7 and Y9 tests differ in difficulty.
           </p>
           <table className="w-full text-sm">
             <thead>
@@ -438,32 +454,90 @@ function DomainDrilldown({
               </tr>
             </thead>
             <tbody>
-              {subdomainMoves.map((s) => (
-                <tr key={s.subdomain} className="border-b border-alabaster/60 last:border-0">
-                  <td className="py-2 font-medium text-graphite">{s.subdomain}</td>
-                  <td className="py-2 text-right tabular-nums">{pct(s.y7PctCorrect)}</td>
-                  <td className="py-2 text-right tabular-nums">{pct(s.y9PctCorrect)}</td>
-                  <td
-                    className={
-                      "py-2 text-right tabular-nums " +
-                      (s.deltaPp != null && s.deltaPp > 0
-                        ? "text-sage-text"
-                        : s.deltaPp != null && s.deltaPp < 0
-                          ? "text-coral-text"
-                          : "")
-                    }
-                  >
-                    {pp(s.deltaPp)}
-                  </td>
-                </tr>
-              ))}
+              {[...subdomainMoves]
+                .sort((a, b) => (a.y9PctCorrect ?? 0) - (b.y9PctCorrect ?? 0))
+                .map((s) => (
+                  <tr key={s.subdomain} className="border-b border-alabaster/60 last:border-0">
+                    <td className="py-2 font-medium text-graphite">{s.subdomain}</td>
+                    <td className="py-2 text-right tabular-nums">{pct(s.y7PctCorrect)}</td>
+                    <td className="py-2 text-right tabular-nums">{pct(s.y9PctCorrect)}</td>
+                    <td
+                      className={
+                        "py-2 text-right tabular-nums " +
+                        (s.deltaPp != null && s.deltaPp > 0
+                          ? "text-sage-text"
+                          : s.deltaPp != null && s.deltaPp < 0
+                            ? "text-coral-text"
+                            : "")
+                      }
+                    >
+                      {pp(s.deltaPp)}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
-          <div className="mt-3">
-            <Bullets items={interpretReadingSubdomains(y7Reading, y9Reading, y7Year, y9Year, ctx)} />
-          </div>
+          {isReading && (
+            <div className="mt-3">
+              <Bullets items={interpretReadingSubdomains(y7Results, y9Results, y7Year, y9Year, ctx)} />
+            </div>
+          )}
+        </Card>
+      ) : (
+        <Card>
+          <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} subdomains</h2>
+          <p className="text-sm text-graphite/60">
+            No subdomain-level item data is available for {pc.domain} in both years.
+          </p>
         </Card>
       )}
+
+      {/* Students to follow up — declined or stalled */}
+      {(() => {
+        const ds = declinedOrStalled(pc);
+        return (
+          <Card>
+            <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} — students to follow up</h2>
+            <p className="mb-3 text-xs text-graphite/60">
+              Matched students who slipped a band, or who stayed at “Needs additional support” both years.
+              Local Student IDs only — no names.
+            </p>
+            {ds.declined.length === 0 && ds.stalled.length === 0 ? (
+              <p className="text-sm text-graphite/60">No students declined or stalled in {pc.domain}.</p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-alabaster text-left text-xs uppercase tracking-wide text-graphite/50">
+                    <th className="py-2">Local ID</th>
+                    <th className="py-2">Flag</th>
+                    <th className="py-2">Y7 class</th>
+                    <th className="py-2">Y9 class</th>
+                    <th className="py-2">Y7 → Y9 band</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ...ds.declined.map((s) => ({ s, flag: "Declined" as const })),
+                    ...ds.stalled.map((s) => ({ s, flag: "Stalled at NAS" as const })),
+                  ].map(({ s, flag }, i) => (
+                    <tr key={`${s.localStudentId}-${i}`} className="border-b border-alabaster/60 last:border-0">
+                      <td className="py-2 font-medium text-graphite">{s.localStudentId}</td>
+                      <td className="py-2">
+                        <Pill tone="coral">{flag}</Pill>
+                      </td>
+                      <td className="py-2 text-graphite/70">{s.classGroupY7 ?? "—"}</td>
+                      <td className="py-2 text-graphite/70">{s.classGroupY9 ?? "—"}</td>
+                      <td className="py-2 tabular-nums">
+                        {s.proficiencyY7} → {s.proficiencyY9}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Card>
+        );
+      })()}
     </div>
   );
 }
