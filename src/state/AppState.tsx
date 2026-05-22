@@ -99,7 +99,7 @@ function reducer(state: AppState, action: Action): AppState {
   }
 }
 
-interface AppContextValue {
+export interface AppContextValue {
   state: AppState;
   loadFiles: (files: RawWorkbookFile[], sourceLabel: string | null) => Promise<void>;
   setPrimaryYear: (year: number) => void;
@@ -107,7 +107,9 @@ interface AppContextValue {
   updateSettings: (settings: Settings) => void;
 }
 
-const AppContext = createContext<AppContextValue | null>(null);
+// Exported so tests can inject a fabricated loaded state without the async
+// file-load machinery. Production code uses the provider + useApp() below.
+export const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   // Hydrate persisted settings synchronously via lazy init so a SettingsView
