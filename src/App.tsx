@@ -6,6 +6,7 @@
 import { useApp } from "./state/AppState";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { HomeView } from "./views/HomeView";
 import { SettingsView } from "./views/SettingsView";
 import { SectionRouter } from "./views/SectionRouter";
@@ -44,7 +45,10 @@ export function App() {
         <TopBar />
         <main className="flex-1 overflow-y-auto px-8 py-6">
           <div className="mx-auto max-w-5xl animate-[fadeIn_0.4s_ease-out]">
-            <ActiveView />
+            {/* Keyed so a section crash clears when you navigate elsewhere. */}
+            <ErrorBoundary key={state.activeView}>
+              <ActiveView />
+            </ErrorBoundary>
           </div>
         </main>
       </div>

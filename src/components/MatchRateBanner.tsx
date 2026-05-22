@@ -3,6 +3,7 @@
  * case (Local Student IDs that don't reconcile across years) self-diagnosing.
  * Keying is on Local student ID (with the {PSI}* fallback), never the VCAA PSI.
  */
+import { useMemo } from "react";
 import { ArrowsRightLeftIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import {
   buildCohortPairings,
@@ -13,7 +14,7 @@ import {
 
 export function MatchRateBanner({ store, primaryYear }: { store: Store; primaryYear: number }) {
   const [y7Year, y9Year] = cohortYears(primaryYear);
-  const pairings = buildCohortPairings(store, primaryYear);
+  const pairings = useMemo(() => buildCohortPairings(store, primaryYear), [store, primaryYear]);
 
   if (pairings.size === 0) {
     return (

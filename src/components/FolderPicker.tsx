@@ -13,6 +13,7 @@ export function FolderPicker({ compact = false }: { compact?: boolean }) {
   const { loadFiles } = useApp();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   async function handlePick() {
     if (!isTauri()) {
@@ -20,9 +21,13 @@ export function FolderPicker({ compact = false }: { compact?: boolean }) {
       return;
     }
     setBusy(true);
+    setErr(null);
     try {
       const picked = await loadFolderViaTauri();
       if (picked) await loadFiles(picked.files, picked.label);
+    } catch (e) {
+      // Native dialog / folder-read failure — surface it instead of failing silently.
+      setErr(`Could not read that folder: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setBusy(false);
     }
@@ -32,10 +37,13 @@ export function FolderPicker({ compact = false }: { compact?: boolean }) {
     const list = e.target.files;
     if (!list || list.length === 0) return;
     setBusy(true);
+    setErr(null);
     try {
       const files = await filesFromFileList(list);
       const label = files[0]?.relativePath.split(/[/\\]/)[0] ?? null;
       await loadFiles(files, label);
+    } catch (e2) {
+      setErr(`Could not read that folder: ${e2 instanceof Error ? e2.message : String(e2)}`);
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -43,7 +51,7 @@ export function FolderPicker({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <>
+    <div className={compact ? "inline-flex flex-col items-end gap-1" : "flex flex-col items-center gap-2"}>
       {/* webkitdirectory lets the browser pick a whole folder; ignored in Tauri. */}
       <input
         ref={inputRef}
@@ -68,6 +76,7 @@ export function FolderPicker({ compact = false }: { compact?: boolean }) {
         <FolderOpenIcon className={compact ? "h-5 w-5" : "h-6 w-6"} />
         {busy ? "Loading…" : compact ? "Change folder" : "Choose your NAPLAN folder"}
       </button>
-    </>
+      {err && <p className="max-w-xs text-xs text-coral-text">{err}</p>}
+    </div>
   );
 }

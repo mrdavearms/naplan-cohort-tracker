@@ -3,11 +3,13 @@
  * settings persistence round-trip, and the browser file-list → core conversion.
  */
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { defaultSettings, migrate } from "@naplan-throughline/core";
 import { renderWithApp } from "./renderWithApp";
 import { HomeView } from "../views/HomeView";
 import { SettingsView } from "../views/SettingsView";
+import { SectionRouter } from "../views/SectionRouter";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import { loadSettings, saveSettings } from "../lib/persist";
 import { filesFromFileList } from "../lib/dataSource";
 
@@ -51,6 +53,32 @@ describe("settings persistence round-trip", () => {
     expect(loaded.schoolNumber).toBe("4321");
     expect(loaded.planLabel).toBe("AIP");
     expect(loaded.schemaVersion).toBe(migrate(s).schemaVersion);
+  });
+});
+
+describe("crash safety", () => {
+  function Boom(): never {
+    throw new Error("kaboom");
+  }
+
+  it("ErrorBoundary catches a child throw and shows a recoverable message", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(
+      <ErrorBoundary>
+        <Boom />
+      </ErrorBoundary>,
+    );
+    expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+    expect(screen.getByText(/kaboom/)).toBeInTheDocument();
+    spy.mockRestore();
+  });
+
+  it("SectionRouter renders nothing (not a crash) when no year is selected", () => {
+    const { container } = renderWithApp(<SectionRouter />, {
+      store: emptyStore,
+      state: { status: "loaded", primaryYear: null, activeView: "s1" },
+    });
+    expect(container.textContent).toBe("");
   });
 });
 

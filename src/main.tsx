@@ -13,14 +13,17 @@ import "@fontsource/syne/800.css";
 import "./index.css";
 import { App } from "./App";
 import { AppStateProvider } from "./state/AppState";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("#root not found");
 
 ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
-    <AppStateProvider>
-      <App />
-    </AppStateProvider>
+    <ErrorBoundary>
+      <AppStateProvider>
+        <App />
+      </AppStateProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 );

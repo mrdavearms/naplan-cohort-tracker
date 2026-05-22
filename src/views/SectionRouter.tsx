@@ -15,6 +15,10 @@ import { S10CohortTracking } from "./sections/S10CohortTracking";
 
 export function SectionRouter() {
   const { state } = useApp();
+  // Defensive: sections assume a loaded store + a selected year. Never reached
+  // in normal flow (App only renders sections when loaded), but guards the
+  // `primaryYear!` assertions in every section against a null edge case.
+  if (state.status !== "loaded" || state.primaryYear == null) return null;
   switch (state.activeView) {
     case "s1":
       return <S1Participation />;
