@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bandMovement, type PairedCohort, type PairedStudent } from "../src/index";
+import { bandMovement, declinedOrStalled, type PairedCohort, type PairedStudent } from "../src/index";
 
 const NAS = "Needs additional support";
 
@@ -19,6 +19,46 @@ function ps(y7: string, y9: string): PairedStudent {
 function cohort(paired: PairedStudent[]): PairedCohort {
   return { domain: "Reading", paired, leavers: [], joiners: [], pairedFilteredCount: 0 };
 }
+
+function psFull(id: string, y7: string, y9: string, cg7: string | null, cg9: string | null): PairedStudent {
+  return {
+    localStudentId: id,
+    classGroupY7: cg7,
+    proficiencyY7: y7,
+    lboteStatus: null,
+    atsiGroup: "Not reported",
+    participationCode: "Participated",
+    classGroupY9: cg9,
+    proficiencyY9: y9,
+  };
+}
+
+describe("declinedOrStalled", () => {
+  it("lists students who dropped a band and those who stalled at NAS", () => {
+    const pc: PairedCohort = {
+      domain: "Reading",
+      paired: [
+        psFull("A", "Strong", "Developing", "07A", "09A"), // declined
+        psFull("B", NAS, NAS, "07B", "09C"), // stalled at NAS
+        psFull("C", "Developing", "Strong", "07A", "09A"), // improved (excluded)
+        psFull("D", "Exceeding", NAS, "07A", "09B"), // declined (and ends at NAS, but NOT stalled — Y7 wasn't NAS)
+      ],
+      leavers: [],
+      joiners: [],
+      pairedFilteredCount: 0,
+    };
+    const r = declinedOrStalled(pc);
+    expect(r.declined.map((s) => s.localStudentId)).toEqual(["A", "D"]);
+    expect(r.stalled.map((s) => s.localStudentId)).toEqual(["B"]);
+    expect(r.declined[0]).toMatchObject({
+      localStudentId: "A",
+      classGroupY7: "07A",
+      classGroupY9: "09A",
+      proficiencyY7: "Strong",
+      proficiencyY9: "Developing",
+    });
+  });
+});
 
 describe("bandMovement", () => {
   it("classifies up / stayed / down by proficiency-band order", () => {

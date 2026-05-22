@@ -74,6 +74,43 @@ export function bandMovement(pc: PairedCohort): BandMovement {
   return { up, stayed, down, total, upPct: pct(up), stayedPct: pct(stayed), downPct: pct(down) };
 }
 
+export interface PairedStudentMove {
+  localStudentId: string;
+  classGroupY7: string | null;
+  classGroupY9: string | null;
+  proficiencyY7: string;
+  proficiencyY9: string;
+}
+
+export interface DeclinedStalled {
+  /** Moved down >= 1 proficiency band Y7 -> Y9. */
+  declined: PairedStudentMove[];
+  /** Needs additional support in BOTH years. */
+  stalled: PairedStudentMove[];
+}
+
+/** Faculty target lists, by Local Student ID (never names): students who
+ *  dropped a band, and students who stalled at NAS across Y7 -> Y9. */
+export function declinedOrStalled(pc: PairedCohort): DeclinedStalled {
+  const rank = (band: string): number => (PROFICIENCY_LEVELS as readonly string[]).indexOf(band);
+  const toMove = (s: PairedStudent): PairedStudentMove => ({
+    localStudentId: s.localStudentId,
+    classGroupY7: s.classGroupY7,
+    classGroupY9: s.classGroupY9,
+    proficiencyY7: s.proficiencyY7,
+    proficiencyY9: s.proficiencyY9,
+  });
+  const declined: PairedStudentMove[] = [];
+  const stalled: PairedStudentMove[] = [];
+  for (const s of pc.paired) {
+    const r7 = rank(s.proficiencyY7);
+    const r9 = rank(s.proficiencyY9);
+    if (r7 >= 0 && r9 >= 0 && r9 < r7) declined.push(toMove(s));
+    if (s.proficiencyY7 === NAS && s.proficiencyY9 === NAS) stalled.push(toMove(s));
+  }
+  return { declined, stalled };
+}
+
 export interface CohortHeadlineRow {
   domain: string;
   pairedN: number;
