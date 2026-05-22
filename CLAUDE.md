@@ -121,6 +121,21 @@ Bundle identifier: `com.dandsarmstrong.naplanthroughline`. Repo: `github.com/mrd
 - Dave is the Principal (not a developer); he can use a terminal but doesn't write code. Surface concerns and tradeoffs early rather than only validating.
 - Copy/paste content (commands, prompts, payloads) goes in fenced code blocks.
 
+## Branch workflow (test-first)
+
+This repo uses the **test-first branching policy** (adopted 2026-05-23), matching
+the other Antigravity apps:
+
+- **`test`** is the working/integration branch. Do feature work here; commit and
+  push to `test`. CI (`.github/workflows/ci.yml`) runs lint + typecheck + tests on
+  every push to `test` and `main`.
+- **`main`** is the release branch. **Only merge `test` → `main` after CI is green
+  on `test` AND with Dave's explicit confirmation** (never merge to `main`
+  unprompted, even when it seems obvious).
+- Releases are still cut from `main` via a version tag (`vX.Y.Z`) which triggers
+  `release.yml`, then `scripts/mirror-release.sh vX.Y.Z` publishes to the public
+  auto-update feed.
+
 ## Out of scope for v1
 
 Code-signing / notarization (ship unsigned), auto-update server, cloud-AI / pseudonymisation, Mac App Store / Microsoft Store submission, Writing-domain analysis, gender analysis, national-average overlay.
