@@ -1,0 +1,104 @@
+# Release workflow — builds signed installers for macOS + Windows and publishes
+# a GitHub Release with the updater manifest (latest.json) + signatures.
+#
+# STATUS: ready to run once the NEEDS DAVE items below are done. It is NOT
+# triggered by normal pushes — only by pushing a version tag (e.g. v0.1.0) or a
+# manual dispatch.
+#
+# ── NEEDS DAVE before this can produce working auto-updates ──────────────────
+# 1. Repo secrets (Settings → Secrets and variables → Actions):
+#      TAURI_SIGNING_PRIVATE_KEY           contents of ~/.naplan-throughline-updater.key
+#      TAURI_SIGNING_PRIVATE_KEY_PASSWORD  the key password ("" if none — this key has none)
+# 2. The PUBLIC releases repo: the updater endpoint baked into the app is
+#      https://github.com/mrdavearms/naplan-throughline-releases/releases/latest/download/latest.json
+#    GitHub blocks unauthenticated downloads of PRIVATE-repo release assets, so
+#    the installers + latest.json must live in a PUBLIC repo. Either:
+#      (a) create mrdavearms/naplan-throughline-releases (public) and publish there
+#          (set owner/repo on the tauri-action step + a PAT secret), or
+#      (b) make THIS repo public (simplest, but exposes source).
+#    Until then this workflow publishes a Release in THIS repo (fine for manual
+#    download; auto-update will 404 until the public feed exists).
+# 3. Windows WebView2 fixed runtime: tauri.conf.json sets
+#    bundle.windows.webviewInstallMode = fixedRuntime, which needs the runtime
+#    extracted to src-tauri/Microsoft.WebView2.FixedVersionRuntime/. Pin the
+#    exact version + download URL in the "Fetch WebView2 fixed runtime" step.
+# 4. Code-signing/notarization is intentionally OUT of scope for v1 (ship
+#    unsigned). Document the unsigned-open steps to users (see README).
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest # Apple Silicon
+            args: "--target aarch64-apple-darwin"
+            rust-target: aarch64-apple-darwin
+          - platform: macos-13 # Intel
+            args: "--target x86_64-apple-darwin"
+            rust-target: x86_64-apple-darwin
+          - platform: windows-latest
+            args: ""
+            rust-target: ""
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # NEEDS DAVE (item 3): fetch + extract the WebView2 fixed runtime so the
+      # Windows bundle can embed it. Pin the version/URL Microsoft provides.
+      # - name: Fetch WebView2 fixed runtime (Windows)
+      #   if: matrix.platform == 'windows-latest'
+      #   shell: pwsh
+      #   run: |
+      #     $url = "<PINNED_FIXED_RUNTIME_CAB_URL>"
+      #     Invoke-WebRequest $url -OutFile runtime.cab
+      #     New-Item -ItemType Directory -Force src-tauri/Microsoft.WebView2.FixedVersionRuntime
+      #     expand runtime.cab -F:* src-tauri/Microsoft.WebView2.FixedVersionRuntime
+
+      - name: Build + publish release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Updater signing — REQUIRED for createUpdaterArtifacts + auto-update.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Naplan Throughline ${{ github.ref_name }}
+          releaseBody: "On-device NAPLAN cohort analysis. Unsigned build — see the README for how to open it on macOS/Windows."
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+          # To publish to the SEPARATE PUBLIC releases repo (NEEDS DAVE item 2),
+          # add: owner: mrdavearms  repo: naplan-throughline-releases
+          # and set GITHUB_TOKEN to a PAT with write access to that repo.
