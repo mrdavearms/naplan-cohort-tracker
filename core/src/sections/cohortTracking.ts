@@ -10,6 +10,7 @@
  * data). Sub-cohort membership uses Y7 (entry-state) status only.
  */
 import { NAS, PROFICIENCY_LEVELS, type ProficiencyLevel } from "../constants";
+import { transitionMatrix } from "../cohort";
 import type { PairedCohort, PairedStudent, StudentResultRow } from "../types";
 
 export const COHORT_SUPPRESSION_THRESHOLD = 5; // n < 5 suppressed entirely
@@ -36,6 +37,41 @@ export function pairedProficiencyDistribution(
   const pct = emptyLevelMap();
   for (const lvl of PROFICIENCY_LEVELS) pct[lvl] = n === 0 ? 0 : (counts[lvl] / n) * 100;
   return pct;
+}
+
+export interface BandMovement {
+  /** Students who moved up >= 1 proficiency band Y7 -> Y9. */
+  up: number;
+  /** Students who stayed in the same band. */
+  stayed: number;
+  /** Students who moved down >= 1 band. */
+  down: number;
+  total: number;
+  upPct: number;
+  stayedPct: number;
+  downPct: number;
+}
+
+/** Up / stayed / down summary of the paired cohort, derived from the
+ *  oracle-validated transition matrix (rows = Y7 band, cols = Y9 band, in
+ *  PROFICIENCY_LEVELS order). Above the diagonal = up, diagonal = stayed,
+ *  below = down. */
+export function bandMovement(pc: PairedCohort): BandMovement {
+  const m = transitionMatrix(pc.paired);
+  let up = 0;
+  let stayed = 0;
+  let down = 0;
+  for (let i = 0; i < m.length; i++) {
+    for (let j = 0; j < m.length; j++) {
+      const c = m[i]![j]!;
+      if (j > i) up += c;
+      else if (j === i) stayed += c;
+      else down += c;
+    }
+  }
+  const total = up + stayed + down;
+  const pct = (x: number): number => (total > 0 ? (x / total) * 100 : 0);
+  return { up, stayed, down, total, upPct: pct(up), stayedPct: pct(stayed), downPct: pct(down) };
 }
 
 export interface CohortHeadlineRow {
