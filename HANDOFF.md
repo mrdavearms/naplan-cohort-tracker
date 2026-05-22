@@ -98,8 +98,11 @@ I deliberately did not print it into the chat for security.
 
 ## Verify in the morning (5 min visual pass — low-risk now)
 
-Automated tests already cover that every view renders and both PDFs generate;
-this is just an eyes-on confirmation in the packaged app. Download the installer
+Automated tests cover that every view renders and both PDFs generate, and the
+real Plotly chart→PNG path (`figureToPng`, which PDF export relies on) was
+confirmed working in a real browser with the actual core chart builders. So this
+is just an eyes-on confirmation in the packaged app — the only things not yet run
+anywhere are the production CSP and the native folder-dialog→Rust→core round-trip. Download the installer
 from the public releases page
 (https://github.com/mrdavearms/naplan-throughline-releases/releases/latest),
 or run `npm run tauri dev`, or use the local build at
