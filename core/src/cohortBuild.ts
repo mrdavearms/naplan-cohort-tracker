@@ -8,6 +8,7 @@
  */
 import { buildPairedCohort } from "./cohort";
 import { VALID_DOMAINS } from "./constants";
+import { bandMovement, cohortHeadline, type BandMovement } from "./sections/cohortTracking";
 import { getEntry, type Store } from "./store";
 import type { PairedCohort } from "./types";
 
@@ -100,4 +101,37 @@ export function cohortMatchRate(pairings: Map<string, PairedCohort>): CohortMatc
     y9CohortTotal,
     matchRatePct: y9CohortTotal > 0 ? (matched / y9CohortTotal) * 100 : 0,
   };
+}
+
+export interface CrossDomainRow {
+  domain: string;
+  pairedN: number;
+  y7NasPct: number;
+  y9NasPct: number;
+  deltaNasPp: number;
+  y7MeetingPct: number;
+  y9MeetingPct: number;
+  deltaMeetingPp: number;
+  movement: BandMovement;
+}
+
+/** Per-domain headline + movement for the cross-domain overview. Domains appear
+ *  in the pairings' insertion order (canonical VALID_DOMAINS order). */
+export function crossDomainSummary(pairings: Map<string, PairedCohort>): CrossDomainRow[] {
+  const out: CrossDomainRow[] = [];
+  for (const pc of pairings.values()) {
+    const h = cohortHeadline(pc);
+    out.push({
+      domain: h.domain,
+      pairedN: h.pairedN,
+      y7NasPct: h.y7NasPct,
+      y9NasPct: h.y9NasPct,
+      deltaNasPp: h.deltaNasPp,
+      y7MeetingPct: h.y7MeetingPct,
+      y9MeetingPct: h.y9MeetingPct,
+      deltaMeetingPp: h.deltaMeetingPp,
+      movement: bandMovement(pc),
+    });
+  }
+  return out;
 }

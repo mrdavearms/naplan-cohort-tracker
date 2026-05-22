@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { bandMovement, declinedOrStalled, subdomainMovement, type PairedCohort, type PairedStudent, type StudentResultRow } from "../src/index";
+import {
+  bandMovement,
+  crossDomainSummary,
+  declinedOrStalled,
+  subdomainMovement,
+  type PairedCohort,
+  type PairedStudent,
+  type StudentResultRow,
+} from "../src/index";
 
 const NAS = "Needs additional support";
 
@@ -74,6 +82,21 @@ describe("bandMovement", () => {
   it("returns zeroes (no NaN) for an empty cohort", () => {
     const m = bandMovement(cohort([]));
     expect(m).toEqual({ up: 0, stayed: 0, down: 0, total: 0, upPct: 0, stayedPct: 0, downPct: 0 });
+  });
+});
+
+describe("crossDomainSummary", () => {
+  it("returns one row per paired domain with NAS%, Meeting+% and movement", () => {
+    const reading = cohort([ps(NAS, "Strong"), ps("Strong", "Strong"), ps("Exceeding", "Developing")]);
+    const pairings = new Map<string, PairedCohort>([["Reading", reading]]);
+    const rows = crossDomainSummary(pairings);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.domain).toBe("Reading");
+    expect(rows[0]!.pairedN).toBe(3);
+    // movement: up=1 (NAS→Strong), stayed=1 (Strong→Strong), down=1 (Exceeding→Developing)
+    expect(rows[0]!.movement).toMatchObject({ up: 1, stayed: 1, down: 1 });
+    expect(typeof rows[0]!.y7NasPct).toBe("number");
+    expect(typeof rows[0]!.y9MeetingPct).toBe("number");
   });
 });
 
