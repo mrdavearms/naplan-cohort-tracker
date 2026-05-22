@@ -36,6 +36,7 @@ import { useApp } from "../../state/AppState";
 import { Card, EmptyState, Pill, SectionHeading } from "../../components/ui";
 import { Chart } from "../../components/Chart";
 import { MatchRateBanner } from "../../components/MatchRateBanner";
+import { ExportPdfButton } from "../../components/ExportPdfButton";
 
 const pp = (x: number | null): string => (x == null ? "—" : `${x >= 0 ? "+" : ""}${x.toFixed(1)}pp`);
 const pct = (x: number | null): string => (x == null ? "—" : `${x.toFixed(1)}%`);
@@ -102,6 +103,10 @@ export function S10CohortTracking() {
         title="Cohort tracking"
         blurb={`The same students from Year 7 (${y7Year}) to Year 9 (${y9Year}) — the school's value-add measure.`}
       />
+
+      <div className="flex justify-end">
+        <ExportPdfButton kind="cohort" />
+      </div>
 
       <MatchRateBanner store={store} primaryYear={primaryYear} />
 

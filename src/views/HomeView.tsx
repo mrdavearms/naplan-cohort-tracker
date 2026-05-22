@@ -8,6 +8,7 @@ import { useApp } from "../state/AppState";
 import { FolderPicker } from "../components/FolderPicker";
 import { MatchRateBanner } from "../components/MatchRateBanner";
 import { Card, Pill, PrivacyNote, StatTile } from "../components/ui";
+import { ExportPdfButton } from "../components/ExportPdfButton";
 
 function Hero({ error }: { error: string | null }) {
   return (
@@ -52,6 +53,11 @@ export function HomeView() {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold text-graphite">Overview</h1>
+        <ExportPdfButton kind="overview" />
+      </div>
+
       <MatchRateBanner store={store} primaryYear={primaryYear} />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

@@ -4,6 +4,12 @@ Autonomous build decisions (overnight Phase 4+). One line each: decision + why.
 These honour PLAN.md / CLAUDE.md / DESIGN.md. Where the user might have chosen
 differently, the default taken is the most conventional one for the stack.
 
+## Phase 5 — PDF reports
+
+- **PDF body font is pdfmake's built-in Roboto (embedded TTF), not bundled Inter/Roboto Slab/Syne.** — `@fontsource` ships only woff/woff2 (pdfmake needs embeddable TTF) and the app makes no network calls to fetch TTFs. Roboto is embedded in the PDF, so it renders identically across WebView2 and WebKit — which is the *actual* early-foundations #5 goal (cross-engine consistency). Charts are fixed-size PNGs for the same reason. Revisit by committing the OFL TTFs if an exact brand-font match is wanted.
+- **PDFs assembled with pdfmake (declarative), charts via Plotly `toImage` PNG.** — pdfmake mirrors the legacy reportlab declarative style (tables, auto page-breaks, footer with Page N of M); matches PLAN's "assemble in JS, no native dep".
+- **PDF binary save via a guarded Rust `save_binary_file` command (absolute `.pdf` only); browser falls back to download.** — Same pattern as diagnostics; avoids broad fs scope.
+
 ## Phase 4 — UI shell
 
 - **React app at repo root (`src/`, `index.html`, `vite.config.ts`); `core/` stays a workspace dep.** — Per PLAN.md senior-review layout note; keeps `core/` independently testable.

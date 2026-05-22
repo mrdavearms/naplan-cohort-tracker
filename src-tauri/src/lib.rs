@@ -103,6 +103,17 @@ fn save_text_file(path: String, contents: String) -> Result<(), String> {
     std::fs::write(&path, contents).map_err(|e| format!("{path}: {e}"))
 }
 
+/// Write binary bytes (a generated PDF) to an absolute `.pdf` path chosen via a
+/// native save dialog. Guarded so the command can't be repurposed.
+#[tauri::command]
+fn save_binary_file(path: String, bytes: Vec<u8>) -> Result<(), String> {
+    let p = Path::new(&path);
+    if !p.is_absolute() || p.extension().and_then(|e| e.to_str()) != Some("pdf") {
+        return Err("refusing to write: path must be an absolute .pdf file".into());
+    }
+    std::fs::write(&path, bytes).map_err(|e| format!("{path}: {e}"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let log_plugin = tauri_plugin_log::Builder::new()
@@ -132,7 +143,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             read_workbook_folder,
             app_info,
-            save_text_file
+            save_text_file,
+            save_binary_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
