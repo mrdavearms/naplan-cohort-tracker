@@ -41,7 +41,7 @@ export function divergingDeltaFigure(rows: readonly DeltaRow[], options: Dumbbel
         orientation: "h",
         x: rows.map((r) => r.deltaNasPp),
         y: rows.map((r) => r.domain),
-        marker: { color: rows.map((r) => (r.deltaNasPp <= 0 ? DIRECTION_FILL.improver : DIRECTION_FILL.decliner)) },
+        marker: { color: rows.map((r) => (r.deltaNasPp < 0 ? DIRECTION_FILL.improver : r.deltaNasPp > 0 ? DIRECTION_FILL.decliner : DIRECTION_FILL.stayer)) },
         text: rows.map((r) => `${r.deltaNasPp > 0 ? "+" : ""}${r.deltaNasPp.toFixed(1)}`),
         textposition: "outside",
         hovertemplate: "Δ NAS: %{x:.1f} pp<extra></extra>",

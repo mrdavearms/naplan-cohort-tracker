@@ -48,4 +48,14 @@ describe("divergingDeltaFigure", () => {
     expect(trace.x).toEqual([-5.5, 4.3]);
     expect(trace.marker.color[0]).not.toBe(trace.marker.color[1]); // improved vs worsened
   });
+
+  it("colours an exact-zero delta with the neutral stayer colour", () => {
+    const fig = divergingDeltaFigure([
+      { domain: "Spelling", deltaNasPp: 0 },
+      { domain: "Reading", deltaNasPp: -5.5 },
+    ]);
+    const trace = fig.data[0] as { marker: { color: string[] } };
+    // zero != improver colour, and zero != worsened colour
+    expect(trace.marker.color[0]).not.toBe(trace.marker.color[1]); // 0 vs -5.5(improver)
+  });
 });

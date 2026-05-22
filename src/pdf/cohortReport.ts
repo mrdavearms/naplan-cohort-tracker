@@ -75,11 +75,11 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
       table(
         ["Subdomain", "Y7 %", "Y9 %", "Δ"],
         [...subs]
-          .sort((a, b) => (a.y9PctCorrect ?? 0) - (b.y9PctCorrect ?? 0))
+          .sort((a, b) => (a.y9PctCorrect ?? Infinity) - (b.y9PctCorrect ?? Infinity))
           .map((s) => [
             s.subdomain,
-            pct1(s.y7PctCorrect ?? 0),
-            pct1(s.y9PctCorrect ?? 0),
+            s.y7PctCorrect == null ? "—" : pct1(s.y7PctCorrect),
+            s.y9PctCorrect == null ? "—" : pct1(s.y9PctCorrect),
             s.deltaPp == null ? "—" : `${s.deltaPp >= 0 ? "+" : ""}${s.deltaPp.toFixed(1)}`,
           ]),
         ["*", "auto", "auto", "auto"],

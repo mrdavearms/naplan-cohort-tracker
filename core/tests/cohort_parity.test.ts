@@ -202,7 +202,7 @@ describe("Section 10 drill-downs parity (cross-year fixtures)", () => {
   });
 });
 
-describe("readingSubdomainMovement", () => {
+describe("subdomainMovement", () => {
   function res(subdomain: string, response: string): StudentResultRow {
     return {
       studentPsi: "p",
