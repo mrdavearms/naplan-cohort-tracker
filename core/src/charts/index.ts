@@ -5,4 +5,5 @@ export * from "./palette";
 export * from "./transition";
 export * from "./bars";
 export * from "./movement";
+export * from "./dumbbell";
 export * from "./wilson";
