@@ -25,6 +25,39 @@ const Y7_GREY = "#9e9e9e";
 const dirColor = (d: MoveDirection): string =>
   d === "improved" ? DIRECTION_FILL.improver : d === "worsened" ? DIRECTION_FILL.decliner : DIRECTION_FILL.stayer;
 
+export interface DeltaRow {
+  domain: string;
+  /** Change in NAS percentage points, Y7 -> Y9. Negative = improvement. */
+  deltaNasPp: number;
+}
+
+/** Net change in NAS (pp) per domain as a diverging bar. NAS is a concern band,
+ *  so a negative delta is an improvement (green) and positive is worsening (red). */
+export function divergingDeltaFigure(rows: readonly DeltaRow[], options: DumbbellOptions = {}): PlotlyFigure {
+  return {
+    data: [
+      {
+        type: "bar",
+        orientation: "h",
+        x: rows.map((r) => r.deltaNasPp),
+        y: rows.map((r) => r.domain),
+        marker: { color: rows.map((r) => (r.deltaNasPp <= 0 ? DIRECTION_FILL.improver : DIRECTION_FILL.decliner)) },
+        text: rows.map((r) => `${r.deltaNasPp > 0 ? "+" : ""}${r.deltaNasPp.toFixed(1)}`),
+        textposition: "outside",
+        hovertemplate: "Δ NAS: %{x:.1f} pp<extra></extra>",
+      },
+    ],
+    layout: {
+      title: undefined,
+      xaxis: { title: options.axisTitle ?? "Δ NAS (pp) — left is better", zeroline: true },
+      yaxis: { title: "", automargin: true, autorange: "reversed" },
+      height: options.height ?? Math.max(180, 80 + rows.length * 40),
+      margin: { l: 10, r: 30, t: 20, b: 50 },
+      font: { family: CHART_FONT },
+    },
+  };
+}
+
 export function dumbbellFigure(rows: readonly DumbbellRow[], options: DumbbellOptions = {}): PlotlyFigure {
   const domains = rows.map((r) => r.domain);
   const shapes = rows.map((r) => ({

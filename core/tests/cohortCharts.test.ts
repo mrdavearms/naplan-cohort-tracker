@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dumbbellFigure, movementStackedFigure, type BandMovement, type DumbbellRow } from "../src/index";
+import { divergingDeltaFigure, dumbbellFigure, movementStackedFigure, type BandMovement, type DumbbellRow } from "../src/index";
 
 function mv(up: number, stayed: number, down: number): BandMovement {
   const total = up + stayed + down;
@@ -34,5 +34,18 @@ describe("movementStackedFigure", () => {
     // up share for the single row = 25%
     const upTrace = fig.data[2] as { x: number[] };
     expect(upTrace.x[0]).toBeCloseTo(25, 5);
+  });
+});
+
+describe("divergingDeltaFigure", () => {
+  it("colours improvement (negative NAS delta) and worsening (positive) differently", () => {
+    const fig = divergingDeltaFigure([
+      { domain: "Reading", deltaNasPp: -5.5 },
+      { domain: "Grammar", deltaNasPp: 4.3 },
+    ]);
+    expect(fig.data).toHaveLength(1);
+    const trace = fig.data[0] as { x: number[]; marker: { color: string[] } };
+    expect(trace.x).toEqual([-5.5, 4.3]);
+    expect(trace.marker.color[0]).not.toBe(trace.marker.color[1]); // improved vs worsened
   });
 });
