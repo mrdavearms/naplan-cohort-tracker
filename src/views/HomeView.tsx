@@ -10,7 +10,7 @@ import { MatchRateBanner } from "../components/MatchRateBanner";
 import { Card, Pill, PrivacyNote, StatTile } from "../components/ui";
 import { ExportPdfButton } from "../components/ExportPdfButton";
 
-function Hero({ error }: { error: string | null }) {
+function Hero({ error, loading }: { error: string | null; loading: boolean }) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-alabaster bg-white/60">
       <div className="dot-grid pointer-events-none absolute inset-0 opacity-[0.08]" />
@@ -23,7 +23,14 @@ function Hero({ error }: { error: string | null }) {
           folder, then point the app at it — nothing leaves your machine.
         </p>
         <div className="mt-8 flex justify-center">
-          <FolderPicker />
+          {loading ? (
+            <div className="flex flex-col items-center gap-2 text-graphite/70">
+              <div className="spinner" />
+              <span className="text-sm">Loading your NAPLAN files…</span>
+            </div>
+          ) : (
+            <FolderPicker />
+          )}
         </div>
         {error && (
           <div className="mx-auto mt-6 flex max-w-xl items-start gap-2 rounded-xl border border-coral/40 bg-coral/5 p-3 text-left text-sm text-coral-text">
@@ -43,7 +50,9 @@ export function HomeView() {
   const { state } = useApp();
 
   if (state.status !== "loaded" || state.primaryYear == null) {
-    return <Hero error={state.status === "error" ? state.error : null} />;
+    return (
+      <Hero error={state.status === "error" ? state.error : null} loading={state.status === "loading"} />
+    );
   }
 
   const { store, primaryYear, skipped, unresolved } = state;
