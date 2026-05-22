@@ -26,9 +26,10 @@ pass of the packaged app (charts look right, PDF layout reads well). See
 | 0–3 (analysis core) | Complete, oracle-validated (pre-session). |
 | 4 — Tauri + React shell | **Done.** Frontend, all 10 section views, Settings, match-rate banner, native folder picker, logging, updater wired. |
 | 5 — PDF reports | **Done.** Overview (S1–9) + cohort (S10) PDFs via pdfmake + Plotly PNG. |
-| 6 — Packaging + updater | **Done on CI.** `v0.1.0` draft release built by GitHub Actions has the macOS `.dmg` + Windows `.exe`/`.msi` (signed) + `latest.json`. Auto-update's public feed = your A/B choice (NEEDS DAVE #3). |
+| 6 — Packaging + updater | **Done + live.** GitHub Actions builds macOS `.dmg` + Windows `.exe`/`.msi` (signed) + `latest.json`. Published to the private repo AND mirrored to the public feed repo `naplan-throughline-releases`; auto-update endpoint verified live (HTTP 200, signed). Branded "NT" icon added. |
 | 7 — Polish | **Done.** User guide, README, error/empty/loading states. |
 | Testing | **118 tests** — analysis core (oracle-validated) + UI view rendering + PDF generation, green on macOS + Windows CI. |
+| Real-data parity | **Verified.** The full TS pipeline matches the legacy Python oracle **exactly** on the real OneDrive data (2026): per-domain paired/leavers/joiners, Y7/Y9 NAS%, McNemar p (0.2188 / 0.5811 / 1.0000 / 0.5488), and the Reading transition matrix all identical. (Checked with a throwaway script — never committed, no student data in the repo.) |
 
 ## Completed this session (detail)
 
