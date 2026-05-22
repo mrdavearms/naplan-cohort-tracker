@@ -52,46 +52,70 @@ GUI (file dialog → charts → PDF export). That's the one morning task — see
   issues (CSP, removed unused fs plugin, hardened save paths, fixed a
   settings-hydration bug). The 6th (`LEFT_WHS`) is documented below.
 
+## GitHub builds the apps — DONE
+
+GitHub Actions now builds the installers for you (no local toolchain needed):
+
+- **Workflow:** `.github/workflows/release.yml` — runs on a version tag or manual dispatch.
+- **Triggered build `v0.1.0` succeeded:** macOS Apple Silicon `.dmg`, Windows
+  `.exe` + `.msi` (both signed for the updater), the macOS Intel `.dmg`, and the
+  `latest.json` updater manifest — all attached to a **draft Release** in this repo.
+- **Updater signing secrets are set** in the repo (`TAURI_SIGNING_PRIVATE_KEY`,
+  `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`). The private key lives at
+  `~/.naplan-throughline-updater.key` on this Mac.
+
+To cut a new build later: `git tag vX.Y.Z && git push origin vX.Y.Z` (bump
+`version` in `src-tauri/tauri.conf.json` first), or run the **Release** workflow
+from the Actions tab.
+
 ## NEEDS DAVE (prioritised — exact steps)
 
-### 1. Add the updater signing key to GitHub secrets (HIGH — auto-update depends on it)
-The keypair was generated locally. **Private key:**
-`~/.naplan-throughline-updater.key` (no password). **Public key** is already
-baked into `src-tauri/tauri.conf.json`.
-- **Back up the private key in your password manager now.** If it's lost, v1
-  installs can never auto-update.
-- In the GitHub repo → Settings → Secrets and variables → Actions, add:
-  - `TAURI_SIGNING_PRIVATE_KEY` = the full contents of `~/.naplan-throughline-updater.key`
-  - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` = (empty)
-  ```bash
-  cat ~/.naplan-throughline-updater.key   # paste this as the secret value
-  ```
+### 1. Back up the updater private key (HIGH — 2 min, do once)
+If this key is ever lost, **no installed app can ever auto-update**. Copy it into
+your password manager now:
+```bash
+cat ~/.naplan-throughline-updater.key
+```
+(It's already in GitHub as an encrypted Actions secret, but keep your own copy.)
 
-### 2. Create the PUBLIC releases repo (HIGH — auto-update reads from it)
-The app's baked-in update feed is
-`https://github.com/mrdavearms/naplan-throughline-releases/releases/latest/download/latest.json`.
-This source repo is private, and GitHub blocks unauthenticated downloads of
-private-repo release assets, so updates must come from a **public** repo.
-- Create `mrdavearms/naplan-throughline-releases` (public, empty), then in
-  `.github/workflows/release.yml` set `owner: mrdavearms` + `repo:
-  naplan-throughline-releases` on the tauri-action step and give it a PAT with
-  write access to that repo.
-- **Or** simply make this repo public (simplest, but exposes the source) and
-  change the baked endpoint to this repo. If you change the repo name, update
-  the endpoint in `tauri.conf.json`.
+### 2. Get the installers + publish the release (5 min)
+The build produced a **draft** release so it doesn't go public until you're happy.
+```bash
+gh release view v0.1.0 --web        # open it in the browser to download/test
+```
+Download the macOS `.dmg` and (on a Windows PC) the `.exe`, install, and click
+through the app. When happy:
+```bash
+gh release edit v0.1.0 --draft=false   # publish it
+```
+Opening the unsigned apps the first time: macOS → right-click → **Open**;
+Windows → **More info → Run anyway**.
 
-### 3. Windows build + WebView2 fixed runtime (MED — needs a Windows device)
-- `tauri.conf.json` sets `webviewInstallMode: fixedRuntime`, which needs the
-  runtime extracted to `src-tauri/Microsoft.WebView2.FixedVersionRuntime/`. Pin
-  the exact version + URL in the commented "Fetch WebView2 fixed runtime" step
-  in `release.yml` (Microsoft's Fixed Version runtime download).
-- Run the release workflow (push a `v0.1.0` tag) and smoke-test the `.msi`/`.exe`
-  on a real Windows machine. (I have no Windows device to test on.)
+### 3. Enable auto-update — ONE choice (HIGH for updates; not needed just to use the app)
+The app checks a **public** feed for updates. Right now the release is in this
+**private** repo, so the updater can't read it. Pick one:
 
-### 4. Code-signing / notarization (LOW — out of scope for v1)
-Ship unsigned for v1 (the README documents the right-click→Open / "Run anyway"
-steps). Revisit Windows Authenticode signing **before** any rollout to managed
-Dept-of-Education Windows fleets — policy there can hard-block unsigned installers.
+- **Option A (simplest): make this repo public.** Then change the endpoint in
+  `src-tauri/tauri.conf.json` `plugins.updater.endpoints` to this repo
+  (`…/mrdavearms/naplan-throughline/releases/latest/download/latest.json`),
+  commit, and re-tag. No second repo, no PAT.
+- **Option B (keep source private): a separate public releases repo.** Create
+  `mrdavearms/naplan-throughline-releases` (public), create a fine-grained PAT
+  with **Contents: read+write** on that repo, add it as the `RELEASES_TOKEN`
+  secret, and tell me — I'll wire the workflow to upload the installers +
+  `latest.json` there. The endpoint baked into the app already points at this
+  repo name.
+
+Until one of these is done, auto-update will report "could not check for updates"
+(harmless); manual download/install works regardless.
+
+### 4. (Optional, later) Windows offline robustness + code-signing
+- Windows currently uses `downloadBootstrapper` (fetches WebView2 at install if
+  missing). For fully-offline/locked-down fleets, switch back to `fixedRuntime`
+  and bundle the WebView2 Fixed Version runtime in CI. (Deviation noted in DECISIONS.md.)
+- Code-signing / notarization stays OUT of scope for v1 (unsigned click-through).
+  Revisit Windows Authenticode **before** any rollout to managed Dept-of-Education
+  Windows fleets — policy there can hard-block unsigned installers.
 
 ## Verify in the morning (5–10 min GUI smoke — not a blocker, just unverifiable headlessly)
 
