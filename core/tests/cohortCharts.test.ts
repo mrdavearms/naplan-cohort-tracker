@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { divergingDeltaFigure, dumbbellFigure, movementStackedFigure, type BandMovement, type DumbbellRow } from "../src/index";
+import { divergingDeltaFigure, dumbbellFigure, movementStackedFigure, type BandMovement } from "../src/index";
 
 function mv(up: number, stayed: number, down: number): BandMovement {
   const total = up + stayed + down;
