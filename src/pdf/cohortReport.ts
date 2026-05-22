@@ -6,11 +6,16 @@
  */
 import {
   attritionAnalysis,
+  bandMovement,
   buildCohortNarrative,
   buildCohortPairings,
   cohortHeadline,
   cohortMatchRate,
   cohortYears,
+  crossDomainSummary,
+  declinedOrStalled,
+  divergingDeltaFigure,
+  dumbbellFigure,
   equitySubCohorts,
   interpretAttrition,
   interpretEquity,
@@ -18,9 +23,13 @@ import {
   interpretTransition,
   interpretWilson,
   mcnemarPaired,
+  movementStackedFigure,
+  subdomainMovement,
   transitionHeatmapFigure,
   transitionSankeyFigure,
   wilsonCiDotPlotFigure,
+  type DumbbellRow,
+  type MovementBarRow,
   type PairedCohort,
   type Settings,
   type Store,
@@ -32,7 +41,7 @@ import { bulletList, coverPage, footer, pct1, PDF_STYLES, table } from "./common
 const fmtP = (p: number | null): string => (p == null ? "n/a" : p < 0.001 ? "<0.001" : p.toFixed(3));
 const ppStr = (x: number | null): string => (x == null ? "—" : `${x >= 0 ? "+" : ""}${x.toFixed(1)} pp`);
 
-async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number): Promise<Content[]> {
+async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, store: Store): Promise<Content[]> {
   const out: Content[] = [];
   out.push({ text: `${pc.domain} — Year 7 to Year 9 transition`, style: "h2", pageBreak: "before" });
 
@@ -48,6 +57,50 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number): Pr
   out.push({ image: wilson, width: 500, margin: [0, 2, 0, 6] });
   out.push({ text: `McNemar exact p = ${fmtP(mc.pValue)}. ${mc.note}`, style: "caption" });
   out.push(bulletList([...interpretMcnemar(mc, pc.domain, pc.paired.length), ...interpretWilson(pc)]));
+
+  const movePng = await figureToPng(
+    movementStackedFigure([{ label: `${pc.domain} (n=${pc.paired.length})`, movement: bandMovement(pc) }]),
+    520,
+    140,
+  );
+  out.push({ text: "Band movement", style: "h3" });
+  out.push({ image: movePng, width: 500, margin: [0, 2, 0, 6] });
+
+  const y7Results = store.get(`${y7Year}|7|${pc.domain}`)?.studentResults ?? [];
+  const y9Results = store.get(`${y9Year}|9|${pc.domain}`)?.studentResults ?? [];
+  const subs = subdomainMovement(y7Results, y9Results);
+  if (subs.length > 0) {
+    out.push({ text: "Subdomains — Y7 vs Y9 % correct (directional, not true growth)", style: "h3" });
+    out.push(
+      table(
+        ["Subdomain", "Y7 %", "Y9 %", "Δ"],
+        [...subs]
+          .sort((a, b) => (a.y9PctCorrect ?? 0) - (b.y9PctCorrect ?? 0))
+          .map((s) => [
+            s.subdomain,
+            pct1(s.y7PctCorrect ?? 0),
+            pct1(s.y9PctCorrect ?? 0),
+            s.deltaPp == null ? "—" : `${s.deltaPp >= 0 ? "+" : ""}${s.deltaPp.toFixed(1)}`,
+          ]),
+        ["*", "auto", "auto", "auto"],
+      ),
+    );
+  }
+
+  const ds = declinedOrStalled(pc);
+  if (ds.declined.length > 0 || ds.stalled.length > 0) {
+    out.push({ text: "Students to follow up (Local IDs only)", style: "h3" });
+    out.push(
+      table(
+        ["Local ID", "Flag", "Y7 class", "Y9 class", "Y7 → Y9 band"],
+        [
+          ...ds.declined.map((s) => [s.localStudentId, "Declined", s.classGroupY7 ?? "—", s.classGroupY9 ?? "—", `${s.proficiencyY7} → ${s.proficiencyY9}`]),
+          ...ds.stalled.map((s) => [s.localStudentId, "Stalled at NAS", s.classGroupY7 ?? "—", s.classGroupY9 ?? "—", `${s.proficiencyY7} → ${s.proficiencyY9}`]),
+        ],
+        ["auto", "auto", "auto", "auto", "*"],
+      ),
+    );
+  }
 
   const attr = attritionAnalysis(pc);
   out.push({ text: "Attrition — stayers vs leavers", style: "h3" });
@@ -127,6 +180,27 @@ export async function buildCohortDoc(
     );
     body.push({ text: "Lower NAS is better. A McNemar p < 0.05 means the paired change is distinguishable from chance.", style: "caption" });
 
+    const summary = crossDomainSummary(pairings);
+    const dumbbellRows: DumbbellRow[] = summary.map((r) => ({
+      domain: r.domain,
+      y7Value: r.y7NasPct,
+      y9Value: r.y9NasPct,
+      direction: r.deltaNasPp < 0 ? "improved" : r.deltaNasPp > 0 ? "worsened" : "flat",
+    }));
+    const dumbbellPng = await figureToPng(dumbbellFigure(dumbbellRows, { axisTitle: "NAS %" }), 360, 220);
+    const deltaPng = await figureToPng(
+      divergingDeltaFigure(summary.map((r) => ({ domain: r.domain, deltaNasPp: r.deltaNasPp }))),
+      360,
+      220,
+    );
+    const movementRows: MovementBarRow[] = summary.map((r) => ({ label: `${r.domain} (n=${r.pairedN})`, movement: r.movement }));
+    const movementPng = await figureToPng(movementStackedFigure(movementRows), 520, 220);
+
+    body.push({ text: "Across all domains (Year 7 → Year 9)", style: "h2" });
+    body.push({ columns: [{ image: dumbbellPng, width: 250 }, { image: deltaPng, width: 250 }], columnGap: 10, margin: [0, 2, 0, 6] });
+    body.push({ text: "Band movement — moved down · stayed · moved up", style: "h3" });
+    body.push({ image: movementPng, width: 500, margin: [0, 2, 0, 8] });
+
     // Leadership narrative
     const n = buildCohortNarrative(pairings, ctx);
     body.push({ text: "Leadership narrative", style: "h2" });
@@ -148,7 +222,7 @@ export async function buildCohortDoc(
     }
 
     for (const pc of pairings.values()) {
-      body.push(...(await domainBlock(pc, y7Year, y9Year)));
+      body.push(...(await domainBlock(pc, y7Year, y9Year, store)));
     }
   }
 
