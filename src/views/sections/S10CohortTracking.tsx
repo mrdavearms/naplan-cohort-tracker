@@ -37,6 +37,7 @@ import { Card, EmptyState, Pill, SectionHeading } from "../../components/ui";
 import { Chart } from "../../components/Chart";
 import { MatchRateBanner } from "../../components/MatchRateBanner";
 import { ExportPdfButton } from "../../components/ExportPdfButton";
+import { CrossDomainOverview } from "../../components/CrossDomainOverview";
 
 const pp = (x: number | null): string => (x == null ? "—" : `${x >= 0 ? "+" : ""}${x.toFixed(1)}pp`);
 const pct = (x: number | null): string => (x == null ? "—" : `${x.toFixed(1)}%`);
@@ -109,6 +110,8 @@ export function S10CohortTracking() {
       </div>
 
       <MatchRateBanner store={store} primaryYear={primaryYear} />
+
+      <CrossDomainOverview pairings={pairings} />
 
       {/* Per-domain headline */}
       <Card>

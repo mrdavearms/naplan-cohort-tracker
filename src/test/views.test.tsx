@@ -6,7 +6,7 @@
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import { screen } from "@testing-library/react";
-import type { Store } from "@naplan-throughline/core";
+import { buildCohortPairings, type Store } from "@naplan-throughline/core";
 import { buildSyntheticStore } from "./fixtures";
 import { renderWithApp } from "./renderWithApp";
 
@@ -23,6 +23,7 @@ import { S7ClassGroups } from "../views/sections/S7ClassGroups";
 import { S8TargetedSupport } from "../views/sections/S8TargetedSupport";
 import { S9Narrative } from "../views/sections/S9Narrative";
 import { S10CohortTracking } from "../views/sections/S10CohortTracking";
+import { CrossDomainOverview } from "../components/CrossDomainOverview";
 
 let store: Store;
 beforeAll(async () => {
@@ -68,5 +69,14 @@ describe("shell views", () => {
   it("MatchRateBanner shows the matched count for the synthetic Reading cohort", () => {
     renderWithApp(<MatchRateBanner store={store} primaryYear={2026} />, { store });
     expect(screen.getByText(/Matched/i)).toBeInTheDocument();
+  });
+});
+
+describe("cross-domain overview", () => {
+  it("renders the overview against the synthetic cohort without throwing", () => {
+    const pairings = buildCohortPairings(store, 2026);
+    renderWithApp(<CrossDomainOverview pairings={pairings} />, { store });
+    expect(screen.getByText(/Across all domains/i)).toBeInTheDocument();
+    expect(screen.getByText(/Band movement/i)).toBeInTheDocument();
   });
 });
