@@ -4,6 +4,11 @@ Autonomous build decisions (overnight Phase 4+). One line each: decision + why.
 These honour PLAN.md / CLAUDE.md / DESIGN.md. Where the user might have chosen
 differently, the default taken is the most conventional one for the stack.
 
+## Phase 6 — release + auto-update
+
+- **Auto-update via Option B: separate PUBLIC releases repo (`naplan-throughline-releases`), source stays private.** — Honours PLAN's "proprietary → private repo". Installers + `latest.json` are mirrored there (binaries only); the app's baked endpoint reads that public feed. Verified live (HTTP 200, signed manifest, asset downloads unauthenticated).
+- **Future releases mirrored by a local `scripts/mirror-release.sh` (uses `gh` login), not a CI PAT.** — Cross-repo publishing from Actions would need a Personal Access Token; mirroring locally with the existing `gh` auth avoids storing another secret. CI still builds the installers in the private repo on tag.
+
 ## Phase 6 — CI builds
 
 - **Windows `webviewInstallMode` switched from `fixedRuntime` to `downloadBootstrapper`.** — `fixedRuntime` (a locked early-foundations decision) needs a ~180 MB WebView2 runtime bundled from a gated Microsoft URL, which blocks an automated CI Windows build. `downloadBootstrapper` (Tauri's default) produces a working installer with no bundled runtime (WebView2 ships with Win 11 / recent Win 10; the bootstrapper fetches it if missing). Revisit `fixedRuntime` if targeting offline/locked-down managed fleets — it needs the runtime sourced + bundled. Flagged to Dave.

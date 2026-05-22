@@ -56,64 +56,37 @@ pass of the packaged app (charts look right, PDF layout reads well). See
   issues (CSP, removed unused fs plugin, hardened save paths, fixed a
   settings-hydration bug). The 6th (`LEFT_WHS`) is documented below.
 
-## GitHub builds the apps — DONE
+## GitHub builds + ships the apps — DONE (incl. auto-update)
 
-GitHub Actions now builds the installers for you (no local toolchain needed):
+- **CI builds the installers** (`.github/workflows/release.yml`, on a version tag):
+  macOS `.dmg` + Windows `.exe`/`.msi`, all signed for the updater, + `latest.json`.
+- **`v0.1.0` is published** (no longer a draft) in the private source repo:
+  https://github.com/mrdavearms/naplan-throughline/releases/tag/v0.1.0
+- **Auto-update is LIVE.** Installers + `latest.json` are mirrored to the public
+  feed repo **`mrdavearms/naplan-throughline-releases`** (binaries only — source
+  stays private, per Option B). Verified end-to-end: the app's baked-in endpoint
+  `…/naplan-throughline-releases/releases/latest/download/latest.json` returns
+  HTTP 200 with the correct, signed manifest, and the referenced installer
+  downloads unauthenticated.
+- **Signing secrets** (`TAURI_SIGNING_PRIVATE_KEY` + `…_PASSWORD`) are set in the
+  source repo; the private key is at `~/.naplan-throughline-updater.key`.
 
-- **Workflow:** `.github/workflows/release.yml` — runs on a version tag or manual dispatch.
-- **Triggered build `v0.1.0` succeeded:** macOS Apple Silicon `.dmg`, Windows
-  `.exe` + `.msi` (both signed for the updater), the macOS Intel `.dmg`, and the
-  `latest.json` updater manifest — all attached to a **draft Release** in this repo.
-- **Updater signing secrets are set** in the repo (`TAURI_SIGNING_PRIVATE_KEY`,
-  `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`). The private key lives at
-  `~/.naplan-throughline-updater.key` on this Mac.
+### Cutting a future release (no PAT needed)
+1. Bump `version` in `src-tauri/tauri.conf.json`, commit.
+2. `git tag vX.Y.Z && git push origin vX.Y.Z` → CI builds the installers.
+3. After the Release workflow finishes: `./scripts/mirror-release.sh vX.Y.Z`
+   → mirrors the installers + URL-corrected `latest.json` to the public feed.
+   Installed apps then see the update automatically.
 
-To cut a new build later: `git tag vX.Y.Z && git push origin vX.Y.Z` (bump
-`version` in `src-tauri/tauri.conf.json` first), or run the **Release** workflow
-from the Actions tab.
+## NEEDS DAVE (what's actually left)
 
-## NEEDS DAVE (prioritised — exact steps)
+### 1. Back up the updater private key (HIGH — 2 min, the one thing only you can do)
+If this key is ever lost, **no installed app can ever auto-update**. Copy
+`~/.naplan-throughline-updater.key` into your password manager. (It's already an
+encrypted GitHub Actions secret and lives on this Mac, but keep your own copy.)
+I deliberately did not print it into the chat for security.
 
-### 1. Back up the updater private key (HIGH — 2 min, do once)
-If this key is ever lost, **no installed app can ever auto-update**. Copy it into
-your password manager now:
-```bash
-cat ~/.naplan-throughline-updater.key
-```
-(It's already in GitHub as an encrypted Actions secret, but keep your own copy.)
-
-### 2. Get the installers + publish the release (5 min)
-The build produced a **draft** release so it doesn't go public until you're happy.
-```bash
-gh release view v0.1.0 --web        # open it in the browser to download/test
-```
-Download the macOS `.dmg` and (on a Windows PC) the `.exe`, install, and click
-through the app. When happy:
-```bash
-gh release edit v0.1.0 --draft=false   # publish it
-```
-Opening the unsigned apps the first time: macOS → right-click → **Open**;
-Windows → **More info → Run anyway**.
-
-### 3. Enable auto-update — ONE choice (HIGH for updates; not needed just to use the app)
-The app checks a **public** feed for updates. Right now the release is in this
-**private** repo, so the updater can't read it. Pick one:
-
-- **Option A (simplest): make this repo public.** Then change the endpoint in
-  `src-tauri/tauri.conf.json` `plugins.updater.endpoints` to this repo
-  (`…/mrdavearms/naplan-throughline/releases/latest/download/latest.json`),
-  commit, and re-tag. No second repo, no PAT.
-- **Option B (keep source private): a separate public releases repo.** Create
-  `mrdavearms/naplan-throughline-releases` (public), create a fine-grained PAT
-  with **Contents: read+write** on that repo, add it as the `RELEASES_TOKEN`
-  secret, and tell me — I'll wire the workflow to upload the installers +
-  `latest.json` there. The endpoint baked into the app already points at this
-  repo name.
-
-Until one of these is done, auto-update will report "could not check for updates"
-(harmless); manual download/install works regardless.
-
-### 4. (Optional, later) Windows offline robustness + code-signing
+### 2. (Optional, later) Windows offline robustness + code-signing
 - Windows currently uses `downloadBootstrapper` (fetches WebView2 at install if
   missing). For fully-offline/locked-down fleets, switch back to `fixedRuntime`
   and bundle the WebView2 Fixed Version runtime in CI. (Deviation noted in DECISIONS.md.)
@@ -124,9 +97,10 @@ Until one of these is done, auto-update will report "could not check for updates
 ## Verify in the morning (5 min visual pass — low-risk now)
 
 Automated tests already cover that every view renders and both PDFs generate;
-this is just an eyes-on confirmation in the packaged app. Download from the
-`v0.1.0` draft release (`gh release view v0.1.0 --web`), or run `npm run tauri dev`,
-or use the local build at
+this is just an eyes-on confirmation in the packaged app. Download the installer
+from the public releases page
+(https://github.com/mrdavearms/naplan-throughline-releases/releases/latest),
+or run `npm run tauri dev`, or use the local build at
 `src-tauri/target/release/bundle/dmg/Naplan Throughline_0.1.0_aarch64.dmg`.
 
 1. **Choose your NAPLAN folder** → the OneDrive folder with `Naplan 2024/2025/2026`.
