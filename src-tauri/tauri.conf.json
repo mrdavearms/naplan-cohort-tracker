@@ -41,8 +41,7 @@
     ],
     "windows": {
       "webviewInstallMode": {
-        "type": "fixedRuntime",
-        "path": "./Microsoft.WebView2.FixedVersionRuntime/"
+        "type": "downloadBootstrapper"
       }
     },
     "android": {

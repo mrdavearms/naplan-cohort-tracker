@@ -4,6 +4,11 @@ Autonomous build decisions (overnight Phase 4+). One line each: decision + why.
 These honour PLAN.md / CLAUDE.md / DESIGN.md. Where the user might have chosen
 differently, the default taken is the most conventional one for the stack.
 
+## Phase 6 — CI builds
+
+- **Windows `webviewInstallMode` switched from `fixedRuntime` to `downloadBootstrapper`.** — `fixedRuntime` (a locked early-foundations decision) needs a ~180 MB WebView2 runtime bundled from a gated Microsoft URL, which blocks an automated CI Windows build. `downloadBootstrapper` (Tauri's default) produces a working installer with no bundled runtime (WebView2 ships with Win 11 / recent Win 10; the bootstrapper fetches it if missing). Revisit `fixedRuntime` if targeting offline/locked-down managed fleets — it needs the runtime sourced + bundled. Flagged to Dave.
+- **Release workflow publishes a DRAFT release in THIS (private) repo via the built-in `GITHUB_TOKEN`.** — Gets downloadable Mac+Windows installers with no PAT. Auto-update needs a PUBLIC feed (separate decision for Dave): either make this repo public, or add a PAT + the public releases repo.
+
 ## Phase 5 — PDF reports
 
 - **PDF body font is pdfmake's built-in Roboto (embedded TTF), not bundled Inter/Roboto Slab/Syne.** — `@fontsource` ships only woff/woff2 (pdfmake needs embeddable TTF) and the app makes no network calls to fetch TTFs. Roboto is embedded in the PDF, so it renders identically across WebView2 and WebKit — which is the *actual* early-foundations #5 goal (cross-engine consistency). Charts are fixed-size PNGs for the same reason. Revisit by committing the OFL TTFs if an exact brand-font match is wanted.
