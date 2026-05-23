@@ -1,26 +1,29 @@
 #!/usr/bin/env bash
 # Mirror a built release from the PRIVATE source repo to the PUBLIC releases repo
-# so the auto-updater (which reads the public feed) can see it.
+# so the auto-updater (which reads the public feed) can see it — AND regenerate
+# the teacher-facing download page (GitHub Pages index.html + README) so the
+# Mac/Windows download links and the "first-time open" warnings are always
+# current for this version. Run after the Release workflow finishes building.
 #
 # Why this exists: GitHub Actions' built-in token can't write to another repo,
-# and we keep the source private, so cross-repo publishing would need a Personal
-# Access Token. This script does it locally with your normal `gh` login instead
-# — no PAT required.
+# and we keep the source private, so cross-repo publishing would need a PAT.
+# This script does it locally with your normal `gh` login — no PAT required.
 #
 # Usage:
-#   1. Bump "version" in src-tauri/tauri.conf.json, commit.
-#   2. git tag vX.Y.Z && git push origin vX.Y.Z      # CI builds installers in the private repo
-#   3. Wait for the Release workflow to finish, then:
-#        ./scripts/mirror-release.sh vX.Y.Z
+#   1. Bump "version" in src-tauri/tauri.conf.json, commit, merge to main.
+#   2. git tag vX.Y.Z && git push origin vX.Y.Z   # CI builds installers
+#   3. After the Release workflow finishes:  ./scripts/mirror-release.sh vX.Y.Z
 #
-# Requires: gh (logged in as a user with access to both repos), python3.
+# Requires: gh (logged in with access to both repos), python3, git.
 set -euo pipefail
 
 TAG="${1:-}"
-if [ -z "$TAG" ]; then echo "usage: $0 <tag e.g. v0.1.0>"; exit 1; fi
+if [ -z "$TAG" ]; then echo "usage: $0 <tag e.g. v0.1.3>"; exit 1; fi
+VERSION="${TAG#v}"
 
 SRC="mrdavearms/naplan-throughline"
 PUB="mrdavearms/naplan-throughline-releases"
+PAGES_URL="https://mrdavearms.github.io/naplan-throughline-releases/"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -41,7 +44,24 @@ print("  rewrote", len(d.get("platforms", {})), "platform URLs")
 PY
 fi
 
-# Replace any existing public release for this tag, then publish.
+# Friendly release notes (open-warning instructions baked in).
+NOTES="$WORK/NOTES.md"
+cat > "$NOTES" <<EOF
+**Naplan Throughline $VERSION** — on-device NAPLAN cohort analysis.
+
+### Download
+- **macOS:** the \`.dmg\` file below
+- **Windows:** the \`...-setup.exe\` file below
+
+### First time you open it (please read)
+These builds aren't yet code-signed, so your computer shows a one-time warning.
+- **macOS:** right-click (or Control-click) the app -> **Open** -> **Open** again.
+- **Windows:** if you see "Windows protected your PC", click **More info** -> **Run anyway**.
+
+You only need to do this once. The app is local-only -- no student data ever leaves your computer.
+EOF
+
+# Replace any existing public release for this tag, then publish with the notes.
 if gh release view "$TAG" --repo "$PUB" >/dev/null 2>&1; then
   echo "Removing existing $TAG release in $PUB ..."
   gh release delete "$TAG" --repo "$PUB" --yes --cleanup-tag
@@ -51,8 +71,185 @@ echo "Publishing $TAG to $PUB ..."
 gh release create "$TAG" \
   --repo "$PUB" \
   --title "Naplan Throughline $TAG" \
-  --notes "On-device NAPLAN cohort analysis. Unsigned build — macOS: right-click → Open; Windows: More info → Run anyway." \
+  --notes-file "$NOTES" \
   --latest \
   "$WORK"/*
 
-echo "Done. Auto-update feed: https://github.com/$PUB/releases/latest/download/latest.json"
+# ── Regenerate the teacher-facing download page (Pages index.html + README) ──
+echo "Regenerating the public download page for $TAG ..."
+DMG="$(cd "$WORK" && ls -- *.dmg 2>/dev/null | head -1 || true)"
+EXE="$(cd "$WORK" && ls -- *-setup.exe 2>/dev/null | head -1 || true)"
+MSI="$(cd "$WORK" && ls -- *.msi 2>/dev/null | head -1 || true)"
+BASE="https://github.com/$PUB/releases/download/$TAG"
+
+SITE="$WORK/site"
+git clone --depth 1 "https://github.com/$PUB.git" "$SITE" >/dev/null 2>&1
+python3 - "$SITE" "$VERSION" "$BASE" "$DMG" "$EXE" "$MSI" "$PAGES_URL" <<'PY'
+import sys, datetime
+site, version, base, dmg, exe, msi, pages_url = sys.argv[1:8]
+dmg_url = f"{base}/{dmg}" if dmg else ""
+exe_url = f"{base}/{exe}" if exe else ""
+msi_url = f"{base}/{msi}" if msi else ""
+date = datetime.date.today().strftime("%d %B %Y")
+
+mac_btn = f'<a class="btn" href="{dmg_url}">Download (.dmg)</a>' if dmg_url else '<span class="os">unavailable</span>'
+win_btn = f'<a class="btn" href="{exe_url}">Download (.exe)</a>' if exe_url else '<span class="os">unavailable</span>'
+msi_btn = f'<br/><a class="btn secondary" href="{msi_url}">.msi (for IT-managed PCs)</a>' if msi_url else ''
+
+index = f"""<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Naplan Throughline — download</title>
+<meta name="description" content="On-device NAPLAN cohort analysis for schools. Download for macOS or Windows."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Slab:wght@700&family=Syne:wght@800&display=swap" rel="stylesheet"/>
+<style>
+  :root {{ --linen:#e8eddf; --graphite:#333533; --coral:#ff7247; --coral-dark:#e5623d; --sage:#8aa67a; --alabaster:#cfdbd5; }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; font-family:'Inter',system-ui,sans-serif; color:var(--graphite); background:var(--linen); line-height:1.55; }}
+  .wrap {{ max-width:860px; margin:0 auto; padding:0 24px; }}
+  header {{ text-align:center; padding:64px 24px 36px; background:radial-gradient(circle at 50% -20%, #fff 0%, var(--linen) 60%); }}
+  .logo {{ width:84px; height:84px; border-radius:50%; background:var(--graphite); border:5px solid var(--coral); color:var(--linen); font-family:'Roboto Slab',serif; font-weight:700; font-size:34px; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }}
+  h1 {{ font-family:'Syne',sans-serif; font-weight:800; font-size:44px; margin:0 0 8px; letter-spacing:-0.5px; }}
+  .tagline {{ font-size:19px; color:#555; max-width:560px; margin:0 auto; }}
+  .downloads {{ display:flex; flex-wrap:wrap; gap:18px; justify-content:center; margin:36px 0 12px; }}
+  .dl {{ flex:1 1 280px; max-width:340px; background:#fff; border:1px solid var(--alabaster); border-radius:18px; padding:28px 24px; text-align:center; box-shadow:0 6px 24px rgba(51,53,51,.06); }}
+  .dl.highlight {{ border-color:var(--coral); box-shadow:0 10px 30px rgba(255,114,71,.18); }}
+  .dl h2 {{ font-family:'Roboto Slab',serif; font-size:22px; margin:0 0 4px; }}
+  .dl .os {{ color:#777; font-size:14px; margin-bottom:18px; }}
+  .btn {{ display:inline-block; background:var(--coral); color:#fff; text-decoration:none; font-weight:600; font-size:17px; padding:14px 28px; border-radius:12px; }}
+  .btn:hover {{ background:var(--coral-dark); }}
+  .btn.secondary {{ background:transparent; color:var(--coral-dark); font-size:14px; padding:6px 0; }}
+  .yourtag {{ display:block; font-size:12px; font-weight:600; color:var(--sage); margin-bottom:10px; min-height:16px; }}
+  .card {{ background:#fff; border:1px solid var(--alabaster); border-radius:18px; padding:24px 28px; margin:18px 0; }}
+  .card h3 {{ font-family:'Roboto Slab',serif; margin:0 0 10px; font-size:19px; }}
+  .warn {{ border-left:4px solid var(--coral); }}
+  .warn ol {{ margin:8px 0 0; padding-left:20px; }}
+  .pill {{ display:inline-block; background:var(--sage); color:#fff; font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; }}
+  footer {{ text-align:center; color:#888; font-size:13px; padding:40px 24px 60px; }}
+  a {{ color:var(--coral-dark); }}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">NT</div>
+  <h1>Naplan Throughline</h1>
+  <p class="tagline">See how your students grew from Year&nbsp;7 to Year&nbsp;9 — clearly, on your own computer. No spreadsheets, no logins, nothing leaves your machine.</p>
+</header>
+<div class="wrap">
+  <div class="downloads">
+    <div class="dl" id="mac">
+      <span class="yourtag" id="mac-tag"></span>
+      <h2>Download for Mac</h2>
+      <div class="os">macOS · Apple Silicon &amp; Intel</div>
+      {mac_btn}
+    </div>
+    <div class="dl" id="win">
+      <span class="yourtag" id="win-tag"></span>
+      <h2>Download for Windows</h2>
+      <div class="os">Windows 10 &amp; 11</div>
+      {win_btn}{msi_btn}
+    </div>
+  </div>
+  <p style="text-align:center;color:#888;font-size:13px;margin:0 0 28px">Version {version} · released {date}</p>
+
+  <div class="card warn">
+    <h3>The first time you open it</h3>
+    <p>These are free, unsigned builds, so your computer shows a one-time safety prompt. It's expected — here's how to get past it (you only do this once):</p>
+    <ol>
+      <li><strong>On a Mac:</strong> right-click (or Control-click) the app icon, choose <strong>Open</strong>, then click <strong>Open</strong> again.</li>
+      <li><strong>On Windows:</strong> if you see a blue “Windows protected your PC” box, click <strong>More info</strong>, then <strong>Run anyway</strong>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3>What it does</h3>
+    <p>Point it at a folder of your NAPLAN SSSR files and it shows participation, proficiency, equity and skill gaps — and tracks the <strong>same students from Year 7 to Year 9</strong>, the closest thing to a true measure of your school's contribution. It builds tidy PDF reports for your leadership and faculty conversations.</p>
+    <p><span class="pill">Private by design</span> &nbsp;Everything runs on your computer. No student names appear anywhere, and no data is ever uploaded.</p>
+  </div>
+
+  <div class="card">
+    <h3>Updating later</h3>
+    <p>Once installed, the app checks for new versions itself — you'll be told when an update is ready. You can always come back to this page for the latest installer too.</p>
+  </div>
+</div>
+<footer>Naplan Throughline · made for schools · <a href="{pages_url}">always get the newest version here</a></footer>
+<script>
+  (function() {{
+    var p = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent).toLowerCase();
+    if (p.indexOf('mac') > -1) {{ document.getElementById('mac').classList.add('highlight'); document.getElementById('mac-tag').textContent = '✓ recommended for your computer'; }}
+    if (p.indexOf('win') > -1) {{ document.getElementById('win').classList.add('highlight'); document.getElementById('win-tag').textContent = '✓ recommended for your computer'; }}
+  }})();
+</script>
+</body>
+</html>
+"""
+
+readme = f"""# Naplan Throughline — download
+
+**On-device NAPLAN cohort analysis for schools.** See how the *same students* grew
+from Year 7 to Year 9 — clearly, on your own computer. No spreadsheets, no logins,
+and no student data ever leaves your machine.
+
+## Download the app — version {version}
+
+> **Easiest:** open the **[download page]({pages_url})** and click the big button for your computer.
+
+| Computer | Download |
+|---|---|
+| **Mac** (Apple Silicon & Intel) | **[Download the .dmg]({dmg_url})** |
+| **Windows** (10 & 11) | **[Download the .exe]({exe_url})** |
+
+### The first time you open it — please read
+
+These are free, unsigned builds, so your computer shows a **one-time** safety prompt. It's expected:
+
+- **Mac:** right-click (or Control-click) the app -> **Open** -> **Open** again.
+- **Windows:** if you see "Windows protected your PC", click **More info** -> **Run anyway**.
+
+You only need to do this once.
+
+## What it does
+
+Point it at a folder of your NAPLAN SSSR files. It shows participation, proficiency,
+equity and skill gaps, and tracks the **Year 7 -> Year 9 matched cohort** -- the closest
+thing to a true measure of your school's contribution -- then builds tidy PDF reports.
+
+**Private by design:** everything runs on your computer; no student names appear anywhere
+and nothing is uploaded.
+
+## Updates
+
+The app checks for new versions itself once installed. You can always return here for the
+newest installer.
+
+---
+
+_This repository holds the installers only. Older versions are under [Releases](../../releases)._
+"""
+
+open(f"{site}/index.html", "w").write(index)
+open(f"{site}/README.md", "w").write(readme)
+print("  wrote index.html + README.md")
+PY
+
+( cd "$SITE"
+  git add index.html README.md
+  if ! git diff --cached --quiet; then
+    git -c user.email="noreply@anthropic.com" -c user.name="Naplan Throughline" \
+      commit -q -m "Download page for $TAG"
+    git push -q origin HEAD
+    echo "  pushed updated download page"
+  else
+    echo "  download page unchanged"
+  fi
+)
+
+echo ""
+echo "Done."
+echo "  Auto-update feed: https://github.com/$PUB/releases/latest/download/latest.json"
+echo "  Download page:    $PAGES_URL"
+echo "  Releases:         https://github.com/$PUB/releases/latest"

@@ -1,5 +1,12 @@
 # Naplan Throughline
 
+> ### ⬇️ Just want the app? → **[Download page](https://mrdavearms.github.io/naplan-throughline-releases/)**
+> Big "Download for Mac / Windows" buttons, plus how to open it the first time.
+> (Or grab an installer straight from the [latest release](https://github.com/mrdavearms/naplan-throughline-releases/releases/latest).)
+> This README below is for developers.
+
+---
+
 Cross-platform desktop app (**Tauri 2 + React 19 + TypeScript**) for NAPLAN
 cohort analysis. **On-device, local-only, multi-school.** A from-scratch rewrite
 of an internal Python/Streamlit tool.

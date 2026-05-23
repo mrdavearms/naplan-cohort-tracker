@@ -73,7 +73,10 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: Naplan Throughline ${{ github.ref_name }}
-          releaseBody: "On-device NAPLAN cohort analysis. Unsigned build — see the README for how to open it on macOS/Windows."
+          releaseBody: |
+            On-device NAPLAN cohort analysis (unsigned build).
+            First time you open it — macOS: right-click → Open → Open again. Windows: "More info" → "Run anyway".
+            Public downloads + a friendly install page are mirrored to the naplan-throughline-releases repo.
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
