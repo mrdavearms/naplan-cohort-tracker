@@ -4,13 +4,15 @@
  * the version is read from the native shell when running under Tauri.
  */
 import { useEffect, useState } from "react";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { Card, SectionHeading } from "../components/ui";
+import { useApp } from "../state/AppState";
 import { isTauri } from "../lib/dataSource";
 import { appInfo } from "../lib/tauriFs";
 import { APP_NAME, CONTACT_EMAIL, DEVELOPER, DISCLAIMER, GITHUB_URL } from "../appMeta";
 
 export function AboutView() {
+  const { state, setView } = useApp();
   const [version, setVersion] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,6 +24,17 @@ export function AboutView() {
 
   return (
     <div className="space-y-6">
+      {/* Pre-load there is no sidebar, so give a way back to the import screen. */}
+      {state.status !== "loaded" && (
+        <button
+          type="button"
+          onClick={() => setView("import")}
+          className="inline-flex items-center gap-1 text-sm font-medium text-graphite/60 hover:text-graphite"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          Back
+        </button>
+      )}
       <SectionHeading title={`About ${APP_NAME}`} blurb={version ? `Version ${version}` : undefined} />
 
       <Card>

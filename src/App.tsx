@@ -33,12 +33,19 @@ function ActiveView() {
 export function App() {
   const { state } = useApp();
 
-  // Pre-load: a single centered on-ramp, no chrome.
+  // Pre-load: a single centered on-ramp, no chrome. About + Settings are still
+  // reachable here (via links on the import screen / a Back link on those views).
   if (state.status !== "loaded") {
     return (
       <div className="min-h-screen">
         <div className="mx-auto max-w-3xl px-6 py-16">
-          {state.activeView === "settings" ? <SettingsView /> : <ImportStaging />}
+          {state.activeView === "settings" ? (
+            <SettingsView />
+          ) : state.activeView === "about" ? (
+            <AboutView />
+          ) : (
+            <ImportStaging />
+          )}
         </div>
       </div>
     );
