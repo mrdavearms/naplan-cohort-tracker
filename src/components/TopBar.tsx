@@ -3,12 +3,12 @@
  * whose Year 9 cohort anchors the analysis), and a change-folder action.
  */
 import { availableYears } from "@naplan-throughline/core";
+import { FolderOpenIcon } from "@heroicons/react/24/outline";
 import { useApp } from "../state/AppState";
-import { FolderPicker } from "./FolderPicker";
 import { SECTION_BY_ID } from "../views/sections";
 
 export function TopBar() {
-  const { state, setPrimaryYear } = useApp();
+  const { state, setPrimaryYear, setView } = useApp();
   if (state.status !== "loaded") return null;
 
   const years = availableYears(state.store);
@@ -24,7 +24,7 @@ export function TopBar() {
       <div className="min-w-0">
         <div className="truncate text-sm font-medium text-graphite">{viewTitle}</div>
         {state.sourceLabel && (
-          <div className="truncate text-xs text-graphite/50">Folder: {state.sourceLabel}</div>
+          <div className="truncate text-xs text-graphite/50">Source: {state.sourceLabel}</div>
         )}
       </div>
       <div className="flex items-center gap-3">
@@ -42,7 +42,14 @@ export function TopBar() {
             ))}
           </select>
         </label>
-        <FolderPicker compact />
+        <button
+          type="button"
+          onClick={() => setView("import")}
+          className="inline-flex items-center gap-2 rounded-xl bg-coral px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-coral-dark focus:outline-none focus:ring-2 focus:ring-coral focus:ring-offset-2"
+        >
+          <FolderOpenIcon className="h-5 w-5" />
+          Edit files
+        </button>
       </div>
     </header>
   );

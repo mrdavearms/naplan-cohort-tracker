@@ -104,7 +104,15 @@ async function yearLevelSection(store: Store, primaryYear: number, yearLevel: nu
   for (const dom of domains) {
     const eq = equityBreakdown(getEntry(store, primaryYear, yearLevel, dom)!.studentReports);
     const lbote = eq.lbote.find((g) => g.label === "LBOTE");
-    const atsiText = eq.atsiSuppressed ? `suppressed (n=${eq.atsiCount}<5)` : `${eq.atsi.find((g) => g.label === "ATSI")?.nasGapVsCohort.toFixed(1) ?? "—"} pp`;
+    // eq.atsi is [Indigenous, Non-Indigenous] (see equityBreakdown); index 0 is
+    // the ATSI subgroup. (A previous `.find(label === "ATSI")` never matched the
+    // real label "Aboriginal and/or Torres Strait Islander", so this always blanked.)
+    const atsiGroup = eq.atsi[0];
+    const atsiText = eq.atsiSuppressed
+      ? `suppressed (n=${eq.atsiCount}<5)`
+      : atsiGroup
+        ? `${atsiGroup.nasGapVsCohort >= 0 ? "+" : ""}${atsiGroup.nasGapVsCohort.toFixed(1)} pp`
+        : "—";
     eqRows.push([
       dom,
       pct1(eq.cohortNasPct),

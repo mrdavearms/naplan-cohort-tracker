@@ -10,17 +10,20 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { HomeView } from "./views/HomeView";
 import { SettingsView } from "./views/SettingsView";
 import { SectionRouter } from "./views/SectionRouter";
+import { ImportStaging } from "./components/ImportStaging";
 
 function ActiveView() {
   const { state } = useApp();
   switch (state.activeView) {
+    case "import":
+      return <ImportStaging />;
     case "home":
       return <HomeView />;
     case "settings":
       return <SettingsView />;
     default:
       // sections require loaded data; fall back home otherwise
-      return state.status === "loaded" ? <SectionRouter /> : <HomeView />;
+      return state.status === "loaded" ? <SectionRouter /> : <ImportStaging />;
   }
 }
 
@@ -32,7 +35,7 @@ export function App() {
     return (
       <div className="min-h-screen">
         <div className="mx-auto max-w-3xl px-6 py-16">
-          {state.activeView === "settings" ? <SettingsView /> : <HomeView />}
+          {state.activeView === "settings" ? <SettingsView /> : <ImportStaging />}
         </div>
       </div>
     );

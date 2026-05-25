@@ -81,11 +81,42 @@ fn read_workbook_folder(dir: String) -> Result<Vec<RawFile>, String> {
     Ok(out)
 }
 
-/// App version + OS/arch for the diagnostics export.
+/// Read a set of individually-picked `.xlsx` files (from a multi-select native
+/// file dialog). Unlike the folder command, there is no containing `Naplan YYYY`
+/// folder, so `relative_path` is just the file name — the user assigns the year
+/// of test on the import screen. Non-`.xlsx` / unreadable picks are skipped.
 #[tauri::command]
-fn app_info() -> AppInfo {
+fn read_workbook_files(paths: Vec<String>) -> Result<Vec<RawFile>, String> {
+    let mut out = Vec::new();
+    for path in paths {
+        let p = PathBuf::from(&path);
+        let file_name = p
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_default();
+        if !is_xlsx(&file_name) {
+            continue;
+        }
+        match std::fs::read(&p) {
+            Ok(bytes) => out.push(RawFile {
+                name: file_name.clone(),
+                relative_path: file_name,
+                bytes,
+            }),
+            Err(e) => log::warn!("skipping {}: {e}", p.display()),
+        }
+    }
+    Ok(out)
+}
+
+/// App version + OS/arch for the diagnostics export. The version is the app's
+/// own (from `tauri.conf.json`, which drives the bundle + auto-updater) so the
+/// diagnostics file can't drift from the real version the way `CARGO_PKG_VERSION`
+/// did (the crate version was never bumped in lockstep with the app version).
+#[tauri::command]
+fn app_info(app: tauri::AppHandle) -> AppInfo {
     AppInfo {
-        version: env!("CARGO_PKG_VERSION").to_string(),
+        version: app.package_info().version.to_string(),
         os: std::env::consts::OS.to_string(),
         arch: std::env::consts::ARCH.to_string(),
     }
@@ -146,6 +177,7 @@ pub fn run() {
     builder
         .invoke_handler(tauri::generate_handler![
             read_workbook_folder,
+            read_workbook_files,
             app_info,
             save_text_file,
             save_binary_file

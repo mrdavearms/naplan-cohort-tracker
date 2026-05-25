@@ -3,7 +3,7 @@
  * pattern; no router). Holds the loaded analysis store, the selected primary
  * year, school-identity settings, and the active view.
  */
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useRef, useReducer, type ReactNode } from "react";
 import {
   availableYears,
   defaultSettings,
@@ -12,10 +12,12 @@ import {
   type Settings,
   type SkippedFile,
   type Store,
+  type WorkbookInspection,
 } from "@naplan-throughline/core";
 import { loadSettings, saveSettings } from "../lib/persist";
 
 export type ViewId =
+  | "import"
   | "home"
   | "s1"
   | "s2"
@@ -31,6 +33,33 @@ export type ViewId =
 
 export type LoadStatus = "empty" | "loading" | "loaded" | "error";
 
+/** One file staged on the import screen. Metadata only — the raw bytes live in a
+ *  ref in the provider (keyed by `id`), never in reducer state, so they can't be
+ *  accidentally serialised and don't bloat dispatched state. */
+export interface StagedFile {
+  id: string;
+  name: string;
+  relativePath: string;
+  /** Year of test inferred from the path/name (`Naplan YYYY`), or null. */
+  detectedYear: number | null;
+  /** Year of test the user assigned (used when `detectedYear` is null). */
+  assignedYear: number | null;
+  inspection: WorkbookInspection;
+}
+
+/** One "Add" action on the import screen — a folder pick or a loose-file pick. */
+export interface StagedSource {
+  id: string;
+  kind: "folder" | "files";
+  label: string;
+  files: StagedFile[];
+}
+
+/** The year of test a staged file will load under (assigned wins over detected). */
+export function effectiveYear(f: StagedFile): number | null {
+  return f.assignedYear ?? f.detectedYear;
+}
+
 export interface AppState {
   status: LoadStatus;
   store: Store;
@@ -42,6 +71,8 @@ export interface AppState {
   primaryYear: number | null;
   settings: Settings;
   activeView: ViewId;
+  /** Files staged on the import screen (metadata only; bytes live in a ref). */
+  staged: StagedSource[];
 }
 
 type Action =
@@ -55,7 +86,12 @@ type Action =
   | { type: "loadError"; error: string }
   | { type: "setPrimaryYear"; year: number }
   | { type: "setView"; view: ViewId }
-  | { type: "setSettings"; settings: Settings };
+  | { type: "setSettings"; settings: Settings }
+  | { type: "stageAdd"; source: StagedSource }
+  | { type: "stageRemove"; sourceId: string }
+  | { type: "stageRemoveFile"; sourceId: string; fileId: string }
+  | { type: "stageSetYear"; sourceId: string; year: number }
+  | { type: "stageClear" };
 
 const initialState: AppState = {
   status: "empty",
@@ -66,7 +102,8 @@ const initialState: AppState = {
   sourceLabel: null,
   primaryYear: null,
   settings: defaultSettings(),
-  activeView: "home",
+  activeView: "import",
+  staged: [],
 };
 
 function reducer(state: AppState, action: Action): AppState {
@@ -82,8 +119,11 @@ function reducer(state: AppState, action: Action): AppState {
         skipped: action.skipped,
         unresolved: action.unresolved,
         error: null,
-        // default to the most recent year that can anchor a Y7→Y9 cohort if possible
+        // default to the most recent year loaded (availableYears is sorted desc)
         primaryYear: years[0] ?? null,
+        // leave the import screen, but KEEP `staged` so "Edit imported files"
+        // can reopen the list intact.
+        activeView: state.activeView === "import" ? "home" : state.activeView,
       };
     }
     case "loadError":
@@ -94,6 +134,39 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, activeView: action.view };
     case "setSettings":
       return { ...state, settings: action.settings };
+    case "stageAdd":
+      return { ...state, staged: [...state.staged, action.source] };
+    case "stageRemove":
+      return { ...state, staged: state.staged.filter((s) => s.id !== action.sourceId) };
+    case "stageRemoveFile":
+      return {
+        ...state,
+        staged: state.staged
+          .map((s) =>
+            s.id !== action.sourceId
+              ? s
+              : { ...s, files: s.files.filter((f) => f.id !== action.fileId) },
+          )
+          .filter((s) => s.files.length > 0), // drop a source once its last file goes
+      };
+    case "stageSetYear":
+      return {
+        ...state,
+        staged: state.staged.map((s) =>
+          s.id !== action.sourceId
+            ? s
+            : {
+                ...s,
+                // Apply the picked year only to files that couldn't auto-detect one;
+                // files with a folder-derived year keep it.
+                files: s.files.map((f) =>
+                  f.detectedYear == null ? { ...f, assignedYear: action.year } : f,
+                ),
+              },
+        ),
+      };
+    case "stageClear":
+      return { ...state, staged: [] };
     default:
       return state;
   }
@@ -105,6 +178,23 @@ export interface AppContextValue {
   setPrimaryYear: (year: number) => void;
   setView: (view: ViewId) => void;
   updateSettings: (settings: Settings) => void;
+  /** Add a picked source (folder or loose files) to the import staging list. The
+   *  bytes Map is keyed by `StagedFile.id`; it is merged into the provider's ref. */
+  stageAdd: (source: StagedSource, bytes: Map<string, ArrayBuffer | Uint8Array>) => void;
+  stageRemove: (sourceId: string) => void;
+  stageRemoveFile: (sourceId: string, fileId: string) => void;
+  /** Assign the year of test to a source's files that couldn't auto-detect one. */
+  stageSetYear: (sourceId: string, year: number) => void;
+  stageClear: () => void;
+  /** Build the analysis from the current staged set (recognised files with a year). */
+  loadStaged: () => Promise<void>;
+}
+
+/** Composite label for the loaded source(s), shown in the top bar. */
+function stagedLabel(sources: StagedSource[]): string | null {
+  if (sources.length === 0) return null;
+  if (sources.length === 1) return sources[0]!.label;
+  return `${sources.length} sources`;
 }
 
 // Exported so tests can inject a fabricated loaded state without the async
@@ -120,36 +210,78 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     settings: loadSettings(),
   }));
 
-  const value = useMemo<AppContextValue>(
-    () => ({
-      state,
-      async loadFiles(files, sourceLabel) {
-        dispatch({ type: "loadStart", sourceLabel });
-        try {
-          const { store, skipped, unresolved } = await loadStoreFromFiles(files);
-          if (store.size === 0) {
-            dispatch({
-              type: "loadError",
-              error:
-                "No NAPLAN files could be loaded from that folder. Make sure it contains " +
-                "SSSR Extract .xlsx files inside a year folder (e.g. “Naplan 2026”).",
-            });
-            return;
-          }
-          dispatch({ type: "loadSuccess", store, skipped, unresolved });
-        } catch (e) {
-          dispatch({ type: "loadError", error: e instanceof Error ? e.message : String(e) });
+  // Raw workbook bytes for staged files, keyed by StagedFile.id. Kept OUT of
+  // reducer state (a ref) so bytes are never dispatched/serialised and don't
+  // bloat state. Survives re-renders and navigation, so "Edit imported files"
+  // can rebuild from the same bytes.
+  const bytesRef = useRef<Map<string, ArrayBuffer | Uint8Array>>(new Map());
+
+  const value = useMemo<AppContextValue>(() => {
+    async function runLoad(files: RawWorkbookFile[], sourceLabel: string | null) {
+      dispatch({ type: "loadStart", sourceLabel });
+      try {
+        const { store, skipped, unresolved } = await loadStoreFromFiles(files);
+        if (store.size === 0) {
+          dispatch({
+            type: "loadError",
+            error:
+              "No NAPLAN data could be loaded. Make sure you've added SSSR Extract .xlsx " +
+              "files and confirmed the year for any that couldn't be detected.",
+          });
+          return;
         }
-      },
+        dispatch({ type: "loadSuccess", store, skipped, unresolved });
+      } catch (e) {
+        dispatch({ type: "loadError", error: e instanceof Error ? e.message : String(e) });
+      }
+    }
+
+    return {
+      state,
+      loadFiles: runLoad,
       setPrimaryYear: (year) => dispatch({ type: "setPrimaryYear", year }),
       setView: (view) => dispatch({ type: "setView", view }),
       updateSettings: (settings) => {
         saveSettings(settings);
         dispatch({ type: "setSettings", settings });
       },
-    }),
-    [state],
-  );
+      stageAdd: (source, bytes) => {
+        for (const [id, b] of bytes) bytesRef.current.set(id, b);
+        dispatch({ type: "stageAdd", source });
+      },
+      stageRemove: (sourceId) => {
+        const src = state.staged.find((s) => s.id === sourceId);
+        if (src) for (const f of src.files) bytesRef.current.delete(f.id);
+        dispatch({ type: "stageRemove", sourceId });
+      },
+      stageRemoveFile: (sourceId, fileId) => {
+        bytesRef.current.delete(fileId);
+        dispatch({ type: "stageRemoveFile", sourceId, fileId });
+      },
+      stageSetYear: (sourceId, year) => dispatch({ type: "stageSetYear", sourceId, year }),
+      stageClear: () => {
+        bytesRef.current.clear();
+        dispatch({ type: "stageClear" });
+      },
+      async loadStaged() {
+        const seen = new Set<string>();
+        const files: RawWorkbookFile[] = [];
+        for (const src of state.staged) {
+          for (const f of src.files) {
+            if (f.inspection.status !== "ok") continue;
+            const year = effectiveYear(f);
+            if (year == null) continue;
+            if (seen.has(f.relativePath)) continue; // dedupe across sources
+            seen.add(f.relativePath);
+            const bytes = bytesRef.current.get(f.id);
+            if (!bytes) continue;
+            files.push({ name: f.name, relativePath: f.relativePath, bytes, yearOfTest: year });
+          }
+        }
+        await runLoad(files, stagedLabel(state.staged));
+      },
+    };
+  }, [state]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

@@ -16,9 +16,10 @@ import { filesFromFileList } from "../lib/dataSource";
 const emptyStore = new Map();
 
 describe("Home empty/error states", () => {
-  it("shows the on-ramp hero before any data is loaded", () => {
+  it("shows the import on-ramp before any data is loaded", () => {
     renderWithApp(<HomeView />, { store: emptyStore, state: { status: "empty", primaryYear: null } });
-    expect(screen.getByText(/Choose your NAPLAN folder/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /add folder/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /add files/i })).toBeInTheDocument();
   });
 
   it("surfaces a load error message", () => {

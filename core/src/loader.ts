@@ -112,11 +112,13 @@ function worksheetToSheet(ws: ExcelJS.Worksheet): ParsedSheet {
 /** Parse workbook bytes into per-sheet headers + rows. */
 export async function parseWorkbook(data: ArrayBuffer | Uint8Array): Promise<ParsedWorkbook> {
   const wb = new ExcelJS.Workbook();
-  const buf =
-    data instanceof Uint8Array
-      ? data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)
-      : data;
-  await wb.xlsx.load(buf as ArrayBuffer);
+  // Hand exceljs a Uint8Array, not a bare ArrayBuffer. exceljs's *browser* build
+  // (the one Vite ships into the WebView) is picky: its bundled JSZip reliably
+  // accepts a Uint8Array but rejects some ArrayBuffers — e.g. a slice of a
+  // pooled buffer — with "Can't read the data of 'the loaded zip file'". The
+  // Uint8Array also preserves byteOffset/length, so a view is read correctly.
+  const input = data instanceof Uint8Array ? data : new Uint8Array(data);
+  await wb.xlsx.load(input as unknown as ArrayBuffer);
 
   const byName = new Map<string, ParsedSheet>();
   for (const ws of wb.worksheets) byName.set(ws.name, worksheetToSheet(ws));
@@ -408,4 +410,59 @@ export function buildStore(inputs: readonly WorkbookInput[]): BuildStoreResult {
   }
 
   return { store, skipped };
+}
+
+// ── Single-file inspection (import-screen "recognised / not recognised") ──────
+// A lightweight per-file classifier used by the import UI to show an instant
+// status when a file is added, before the full Load. It reuses the same parse +
+// clean + detect path as buildStore (no second analysis code path), so a file
+// that inspects "ok" will load, and a rejection reason matches what Load reports.
+
+export type WorkbookInspection =
+  | {
+      status: "ok";
+      /** Detected from the file's own rows (7 or 9). */
+      yearLevel: number;
+      /** Detected from the file's own rows. */
+      domain: string;
+      /** Which sheets the workbook carries: a full 2026 export, or one half of a
+       *  2025 split (which only loads once paired with its partner). */
+      sheets: "full" | "reports" | "results";
+    }
+  | { status: "rejected"; reason: string };
+
+/** Classify a single workbook's bytes for the import screen. Never throws —
+ *  unreadable or non-SSSR files come back as `{ status: "rejected", reason }`. */
+export async function inspectWorkbook(
+  data: ArrayBuffer | Uint8Array,
+): Promise<WorkbookInspection> {
+  let workbook: ParsedWorkbook;
+  try {
+    workbook = await parseWorkbook(data);
+  } catch {
+    return { status: "rejected", reason: "Couldn’t read this file — is it a valid .xlsx?" };
+  }
+
+  const names = new Set(workbook.sheetNames);
+  const hasSr = names.has(SHEET_REPORTS);
+  const hasSrt = names.has(SHEET_RESULTS);
+
+  try {
+    if (hasSr) {
+      const reports = cleanStudentReports(workbook.sheet(SHEET_REPORTS)!);
+      const { domain, yearLevel } = detectDomainAndYear(reports);
+      return { status: "ok", yearLevel, domain, sheets: hasSrt ? "full" : "reports" };
+    }
+    if (hasSrt) {
+      const results = cleanStudentResults(workbook.sheet(SHEET_RESULTS)!);
+      const { domain, yearLevel } = detectDomainAndYearFromResults(results);
+      return { status: "ok", yearLevel, domain, sheets: "results" };
+    }
+    return {
+      status: "rejected",
+      reason: `This isn’t a NAPLAN SSSR file (no ‘${SHEET_REPORTS}’ or ‘${SHEET_RESULTS}’ sheet).`,
+    };
+  } catch (e) {
+    return { status: "rejected", reason: e instanceof Error ? e.message : String(e) };
+  }
 }

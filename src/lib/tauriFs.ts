@@ -34,6 +34,31 @@ export async function loadFolderViaTauri(): Promise<PickedFolder | null> {
   return { label, files };
 }
 
+/** Pick individual `.xlsx` files via a native multi-select dialog. There is no
+ *  containing folder, so each file's `relativePath` is just its name and the
+ *  user assigns the year of test on the import screen. Returns null if cancelled. */
+export async function loadFilesViaTauri(): Promise<PickedFolder | null> {
+  const picked = await open({
+    directory: false,
+    multiple: true,
+    title: "Choose NAPLAN .xlsx files",
+    filters: [{ name: "Excel", extensions: ["xlsx"] }],
+  });
+  if (picked == null) return null; // cancelled
+  const paths = Array.isArray(picked) ? picked : [picked];
+  if (paths.length === 0) return null;
+
+  const native = await invoke<NativeRawFile[]>("read_workbook_files", { paths });
+  const files: RawWorkbookFile[] = native.map((f) => ({
+    name: f.name,
+    relativePath: f.relativePath,
+    bytes: Uint8Array.from(f.bytes),
+  }));
+
+  const label = files.length === 1 ? files[0]!.name : `${files.length} files`;
+  return { label, files };
+}
+
 /** Read app version + OS/arch for the diagnostics export (no student data). */
 export async function appInfo(): Promise<{ version: string; os: string; arch: string }> {
   return invoke("app_info");

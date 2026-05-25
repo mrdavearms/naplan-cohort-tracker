@@ -25,6 +25,10 @@ export interface RawWorkbookFile {
   relativePath: string;
   /** Raw workbook bytes. */
   bytes: ArrayBuffer | Uint8Array;
+  /** Optional year of test assigned by the host (e.g. the user picked it on the
+   *  import screen for a loose file with no year in its path). When set, it wins
+   *  over `resolveYearOfTest`; otherwise the year is inferred from the path/name. */
+  yearOfTest?: number;
 }
 
 /**
@@ -57,7 +61,9 @@ export async function loadStoreFromFiles(
   const parseSkipped: SkippedFile[] = [];
 
   for (const f of files) {
-    const yearOfTest = resolveYearOfTest(f.relativePath, f.name);
+    // A host-assigned year (the import screen's year dropdown) wins; otherwise
+    // infer from the `Naplan YYYY` folder / file name as before.
+    const yearOfTest = f.yearOfTest ?? resolveYearOfTest(f.relativePath, f.name);
     if (yearOfTest == null) {
       unresolved.push({ filename: f.name, reason: "could not determine year of test from path/name" });
       continue;

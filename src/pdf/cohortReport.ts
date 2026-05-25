@@ -45,6 +45,16 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
   const out: Content[] = [];
   out.push({ text: `${pc.domain} — Year 7 to Year 9 transition`, style: "h2", pageBreak: "before" });
 
+  // No reconciled students: skip the charts/tables (which would all read n=0)
+  // and explain why, rather than printing a page that looks broken.
+  if (pc.paired.length === 0) {
+    out.push({
+      text: `No students could be matched between Year 7 (${y7Year}) and Year 9 (${y9Year}) for ${pc.domain}. This usually means the Local Student IDs don't reconcile across the two files, so there's nothing to track for this domain — check that both years use the school's Local Student ID.`,
+      style: "lead",
+    });
+    return out;
+  }
+
   const sankey = await figureToPng(transitionSankeyFigure(pc, y7Year, y9Year), 520, 360);
   const heat = await figureToPng(transitionHeatmapFigure(pc, y7Year, y9Year), 520, 360);
   out.push({ image: sankey, width: 500, margin: [0, 2, 0, 6] });

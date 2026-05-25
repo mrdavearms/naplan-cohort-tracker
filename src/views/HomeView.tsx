@@ -1,58 +1,23 @@
 /**
- * Home view. Empty state = the hero + folder picker (the on-ramp). Loaded state
- * = an overview: the match-rate banner, what loaded, and any skipped files.
+ * Home view (loaded only) — the overview: match-rate banner, what loaded, any
+ * skipped files, and a way back to the import screen to add or fix files. The
+ * empty-state on-ramp lives in ImportStaging, rendered by App before any load.
  */
 import { availableYears, getPrimaryYearEntries } from "@naplan-throughline/core";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { ExclamationTriangleIcon, FolderOpenIcon } from "@heroicons/react/24/outline";
 import { useApp } from "../state/AppState";
-import { FolderPicker } from "../components/FolderPicker";
+import { ImportStaging } from "../components/ImportStaging";
 import { MatchRateBanner } from "../components/MatchRateBanner";
-import { Card, Pill, PrivacyNote, StatTile } from "../components/ui";
+import { Card, Pill, StatTile } from "../components/ui";
 import { ExportPdfButton } from "../components/ExportPdfButton";
 
-function Hero({ error, loading }: { error: string | null; loading: boolean }) {
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-alabaster bg-white/60">
-      <div className="dot-grid pointer-events-none absolute inset-0 opacity-[0.08]" />
-      <div className="relative px-8 py-16 text-center">
-        <h1 className="font-display text-4xl font-extrabold tracking-tight">
-          <span className="hero-shimmer">Naplan Throughline</span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-graphite/70">
-          On-device NAPLAN cohort analysis. Put your Year 7 and Year 9 SSSR Extract files in a
-          folder, then point the app at it — nothing leaves your machine.
-        </p>
-        <div className="mt-8 flex justify-center">
-          {loading ? (
-            <div className="flex flex-col items-center gap-2 text-graphite/70">
-              <div className="spinner" />
-              <span className="text-sm">Loading your NAPLAN files…</span>
-            </div>
-          ) : (
-            <FolderPicker />
-          )}
-        </div>
-        {error && (
-          <div className="mx-auto mt-6 flex max-w-xl items-start gap-2 rounded-xl border border-coral/40 bg-coral/5 p-3 text-left text-sm text-coral-text">
-            <ExclamationTriangleIcon className="mt-0.5 h-5 w-5 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-        <PrivacyNote>
-          Local-only · no network calls · no student names in any chart, table, or export.
-        </PrivacyNote>
-      </div>
-    </div>
-  );
-}
-
 export function HomeView() {
-  const { state } = useApp();
+  const { state, setView } = useApp();
 
+  // Defensive: HomeView is only routed to when loaded, but if it ever isn't,
+  // show the import on-ramp rather than a blank overview.
   if (state.status !== "loaded" || state.primaryYear == null) {
-    return (
-      <Hero error={state.status === "error" ? state.error : null} loading={state.status === "loading"} />
-    );
+    return <ImportStaging />;
   }
 
   const { store, primaryYear, skipped, unresolved } = state;
@@ -64,7 +29,17 @@ export function HomeView() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-graphite">Overview</h1>
-        <ExportPdfButton kind="overview" />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setView("import")}
+            className="inline-flex items-center gap-2 rounded-xl border border-alabaster bg-white px-4 py-2 text-sm font-medium text-graphite shadow-sm transition hover:bg-linen/60"
+          >
+            <FolderOpenIcon className="h-5 w-5 text-graphite/60" />
+            Edit imported files
+          </button>
+          <ExportPdfButton kind="overview" />
+        </div>
       </div>
 
       <MatchRateBanner store={store} primaryYear={primaryYear} />
@@ -102,6 +77,14 @@ export function HomeView() {
               </li>
             ))}
           </ul>
+          <button
+            type="button"
+            onClick={() => setView("import")}
+            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-tuscan/50 bg-white/70 px-3 py-1.5 text-xs font-medium text-graphite hover:bg-white"
+          >
+            <FolderOpenIcon className="h-4 w-4 text-graphite/60" />
+            Edit imported files
+          </button>
         </Card>
       )}
     </div>

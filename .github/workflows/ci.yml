@@ -23,3 +23,16 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+
+      # Compile-check the Tauri/Rust shell on both OSes so a broken native build
+      # is caught on push — not only when a release tag is pushed. `cargo check`
+      # expands `generate_context!`, which embeds the frontend, so `dist/` must
+      # exist first (hence the build step).
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+      - run: npm run build
+      - run: cargo check --manifest-path src-tauri/Cargo.toml

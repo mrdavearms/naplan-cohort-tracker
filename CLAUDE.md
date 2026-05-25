@@ -28,7 +28,7 @@ Unlike the legacy app (single school, hard-coded WHS), Naplan Throughline is **m
 
 ## Data model
 
-- **Store key:** `(yearOfTest, yearLevel, domain)` → one loaded entry.
+- **Store key:** `(yearOfTest, yearLevel, domain)` → one loaded entry. Literal map key: `` `${yearOfTest}|${yearLevel}|${domain}` `` (e.g. `2026|7|Reading`).
 - **Proficiency levels (order matters — drives the transition matrix):**
   `["Needs additional support", "Developing", "Strong", "Exceeding"]`
 - **Valid year levels:** 7 and 9.
@@ -59,6 +59,8 @@ Within a single 2026 export the two sheets *also* differ (Student Reports uses `
 Known data gaps to preserve:
 - Some students have a blank `Local student ID` — fall back to `Student ID` with a `*` suffix.
 - `Indigenous Status` / `LBOTE Status` blank for non-participants — treat as "Not reported".
+
+**exceljs build trap:** the `core` (node) tests load exceljs's **node** build; the WebView and the `ui`/jsdom tests load its **browser** build, whose bundled JSZip rejects some `ArrayBuffer`s (e.g. a slice of a pooled buffer) but reliably accepts a `Uint8Array`. `parseWorkbook` must hand exceljs a `Uint8Array`, never a bare ArrayBuffer. A jsdom test in `src/test/loaderBrowser.test.ts` guards this path.
 
 ## Keying rule — critical
 
@@ -91,12 +93,20 @@ Keep Y7 and Y9 separated and clearly labelled. Frame NAPLAN as **diagnostic evid
 | UI | React 19 + Vite + TypeScript | matches Dave's other apps |
 | Styling | Tailwind + shadcn/ui | |
 | Charts | Plotly.js | Sankey, direction-coloured heatmap, stacked bars, Wilson CI dot plots; exports PNG/SVG in-webview (no kaleido) |
-| Excel read | SheetJS (`xlsx`) | reads SSSR `.xlsx` |
+| Excel read | ExcelJS (`exceljs`) | reads SSSR `.xlsx` (the Vite chunk is named `vendor-xlsx`) |
 | Stats | hand-ported + Vitest | Wilson CI (closed form), McNemar (binomial on discordant 2×2) |
 | PDF | Plotly `toImage` + `pdf-lib`/`pdfmake` | assembled in JS; no native dependency |
 | Tests | Vitest | validated against the Python oracle |
 
 Bundle identifier: `com.dandsarmstrong.naplanthroughline`. Repo: `github.com/mrdavearms/naplan-throughline` (private), account `dave@dandsarmstrong.com`.
+
+## Commands & local checks
+
+Before claiming done, all must be green:
+- `npm run lint` · `npm run typecheck` · `npm test` · `npm run build`
+- Rust shell: `cd src-tauri && cargo check && cargo clippy`. **Needs `dist/` to exist first** — `generate_context!` embeds the frontend, so run `npm run build` beforehand.
+
+Tests are two Vitest projects: **core** (`core/tests/**`, node env, parses real `.xlsx`) and **ui** (`src/**/*.test.{ts,tsx}`, jsdom, Plotly stubbed via `src/test/stubs/`). CI runs lint + typecheck + test + `cargo check` on macOS **and** Windows.
 
 ## Privacy invariants
 
@@ -135,6 +145,10 @@ the other Antigravity apps:
 - Releases are still cut from `main` via a version tag (`vX.Y.Z`) which triggers
   `release.yml`, then `scripts/mirror-release.sh vX.Y.Z` publishes to the public
   auto-update feed.
+- **Three version fields must match when releasing:** `src-tauri/tauri.conf.json`
+  (authoritative — drives the bundle + auto-updater), `src-tauri/Cargo.toml`, and
+  `package.json`. The `app_info` command reports `tauri.conf.json`'s version via
+  `package_info()`.
 
 ## Out of scope for v1
 

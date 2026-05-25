@@ -1,7 +1,8 @@
 /**
- * Settings persistence adapter. Browser dev uses localStorage; the Tauri shell
- * swaps in a file-backed store (added in the shell phase). The pure schema +
- * `migrate()` live in core/ — this layer only reads/writes the blob.
+ * Settings persistence adapter. Reads/writes the settings blob to the WebView's
+ * localStorage — which the Tauri shell persists to the app's data directory, so
+ * it survives restarts and stays local-only. The pure schema + `migrate()` live
+ * in core/; this layer only serialises the blob.
  */
 import { migrate, type Settings } from "@naplan-throughline/core";
 

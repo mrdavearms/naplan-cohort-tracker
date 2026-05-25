@@ -247,6 +247,21 @@ function DomainDrilldown({
   const subdomainMoves = subdomainMovement(y7Results, y9Results);
   const isReading = pc.domain === "Reading";
 
+  // No reconciled students: every chart below would read n=0 and look broken.
+  // Explain it instead — this is the common "Local IDs don't match across years" case.
+  if (pc.paired.length === 0) {
+    return (
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} — no matched students</h2>
+        <p className="text-sm text-graphite/70">
+          No students could be matched between Year 7 ({y7Year}) and Year 9 ({y9Year}) for {pc.domain}.
+          This usually means the Local Student IDs don&rsquo;t reconcile across the two files, so there&rsquo;s
+          nothing to track for this domain — check that both years use the school&rsquo;s Local Student ID.
+        </p>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Transition: Sankey + heatmap */}

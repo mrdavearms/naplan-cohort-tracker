@@ -15,6 +15,7 @@ export function makeState(store: Store, overrides: Partial<AppState> = {}): AppS
     primaryYear: 2026,
     settings: defaultSettings(),
     activeView: "home",
+    staged: [],
     ...overrides,
   };
 }
@@ -40,6 +41,12 @@ export function renderWithApp(
     setPrimaryYear: () => {},
     setView: () => {},
     updateSettings: () => {},
+    stageAdd: () => {},
+    stageRemove: () => {},
+    stageRemoveFile: () => {},
+    stageSetYear: () => {},
+    stageClear: () => {},
+    loadStaged: async () => {},
     ...opts.callbacks,
   };
   return render(<AppContext.Provider value={value}>{ui}</AppContext.Provider>);

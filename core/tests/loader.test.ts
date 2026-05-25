@@ -17,6 +17,7 @@ import {
   detectDomainAndYear,
   detectYearOfTestFromName,
   difficultyBand,
+  inspectWorkbook,
   parseWorkbook,
   type ParsedWorkbook,
 } from "../src/index";
@@ -160,5 +161,34 @@ describe("buildStore", () => {
     expect(store.size).toBe(0);
     expect(skipped).toHaveLength(1);
     expect(skipped[0]!.reason).toContain("missing Student Results Table");
+  });
+});
+
+describe("inspectWorkbook (import-screen classifier)", () => {
+  it("recognises a full 2026 workbook (both sheets)", async () => {
+    const res = await inspectWorkbook(fixtureBytes);
+    expect(res.status).toBe("ok");
+    if (res.status === "ok") {
+      expect(res.sheets).toBe("full");
+      expect(res.domain).toBe("Reading");
+      expect(res.yearLevel).toBe(7);
+    }
+  });
+
+  it("recognises a reports-only workbook as a 2025 split half", async () => {
+    const reportsOnly = readFileSync(join(here, "fixtures/synthetic_y9_2026_reading.xlsx"));
+    const res = await inspectWorkbook(reportsOnly);
+    expect(res.status).toBe("ok");
+    if (res.status === "ok") {
+      expect(res.sheets).toBe("reports");
+      expect(res.yearLevel).toBe(9);
+      expect(res.domain).toBe("Reading");
+    }
+  });
+
+  it("rejects unreadable bytes with a plain reason", async () => {
+    const res = await inspectWorkbook(new Uint8Array([1, 2, 3, 4]));
+    expect(res.status).toBe("rejected");
+    if (res.status === "rejected") expect(res.reason).toMatch(/read this file/i);
   });
 });

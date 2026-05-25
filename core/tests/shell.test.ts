@@ -120,6 +120,36 @@ describe("pipeline.loadStoreFromFiles", () => {
     expect(unresolved).toHaveLength(1);
     expect(unresolved[0]!.filename).toBe("mystery.xlsx");
   });
+
+  it("uses a host-assigned yearOfTest, overriding the path/name", async () => {
+    // No year in the path or name, but the host (import screen) assigns 2027.
+    const files: RawWorkbookFile[] = [
+      {
+        name: "mystery.xlsx",
+        relativePath: "mystery.xlsx",
+        bytes: bytes("synthetic_raw_2026.xlsx"),
+        yearOfTest: 2027,
+      },
+    ];
+    const { store, unresolved, skipped } = await loadStoreFromFiles(files);
+    expect(unresolved).toEqual([]);
+    expect(skipped).toEqual([]);
+    expect(availableYears(store)).toContain(2027);
+    expect(storeEntries(store).every((e) => e.yearOfTest === 2027)).toBe(true);
+  });
+
+  it("prefers an assigned yearOfTest even when the path has a different year", async () => {
+    const files: RawWorkbookFile[] = [
+      {
+        name: "synthetic_raw_2026.xlsx",
+        relativePath: "Naplan 2026/synthetic_raw_2026.xlsx",
+        bytes: bytes("synthetic_raw_2026.xlsx"),
+        yearOfTest: 2024,
+      },
+    ];
+    const { store } = await loadStoreFromFiles(files);
+    expect(availableYears(store)).toEqual([2024]);
+  });
 });
 
 describe("store selectors + cohort pairing (Reading Y7 2024 → Y9 2026)", () => {
