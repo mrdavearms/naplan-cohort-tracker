@@ -29,7 +29,8 @@ export type ViewId =
   | "s8"
   | "s9"
   | "s10"
-  | "settings";
+  | "settings"
+  | "about";
 
 export type LoadStatus = "empty" | "loading" | "loaded" | "error";
 

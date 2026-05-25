@@ -31,6 +31,7 @@ import {
 import { filesFromFileList, isTauri } from "../lib/dataSource";
 import { loadFilesViaTauri, loadFolderViaTauri } from "../lib/tauriFs";
 import { PrivacyNote } from "./ui";
+import { DISCLAIMER } from "../appMeta";
 
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
 
@@ -196,12 +197,42 @@ export function ImportStaging() {
           <h1 className="font-display text-4xl font-extrabold tracking-tight">
             <span className="hero-shimmer">Naplan Throughline</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-graphite/70">
-            Add your Year 7 and Year 9 SSSR Extract files — from one folder or several.
-            Confirm the year for anything that can’t be detected, then load. Nothing leaves
-            your machine.
+          <p className="mx-auto mt-4 max-w-2xl text-graphite/70">
+            This app analyses your school’s NAPLAN <strong>Preliminary</strong> results. Each
+            year ACARA (the Australian Curriculum, Assessment and Reporting Authority) releases
+            a preliminary Student and School Summary Report (SSSR), usually during Term 2. Point
+            Naplan&nbsp;Throughline at those files and it surfaces participation, proficiency,
+            equity and skill gaps — and, as the headline, tracks the same students from Year 7
+            to Year 9. Nothing leaves your machine.
           </p>
         </div>
+
+        <details className="mx-auto mt-6 max-w-2xl rounded-xl border border-alabaster bg-white/70 p-4 text-left text-sm text-graphite/80">
+          <summary className="cursor-pointer font-medium text-graphite">
+            Which files do I need, and where do I get them?
+          </summary>
+          <div className="mt-3 space-y-3">
+            <p>
+              <strong>What to add:</strong> all the files from the <strong>SSSR Preliminary
+              reports</strong> for your current Year 9s, <em>and</em> the same students’ Year 7
+              files from two years earlier. The preliminary SSSR includes the School (IDA)
+              Report, Class Summary Report, Class Test Report, Student Reports and
+              proficiency-standard information — add the full set, across every domain (Reading,
+              Numeracy, Spelling, Grammar and Punctuation) and both year levels, so every section
+              can be calculated.
+            </p>
+            <p>
+              The files for each year can sit in <strong>different folders</strong> — add each
+              folder, or pick the files directly, using the buttons below.
+            </p>
+            <p>
+              <strong>Where to get them:</strong> Principals download the data from the national
+              assessment platform (Assessform). Log in to the NAPLAN portal for the year you
+              need, using the same credentials your school used for the March test, then download
+              the SSSR Preliminary report files.
+            </p>
+          </div>
+        </details>
 
         {/* Hidden inputs for browser dev (Tauri uses native dialogs instead). */}
         <input
@@ -373,6 +404,13 @@ export function ImportStaging() {
             </div>
           </div>
         )}
+
+        <div className="mx-auto mt-6 flex max-w-2xl items-start gap-2 rounded-xl border border-tuscan/60 bg-tuscan/10 p-3 text-left text-sm text-graphite/80">
+          <ExclamationTriangleIcon className="mt-0.5 h-5 w-5 shrink-0 text-tuscan-dark" />
+          <span>
+            <strong>Please read:</strong> {DISCLAIMER}
+          </span>
+        </div>
 
         <PrivacyNote>
           Local-only · no network calls · no student names in any chart, table, or export.

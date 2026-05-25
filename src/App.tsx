@@ -11,6 +11,7 @@ import { HomeView } from "./views/HomeView";
 import { SettingsView } from "./views/SettingsView";
 import { SectionRouter } from "./views/SectionRouter";
 import { ImportStaging } from "./components/ImportStaging";
+import { AboutView } from "./views/AboutView";
 
 function ActiveView() {
   const { state } = useApp();
@@ -19,6 +20,8 @@ function ActiveView() {
       return <ImportStaging />;
     case "home":
       return <HomeView />;
+    case "about":
+      return <AboutView />;
     case "settings":
       return <SettingsView />;
     default:

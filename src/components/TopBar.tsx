@@ -17,7 +17,11 @@ export function TopBar() {
       ? "Overview"
       : state.activeView === "settings"
         ? "Settings"
-        : SECTION_BY_ID[state.activeView]?.title ?? "";
+        : state.activeView === "about"
+          ? "About"
+          : state.activeView === "import"
+            ? "Import files"
+            : SECTION_BY_ID[state.activeView]?.title ?? "";
 
   return (
     <header className="flex items-center justify-between gap-4 border-b border-alabaster bg-white/40 px-8 py-3 backdrop-blur-sm">

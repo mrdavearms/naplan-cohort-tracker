@@ -11,13 +11,47 @@ Cross-platform desktop app (**Tauri 2 + React 19 + TypeScript**) for NAPLAN
 cohort analysis. **On-device, local-only, multi-school.** A from-scratch rewrite
 of an internal Python/Streamlit tool.
 
-It reads a folder of NAPLAN SSSR Extract files and surfaces participation,
-proficiency, equity, skill gaps and — the headline — the **same students tracked
-from Year 7 to Year 9** (the school's value-add), with both an on-screen view
-and two PDF reports. No student data leaves the machine; no student names appear
-anywhere.
+## What this app does
+
+Naplan Throughline analyses your school's NAPLAN **Preliminary** results. Each
+year ACARA (the Australian Curriculum, Assessment and Reporting Authority)
+releases a preliminary Student and School Summary Report (SSSR), usually during
+Term 2. The preliminary SSSR gives schools the School (IDA) Report, Class Summary
+Report, Class Test Report, Student Reports and proficiency-standard information.
+
+This app reads those files and surfaces participation, proficiency, equity and
+skill gaps and — the headline — the **same students tracked from Year 7 to
+Year 9** (the school's value-add), with both an on-screen view and two PDF
+reports. No student data leaves the machine; no student names appear anywhere.
+
+## Which files you need
+
+Add all the files from the **SSSR Preliminary reports** — for your current
+Year 9s, **and** the same students' Year 7 files from two years earlier — across
+every domain (Reading, Numeracy, Spelling, Grammar and Punctuation) and both year
+levels. The files for each year can sit in **different folders**: the app lets you
+add several folders (or pick files directly), confirm the year for anything it
+can't detect, then build the analysis from the whole set.
+
+**Where to get them:** Principals download the data from the national assessment
+platform (Assessform). Log in to the NAPLAN portal for the year you need, using
+the same credentials your school used for the March test, then download the SSSR
+Preliminary report files.
 
 → **For school leaders: see [docs/USER-GUIDE.md](docs/USER-GUIDE.md).**
+
+## Developer & contact
+
+Developed by **Dave Armstrong, a Victorian school Principal**. To report
+problems, issues or feature requests, email
+**[dave.armstrong@education.vic.gov.au](mailto:dave.armstrong@education.vic.gov.au)**.
+
+## Disclaimer
+
+This app has been produced with care, but it is a **support tool — not an
+official source of truth**. Every figure, chart and report it produces should be
+checked carefully by an experienced staff member before it is relied on or
+shared.
 
 ## Layout
 

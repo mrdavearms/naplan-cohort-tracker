@@ -2,7 +2,7 @@
  * Left sidebar: brand mark + Sections 1–10 nav + Settings. Section 10 (cohort
  * tracking — the headline value-add) is visually separated and marked.
  */
-import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useApp, type ViewId } from "../state/AppState";
 import { SECTIONS } from "../views/sections";
@@ -85,10 +85,14 @@ export function Sidebar() {
         </NavButton>
       </div>
 
-      <div className="border-t border-alabaster px-3 py-3">
+      <div className="space-y-0.5 border-t border-alabaster px-3 py-3">
         <NavButton active={active === "settings"} onClick={() => go("settings")}>
           <Cog6ToothIcon className="h-5 w-5 text-graphite/50" />
           Settings
+        </NavButton>
+        <NavButton active={active === "about"} onClick={() => go("about")}>
+          <InformationCircleIcon className="h-5 w-5 text-graphite/50" />
+          About
         </NavButton>
       </div>
     </nav>
