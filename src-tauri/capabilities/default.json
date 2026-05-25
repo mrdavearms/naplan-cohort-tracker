@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Core defaults plus native folder picker, logging and the auto-updater. File reads happen in app-defined Rust commands (no broad fs scope needed).",
+  "description": "Core defaults plus native folder picker, logging, the auto-updater and app relaunch (to apply updates). File reads happen in app-defined Rust commands (no broad fs scope needed).",
   "windows": [
     "main"
   ],
@@ -9,6 +9,7 @@
     "core:default",
     "dialog:default",
     "log:default",
-    "updater:default"
+    "updater:default",
+    "process:default"
   ]
 }

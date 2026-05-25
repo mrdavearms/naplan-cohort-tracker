@@ -9,6 +9,7 @@ import { useApp } from "../state/AppState";
 import { isTauri } from "../lib/dataSource";
 import { appInfo, saveDiagnostics } from "../lib/tauriFs";
 import { buildDiagnosticsText } from "../lib/diagnostics";
+import { checkForUpdate, installAndRelaunch } from "../lib/updater";
 import { Card } from "./ui";
 
 export function TauriTools() {
@@ -47,20 +48,16 @@ export function TauriTools() {
     setBusy("update");
     setMsg(null);
     try {
-      const { check } = await import("@tauri-apps/plugin-updater");
-      const update = await check();
+      const update = await checkForUpdate();
       if (!update) {
         setMsg("You're up to date.");
         return;
       }
-      setMsg(`Update available: ${update.version}. Downloading…`);
-      await update.downloadAndInstall();
-      setMsg("Update installed — please quit and reopen Naplan Throughline to finish.");
+      setMsg(`Update available: ${update.version}. Downloading & installing…`);
+      await installAndRelaunch(update); // restarts the app on success
+      setMsg("Update installed — restarting…");
     } catch (e) {
-      setMsg(
-        "Could not check for updates yet (the public release feed is not set up). " +
-          `Details: ${e instanceof Error ? e.message : String(e)}`,
-      );
+      setMsg(`Could not check for updates. Details: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setBusy(null);
     }

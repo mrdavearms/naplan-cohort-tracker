@@ -12,6 +12,7 @@ import { SettingsView } from "./views/SettingsView";
 import { SectionRouter } from "./views/SectionRouter";
 import { ImportStaging } from "./components/ImportStaging";
 import { AboutView } from "./views/AboutView";
+import { UpdateNotice } from "./components/UpdateNotice";
 
 function ActiveView() {
   const { state } = useApp();
@@ -35,8 +36,8 @@ export function App() {
 
   // Pre-load: a single centered on-ramp, no chrome. About + Settings are still
   // reachable here (via links on the import screen / a Back link on those views).
-  if (state.status !== "loaded") {
-    return (
+  const body =
+    state.status !== "loaded" ? (
       <div className="min-h-screen">
         <div className="mx-auto max-w-3xl px-6 py-16">
           {state.activeView === "settings" ? (
@@ -48,23 +49,28 @@ export function App() {
           )}
         </div>
       </div>
-    );
-  }
-
-  return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar />
-        <main className="flex-1 overflow-y-auto px-8 py-6">
-          <div className="mx-auto max-w-5xl animate-[fadeIn_0.4s_ease-out]">
-            {/* Keyed so a section crash clears when you navigate elsewhere. */}
-            <ErrorBoundary key={state.activeView}>
-              <ActiveView />
-            </ErrorBoundary>
-          </div>
-        </main>
+    ) : (
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <TopBar />
+          <main className="flex-1 overflow-y-auto px-8 py-6">
+            <div className="mx-auto max-w-5xl animate-[fadeIn_0.4s_ease-out]">
+              {/* Keyed so a section crash clears when you navigate elsewhere. */}
+              <ErrorBoundary key={state.activeView}>
+                <ActiveView />
+              </ErrorBoundary>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    );
+
+  // Auto-update banner sits above everything (Tauri only; renders nothing in dev).
+  return (
+    <>
+      <UpdateNotice />
+      {body}
+    </>
   );
 }
