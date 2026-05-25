@@ -5,9 +5,8 @@
 
 export const APP_NAME = "Naplan Throughline";
 
-/** Source repository. (Private for now — change to the public download page
- *  once the app is shared more widely.) */
-export const GITHUB_URL = "https://github.com/mrdavearms/naplan-throughline";
+/** Public download & info page (GitHub Pages). The source repo is private. */
+export const GITHUB_URL = "https://mrdavearms.github.io/naplan-throughline-releases/";
 
 export const DEVELOPER = "Dave Armstrong, a Victorian school Principal";
 

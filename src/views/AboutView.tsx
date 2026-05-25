@@ -70,7 +70,7 @@ export function AboutView() {
             </dd>
           </div>
           <div className="flex flex-wrap gap-x-2">
-            <dt className="font-medium text-graphite">Project on GitHub:</dt>
+            <dt className="font-medium text-graphite">Downloads &amp; project page:</dt>
             <dd>
               <a className="text-coral-text underline" href={GITHUB_URL} target="_blank" rel="noreferrer">
                 {GITHUB_URL}
