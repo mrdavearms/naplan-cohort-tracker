@@ -203,9 +203,12 @@ export function ImportStaging() {
           About
         </button>
         <div className="text-center">
-          <h1 className="font-display text-4xl font-extrabold tracking-tight">
+          <h1 className="font-display text-4xl font-extrabold leading-[1.2] tracking-tight">
             <span className="hero-shimmer">Naplan Throughline</span>
           </h1>
+          <p className="mt-1 text-sm font-medium lowercase tracking-wide text-graphite/55">
+            tracking naplan through the years
+          </p>
           <p className="mx-auto mt-4 max-w-2xl text-graphite/70">
             This app analyses your school’s NAPLAN <strong>Preliminary</strong> results. Each
             year ACARA (the Australian Curriculum, Assessment and Reporting Authority) releases

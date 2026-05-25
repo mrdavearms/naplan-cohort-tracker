@@ -91,6 +91,11 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: heroShimmer 8s ease-in-out infinite;
+    /* Syne has deep descenders; with background-clip:text a tight line box
+       clips the "g". Give the clip box room so descenders aren't cut off. */
+    display: inline-block;
+    line-height: 1.2;
+    padding-bottom: 0.12em;
   }
 
   @keyframes heroShimmer {
