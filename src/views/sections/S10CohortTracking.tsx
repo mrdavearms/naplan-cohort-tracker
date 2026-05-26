@@ -17,6 +17,7 @@ import {
   cohortHeadline,
   cohortYears,
   inferCohortLevels,
+  trackablePhases,
   declinedOrStalled,
   equitySubCohorts,
   getEntry,
@@ -34,6 +35,7 @@ import {
   transitionHeatmapFigure,
   transitionSankeyFigure,
   wilsonCiDotPlotFigure,
+  type CohortPhase,
   type NarrativeContext,
   type PairedCohort,
 } from "@naplan-cohort-tracker/core";
@@ -73,14 +75,23 @@ export function S10CohortTracking() {
   const primaryYear = state.primaryYear!;
   const [y7Year, y9Year] = cohortYears(primaryYear);
 
-  const pairings = useMemo(() => buildCohortPairings(store, primaryYear), [store, primaryYear]);
+  // A combined P–12 school can have BOTH cohorts (3→5 and 7→9). Let the user pick
+  // which to view; a single-phase school just gets its one phase (no toggle).
+  const phases = useMemo(() => trackablePhases(store, primaryYear), [store, primaryYear]);
+  const [selectedPhase, setSelectedPhase] = useState<"primary" | "secondary" | null>(null);
+  const activePhase: CohortPhase | undefined =
+    phases.find((p) => p.phase === selectedPhase) ?? phases[phases.length - 1];
+
+  const pairings = useMemo(
+    () => buildCohortPairings(store, primaryYear, activePhase),
+    [store, primaryYear, activePhase],
+  );
   const domains = useMemo(() => [...pairings.keys()], [pairings]);
 
   // Label with the active phase's levels (Year 3→5 primary, 7→9 secondary);
   // fall back to a best guess from the loaded data for the empty state.
-  const sample = [...pairings.values()][0];
-  const { earlier: earlierLevel, later: laterLevel } = sample
-    ? { earlier: sample.earlierLevel, later: sample.laterLevel }
+  const { earlier: earlierLevel, later: laterLevel } = activePhase
+    ? { earlier: activePhase.earlier, later: activePhase.later }
     : inferCohortLevels([...store.values()].map((e) => e.yearLevel));
   const earlierLabel = `Year ${earlierLevel}`;
   const laterLabel = `Year ${laterLevel}`;
@@ -120,11 +131,30 @@ export function S10CohortTracking() {
         blurb={`The same students from ${earlierLabel} (${y7Year}) to ${laterLabel} (${y9Year}) — the school's value-add measure.`}
       />
 
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {phases.length > 1 ? (
+          <div className="inline-flex rounded-xl border border-alabaster bg-white/60 p-1 text-sm">
+            {phases.map((p) => (
+              <button
+                key={p.phase}
+                type="button"
+                onClick={() => setSelectedPhase(p.phase)}
+                className={
+                  "rounded-lg px-3 py-1 transition " +
+                  (p.phase === activePhase?.phase ? "bg-coral text-white" : "text-graphite/70 hover:text-graphite")
+                }
+              >
+                {p.phase === "primary" ? "Primary" : "Secondary"} (Year {p.earlier} → {p.later})
+              </button>
+            ))}
+          </div>
+        ) : (
+          <span />
+        )}
         <ExportPdfButton kind="cohort" />
       </div>
 
-      <MatchRateBanner store={store} primaryYear={primaryYear} />
+      <MatchRateBanner store={store} primaryYear={primaryYear} phase={activePhase} />
 
       <CrossDomainOverview pairings={pairings} />
 

@@ -14,6 +14,7 @@ import {
   cohortMatchRate,
   cohortYears,
   inferCohortLevels,
+  trackablePhases,
   crossDomainSummary,
   declinedOrStalled,
   divergingDeltaFigure,
@@ -30,8 +31,10 @@ import {
   transitionHeatmapFigure,
   transitionSankeyFigure,
   wilsonCiDotPlotFigure,
+  type CohortPhase,
   type DumbbellRow,
   type MovementBarRow,
+  type NarrativeContext,
   type PairedCohort,
   type Settings,
   type Store,
@@ -149,6 +152,104 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
   return out;
 }
 
+/** All Section-10 content for ONE cohort phase: lead, headline table,
+ *  cross-domain charts, leadership narrative and the per-domain deep dives.
+ *  `withHeading` prefixes a phase heading (used when a P–12 school has both). */
+async function phaseSection(
+  store: Store,
+  primaryYear: number,
+  phase: CohortPhase,
+  ctx: NarrativeContext,
+  withHeading: boolean,
+): Promise<Content[]> {
+  const [y7Year, y9Year] = cohortYears(primaryYear);
+  const pairings = buildCohortPairings(store, primaryYear, phase);
+  const earlierLabel = `Year ${phase.earlier}`;
+  const laterLabel = `Year ${phase.later}`;
+  const eShort = `Y${phase.earlier}`;
+  const lShort = `Y${phase.later}`;
+  const out: Content[] = [];
+
+  if (withHeading) {
+    out.push({ text: `${earlierLabel} → ${laterLabel} cohort`, style: "h1", pageBreak: "before" });
+  }
+
+  if (pairings.size === 0) {
+    out.push({
+      text: `No matched ${earlierLabel} to ${laterLabel} cohort for ${primaryYear}. This report needs a ${earlierLabel} file from ${y7Year} and a ${laterLabel} file from ${y9Year} for at least one domain.`,
+      style: "lead",
+    });
+    return out;
+  }
+
+  const mr = cohortMatchRate(pairings);
+  out.push({
+    text: `The same ${mr.matched} students tracked from ${earlierLabel} (${y7Year}) to ${laterLabel} (${y9Year}), matched on Local Student ID (${pct1(mr.matchRatePct)} of the ${mr.y9CohortTotal} ${laterLabel} students). ${mr.leavers} left after ${earlierLabel}; ${mr.joiners} joined after ${earlierLabel}.`,
+    style: "lead",
+  });
+
+  // Headline table
+  out.push({ text: "Paired-cohort headline", style: "h2" });
+  out.push(
+    table(
+      ["Domain", "Paired n", `${eShort} NAS%`, `${lShort} NAS%`, "Δ NAS", "McNemar p"],
+      [...pairings.entries()].map(([dom, pc]) => {
+        const h = cohortHeadline(pc);
+        const mc = mcnemarPaired(pc.paired);
+        return [dom, h.pairedN, pct1(h.y7NasPct), pct1(h.y9NasPct), ppStr(h.deltaNasPp), fmtP(mc.pValue)];
+      }),
+      ["*", "auto", "auto", "auto", "auto", "auto"],
+    ),
+  );
+  out.push({ text: "Lower NAS is better. A McNemar p < 0.05 means the paired change is distinguishable from chance.", style: "caption" });
+
+  const summary = crossDomainSummary(pairings);
+  const dumbbellRows: DumbbellRow[] = summary.map((r) => ({
+    domain: r.domain,
+    y7Value: r.y7NasPct,
+    y9Value: r.y9NasPct,
+    direction: r.deltaNasPp < 0 ? "improved" : r.deltaNasPp > 0 ? "worsened" : "flat",
+  }));
+  const dumbbellPng = await figureToPng(dumbbellFigure(dumbbellRows, { axisTitle: "NAS %", earlierLabel, laterLabel }), 360, 220);
+  const deltaPng = await figureToPng(
+    divergingDeltaFigure(summary.map((r) => ({ domain: r.domain, deltaNasPp: r.deltaNasPp }))),
+    360,
+    220,
+  );
+  const movementRows: MovementBarRow[] = summary.map((r) => ({ label: `${r.domain} (n=${r.pairedN})`, movement: r.movement }));
+  const movementPng = await figureToPng(movementStackedFigure(movementRows), 520, 220);
+
+  out.push({ text: `Across all domains (${earlierLabel} → ${laterLabel})`, style: "h2" });
+  out.push({ columns: [{ image: dumbbellPng, width: 250 }, { image: deltaPng, width: 250 }], columnGap: 10, margin: [0, 2, 0, 6] });
+  out.push({ text: "Band movement — moved down · stayed · moved up", style: "h3" });
+  out.push({ image: movementPng, width: 500, margin: [0, 2, 0, 8] });
+
+  // Leadership narrative
+  const n = buildCohortNarrative(pairings, ctx);
+  out.push({ text: "Leadership narrative", style: "h2" });
+  if (n.supported.length) {
+    out.push({ text: "Statistically supported", style: "h3" });
+    out.push(bulletList(n.supported));
+  }
+  if (n.concerns.length) {
+    out.push({ text: "Concerns", style: "h3" });
+    out.push(bulletList(n.concerns));
+  }
+  if (n.patterns.length) {
+    out.push({ text: "Patterns", style: "h3" });
+    out.push(bulletList(n.patterns));
+  }
+  if (n.actions.length) {
+    out.push({ text: "Suggested actions", style: "h3" });
+    out.push(bulletList(n.actions));
+  }
+
+  for (const pc of pairings.values()) {
+    out.push(...(await domainBlock(pc, y7Year, y9Year, store)));
+  }
+  return out;
+}
+
 export async function buildCohortDoc(
   store: Store,
   primaryYear: number,
@@ -156,16 +257,8 @@ export async function buildCohortDoc(
 ): Promise<TDocumentDefinitions> {
   const generatedAt = new Date();
   const [y7Year, y9Year] = cohortYears(primaryYear);
-  const pairings = buildCohortPairings(store, primaryYear);
-  const sample = [...pairings.values()][0];
-  const { earlier, later } = sample
-    ? { earlier: sample.earlierLevel, later: sample.laterLevel }
-    : inferCohortLevels([...store.values()].map((e) => e.yearLevel));
-  const earlierLabel = `Year ${earlier}`;
-  const laterLabel = `Year ${later}`;
-  const eShort = `Y${earlier}`;
-  const lShort = `Y${later}`;
-  const ctx = {
+  const phases = trackablePhases(store, primaryYear);
+  const ctx: NarrativeContext = {
     schoolName: settings.schoolName || "This school",
     schoolNumber: settings.schoolNumber,
     primaryYear,
@@ -177,78 +270,25 @@ export async function buildCohortDoc(
   const body: Content[] = [];
   body.push({ text: "Cohort tracking", style: "h1" });
 
-  if (pairings.size === 0) {
+  if (phases.length === 0) {
+    const { earlier, later } = inferCohortLevels([...store.values()].map((e) => e.yearLevel));
     body.push({
-      text: `No matched ${earlierLabel} to ${laterLabel} cohort for ${primaryYear}. This report needs a ${earlierLabel} file from ${y7Year} and a ${laterLabel} file from ${y9Year} for at least one domain.`,
+      text: `No matched Year ${earlier} to Year ${later} cohort for ${primaryYear}. This report needs a Year ${earlier} file from ${y7Year} and a Year ${later} file from ${y9Year} for at least one domain.`,
       style: "lead",
     });
   } else {
-    const mr = cohortMatchRate(pairings);
-    body.push({
-      text: `The same ${mr.matched} students tracked from ${earlierLabel} (${y7Year}) to ${laterLabel} (${y9Year}), matched on Local Student ID (${pct1(mr.matchRatePct)} of the ${mr.y9CohortTotal} ${laterLabel} students). ${mr.leavers} left after ${earlierLabel}; ${mr.joiners} joined after ${earlierLabel}.`,
-      style: "lead",
-    });
-
-    // Headline table
-    body.push({ text: "Paired-cohort headline", style: "h2" });
-    body.push(
-      table(
-        ["Domain", "Paired n", `${eShort} NAS%`, `${lShort} NAS%`, "Δ NAS", "McNemar p"],
-        [...pairings.entries()].map(([dom, pc]) => {
-          const h = cohortHeadline(pc);
-          const mc = mcnemarPaired(pc.paired);
-          return [dom, h.pairedN, pct1(h.y7NasPct), pct1(h.y9NasPct), ppStr(h.deltaNasPp), fmtP(mc.pValue)];
-        }),
-        ["*", "auto", "auto", "auto", "auto", "auto"],
-      ),
-    );
-    body.push({ text: "Lower NAS is better. A McNemar p < 0.05 means the paired change is distinguishable from chance.", style: "caption" });
-
-    const summary = crossDomainSummary(pairings);
-    const dumbbellRows: DumbbellRow[] = summary.map((r) => ({
-      domain: r.domain,
-      y7Value: r.y7NasPct,
-      y9Value: r.y9NasPct,
-      direction: r.deltaNasPp < 0 ? "improved" : r.deltaNasPp > 0 ? "worsened" : "flat",
-    }));
-    const dumbbellPng = await figureToPng(dumbbellFigure(dumbbellRows, { axisTitle: "NAS %", earlierLabel, laterLabel }), 360, 220);
-    const deltaPng = await figureToPng(
-      divergingDeltaFigure(summary.map((r) => ({ domain: r.domain, deltaNasPp: r.deltaNasPp }))),
-      360,
-      220,
-    );
-    const movementRows: MovementBarRow[] = summary.map((r) => ({ label: `${r.domain} (n=${r.pairedN})`, movement: r.movement }));
-    const movementPng = await figureToPng(movementStackedFigure(movementRows), 520, 220);
-
-    body.push({ text: `Across all domains (${earlierLabel} → ${laterLabel})`, style: "h2" });
-    body.push({ columns: [{ image: dumbbellPng, width: 250 }, { image: deltaPng, width: 250 }], columnGap: 10, margin: [0, 2, 0, 6] });
-    body.push({ text: "Band movement — moved down · stayed · moved up", style: "h3" });
-    body.push({ image: movementPng, width: 500, margin: [0, 2, 0, 8] });
-
-    // Leadership narrative
-    const n = buildCohortNarrative(pairings, ctx);
-    body.push({ text: "Leadership narrative", style: "h2" });
-    if (n.supported.length) {
-      body.push({ text: "Statistically supported", style: "h3" });
-      body.push(bulletList(n.supported));
-    }
-    if (n.concerns.length) {
-      body.push({ text: "Concerns", style: "h3" });
-      body.push(bulletList(n.concerns));
-    }
-    if (n.patterns.length) {
-      body.push({ text: "Patterns", style: "h3" });
-      body.push(bulletList(n.patterns));
-    }
-    if (n.actions.length) {
-      body.push({ text: "Suggested actions", style: "h3" });
-      body.push(bulletList(n.actions));
-    }
-
-    for (const pc of pairings.values()) {
-      body.push(...(await domainBlock(pc, y7Year, y9Year, store)));
+    for (const phase of phases) {
+      body.push(...(await phaseSection(store, primaryYear, phase, ctx, phases.length > 1)));
     }
   }
+
+  // Cover subtitle: name the single phase, or signal both for a combined school.
+  const subtitle =
+    phases.length === 1
+      ? `Section 10 · Year ${phases[0]!.earlier} ${y7Year} → Year ${phases[0]!.later} ${y9Year}`
+      : phases.length > 1
+        ? `Section 10 · cohort tracking · ${y7Year} → ${y9Year}`
+        : "Section 10 · cohort tracking";
 
   return {
     info: { title: `NAPLAN ${primaryYear} cohort tracking`, creator: "NAPLAN Cohort Tracker" },
@@ -260,7 +300,7 @@ export async function buildCohortDoc(
     content: [
       ...coverPage({
         title: "NAPLAN Cohort Tracking",
-        subtitle: `Section 10 · ${earlierLabel} ${y7Year} → ${laterLabel} ${y9Year}`,
+        subtitle,
         schoolName: settings.schoolName,
         schoolNumber: settings.schoolNumber,
         generatedAt,

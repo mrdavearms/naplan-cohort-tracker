@@ -3,7 +3,7 @@
  * skipped files, and a way back to the import screen to add or fix files. The
  * empty-state on-ramp lives in ImportStaging, rendered by App before any load.
  */
-import { availableYears, getPrimaryYearEntries } from "@naplan-cohort-tracker/core";
+import { availableYears, getPrimaryYearEntries, trackablePhases } from "@naplan-cohort-tracker/core";
 import { ExclamationTriangleIcon, FolderOpenIcon } from "@heroicons/react/24/outline";
 import { useApp } from "../state/AppState";
 import { ImportStaging } from "../components/ImportStaging";
@@ -24,6 +24,8 @@ export function HomeView() {
   const years = availableYears(store);
   const primaryEntries = getPrimaryYearEntries(store, primaryYear);
   const issues = [...skipped, ...unresolved];
+  // A combined P–12 school has both cohorts — show a banner for each.
+  const phases = trackablePhases(store, primaryYear);
 
   return (
     <div className="space-y-6">
@@ -42,7 +44,13 @@ export function HomeView() {
         </div>
       </div>
 
-      <MatchRateBanner store={store} primaryYear={primaryYear} />
+      {phases.length > 0 ? (
+        phases.map((p) => (
+          <MatchRateBanner key={p.phase} store={store} primaryYear={primaryYear} phase={p} />
+        ))
+      ) : (
+        <MatchRateBanner store={store} primaryYear={primaryYear} />
+      )}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatTile label="Primary year" value={primaryYear} sub="most recent test year" />

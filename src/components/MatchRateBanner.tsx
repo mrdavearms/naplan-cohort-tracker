@@ -12,12 +12,22 @@ import {
   cohortYears,
   inferCohortLevels,
   storeEntries,
+  type CohortPhase,
   type Store,
 } from "@naplan-cohort-tracker/core";
 
-export function MatchRateBanner({ store, primaryYear }: { store: Store; primaryYear: number }) {
+export function MatchRateBanner({
+  store,
+  primaryYear,
+  phase,
+}: {
+  store: Store;
+  primaryYear: number;
+  /** Which cohort phase to report; defaults to the senior phase present. */
+  phase?: CohortPhase;
+}) {
   const [y7Year, y9Year] = cohortYears(primaryYear);
-  const pairings = useMemo(() => buildCohortPairings(store, primaryYear), [store, primaryYear]);
+  const pairings = useMemo(() => buildCohortPairings(store, primaryYear, phase), [store, primaryYear, phase]);
 
   // Label with the phase actually built; fall back to a best guess for the prompt.
   const sample = [...pairings.values()][0];

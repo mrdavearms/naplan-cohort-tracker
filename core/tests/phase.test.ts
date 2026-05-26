@@ -140,3 +140,38 @@ describe("buildCohortPairings — primary Year 3 → 5", () => {
     expect(pc.paired.map((s) => s.localStudentId).sort()).toEqual(["S1", "S2", "S3"]);
   });
 });
+
+describe("combined P–12 school — both cohorts (Stage 2)", () => {
+  function combinedStore(): Store {
+    const mk = (yr: number, lvl: number, ids: string[]) =>
+      entry(yr, lvl, ids.map((id) => row(id, lvl, "Strong")));
+    return new Map<string, LoadedFile>([
+      [storeKey(2024, 3, "Reading"), mk(2024, 3, ["P1", "P2"])],
+      [storeKey(2026, 5, "Reading"), mk(2026, 5, ["P1", "P2"])],
+      [storeKey(2024, 7, "Reading"), mk(2024, 7, ["S1", "S2"])],
+      [storeKey(2026, 9, "Reading"), mk(2026, 9, ["S1", "S2"])],
+    ]);
+  }
+
+  it("detects BOTH phases as trackable, in school order", () => {
+    expect(trackablePhases(combinedStore(), 2026)).toEqual([
+      { phase: "primary", earlier: 3, later: 5 },
+      { phase: "secondary", earlier: 7, later: 9 },
+    ]);
+  });
+
+  it("builds the requested phase's cohort independently", () => {
+    const store = combinedStore();
+    const primary = buildCohortPairings(store, 2026, { phase: "primary", earlier: 3, later: 5 });
+    const secondary = buildCohortPairings(store, 2026, { phase: "secondary", earlier: 7, later: 9 });
+    expect(primary.get("Reading")!.earlierLevel).toBe(3);
+    expect(primary.get("Reading")!.paired.map((s) => s.localStudentId).sort()).toEqual(["P1", "P2"]);
+    expect(secondary.get("Reading")!.earlierLevel).toBe(7);
+    expect(secondary.get("Reading")!.paired.map((s) => s.localStudentId).sort()).toEqual(["S1", "S2"]);
+  });
+
+  it("defaults to the senior (secondary) phase when none is specified", () => {
+    const pc = buildCohortPairings(combinedStore(), 2026).get("Reading")!;
+    expect(pc.earlierLevel).toBe(7);
+  });
+});
