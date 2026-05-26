@@ -13,7 +13,7 @@ That legacy repo is **read-only** and serves two roles:
 
 **Never write to the legacy repo.** Read from it freely.
 
-Unlike the legacy app (single school, hard-coded to one school), NAPLAN Cohort Tracker is **multi-school and on-device**: a user points it at a folder of Year 7 and Year 9 SSSR Extract files, and school identity (name, school number, AIP/KIS references) is **data in app settings, never code**.
+Unlike the legacy app (single school, hard-coded to one school), NAPLAN Cohort Tracker is **multi-school and on-device**: a user points it at a folder of SSSR Extract files (Year 3/5 for a primary school, Year 7/9 for a secondary, or all four for a combined P–12), and school identity (name, school number, AIP/KIS references) is **data in app settings, never code**.
 
 ## Architecture — keystone decisions (expensive to change later)
 
@@ -22,7 +22,9 @@ Unlike the legacy app (single school, hard-coded to one school), NAPLAN Cohort T
    - `src/` (UI) — React 19 + Vite + Tailwind + shadcn/ui. Consumes `core/`.
    - `src-tauri/` — native window, native folder/file dialogs, packaging, updater.
 2. **School identity is data, never code.** No real school name hard-coded anywhere in code. A Settings screen writes school identity to local app-data. This is the multi-school enabler.
-3. **A visible Y7↔Y9 ID match-rate banner** ("matched 71 of 95 students") so the most common "looks broken" case — Local Student IDs that don't reconcile across years — is self-diagnosing, not silent.
+3. **A visible cohort ID match-rate banner** ("matched 71 of 95 students") so the most common "looks broken" case — Local Student IDs that don't reconcile across years — is self-diagnosing, not silent. Labels follow the loaded phase (Year 3→5 or 7→9).
+
+> **Phase is data, inferred from the year level — never a global setting.** A combined P–12 school shows primary framing on its Year 3/5 views and secondary framing on its Year 7/9 views at once, so the framing/wording (incl. the attribution caveats below) lives in `core/src/phase.ts` and travels with the level. Section 10 offers a Primary/Secondary toggle when both cohorts are present; single-phase schools see no toggle.
 
 **Build the `core/` library and prove it against the oracle *before* building the Tauri shell. Do not scaffold the shell first.**
 
@@ -31,7 +33,7 @@ Unlike the legacy app (single school, hard-coded to one school), NAPLAN Cohort T
 - **Store key:** `(yearOfTest, yearLevel, domain)` → one loaded entry. Literal map key: `` `${yearOfTest}|${yearLevel}|${domain}` `` (e.g. `2026|7|Reading`).
 - **Proficiency levels (order matters — drives the transition matrix):**
   `["Needs additional support", "Developing", "Strong", "Exceeding"]`
-- **Valid year levels:** 7 and 9.
+- **Valid year levels:** 3, 5, 7 and 9. The within-school growth pairs are **3→5 (primary)** and **7→9 (secondary)** — see `core/src/phase.ts` (`phaseFor`, `COHORT_PHASES`). 5→7 crosses the primary/secondary boundary, so no single school tracks it.
 - **Domains:** Reading, Numeracy, Spelling, Grammar and Punctuation. (Writing is NOT in the SSSR export — out of scope. Gender is also not in the export — no gender analysis.)
 - **Core types to port:** `LoadedFile`, `PairedCohort` (paired / leavers / joiners), `McNemarResult`, `YearFolder`.
 
@@ -64,17 +66,29 @@ Known data gaps to preserve:
 
 ## Keying rule — critical
 
-Join cross-year cohorts on **`Local student ID`**, with a **`{PSI}*` fallback** (the VCAA Student ID suffixed with `*`) when Local student ID is blank. **NEVER key on the VCAA `Student ID` (PSI) alone** — it is per-test-administration and changes between years (gives 0% overlap). `Local student ID` is the school's stable identifier across years (~80% Y7→Y9 match for the same cohort). The visible match-rate banner surfaces how many reconciled.
+Join cross-year cohorts on **`Local student ID`**, with a **`{PSI}*` fallback** (the VCAA Student ID suffixed with `*`) when Local student ID is blank. **NEVER key on the VCAA `Student ID` (PSI) alone** — it is per-test-administration and changes between years (gives 0% overlap). `Local student ID` is the school's stable identifier across years (~80% match across the two years for the same cohort). The visible match-rate banner surfaces how many reconciled.
 
 ## NAPLAN attribution framing — non-negotiable
 
-NAPLAN is sat in Term 1, which shapes how every result must be attributed:
+NAPLAN is sat in Term 1, which shapes how every result must be attributed. The
+canonical per-level wording lives in `core/src/phase.ts::attributionNote` — change
+it there, not inline.
 
+**Secondary (Year 7 → 9):**
 - **Year 7 reflects primary-school output, not the secondary school's teaching.** Year-on-year Y7 change is feeder-cohort variation — never describe it as the school "improving"/"worsening" without explicit qualification.
 - **Year 9 reflects the secondary school's contribution** (the cohort has had ~2 years there).
-- **True school value-add = tracking one cohort from Y7 to Y9** (same students, two years apart; requires a Y7 file from two years before the Y9 file). This is Section 10 — the headline measure.
+- **True secondary value-add = tracking one cohort from Y7 to Y9.**
 
-Keep Y7 and Y9 separated and clearly labelled. Frame NAPLAN as **diagnostic evidence** that informs improvement planning, not as a target-measurement instrument.
+**Primary (Year 3 → 5):** the framing is DIFFERENT, not a label swap. A P–6 school
+teaches the children from Foundation, so:
+- **Year 3 is an early baseline** that largely reflects this school's own early-years teaching (NOT "feeder intake, not your teaching" — that secondary framing is wrong for primary, though some children arrive later from elsewhere).
+- **Year 5 reflects the primary school's contribution.**
+- **True primary value-add = tracking one cohort from Y3 to Y5.**
+
+Either way, value-add = same students two years apart (requires the entry-year file
+from two years before the exit-year file). This is Section 10 — the headline measure.
+Keep entry/exit years separated and clearly labelled. Frame NAPLAN as **diagnostic
+evidence** that informs improvement planning, not as a target-measurement instrument.
 
 ## Analysis rules learned the hard way (preserve in the port)
 
