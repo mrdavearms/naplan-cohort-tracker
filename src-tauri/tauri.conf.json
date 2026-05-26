@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "NAPLAN Cohort Tracker",
-  "version": "0.2.4",
+  "version": "1.0.0",
   "identifier": "com.dandsarmstrong.naplancohorttracker",
   "build": {
     "frontendDist": "../dist",

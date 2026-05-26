@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.2.4"
+version = "1.0.0"
 description = "NAPLAN Cohort Tracker — on-device NAPLAN cohort analysis"
 authors = ["D & S Armstrong"]
 license = ""
