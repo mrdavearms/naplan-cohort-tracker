@@ -6,6 +6,8 @@ Project guidance for Claude (or any AI assistant) working in this folder. Adapte
 
 NAPLAN Cohort Tracker is a cross-platform desktop app (**Tauri 2 + React 19 + TypeScript**) for NAPLAN cohort analysis. It is a from-scratch rewrite of an internal Python/Streamlit app at `~/Antigravity/naplan_analysis_app/`.
 
+> **Lineage / rename:** this is the app formerly called **NAPLAN Throughline**. On 2026-05-26 the repo, local folder, product name and bundle id were all renamed to **NAPLAN Cohort Tracker** (git `b628dc6`) and the version reset to **1.0.0** (`962b849`). GitHub redirects the old `naplan-throughline` / `naplan-throughline-releases` URLs to the new names — same project and history, not a fork. Any `naplan-throughline` string you encounter now lives only in a local `src-tauri/target/` build cache; `cargo clean` clears it (otherwise it surfaces as a confusing `cargo check` failure).
+
 That legacy repo is **read-only** and serves two roles:
 
 - **Specification** — its analytical logic is exact. Port behaviour; don't reinvent it.
@@ -122,6 +124,8 @@ Before claiming done, all must be green:
 
 Tests are two Vitest projects: **core** (`core/tests/**`, node env, parses real `.xlsx`) and **ui** (`src/**/*.test.{ts,tsx}`, jsdom, Plotly stubbed via `src/test/stubs/`). CI runs lint + typecheck + test + build on a **Linux** runner only (cheap); the Rust shell and the macOS/Windows installers are compiled by the **release** workflow on a version tag. Run `cargo check`/`clippy` locally when touching Rust — that's the gate.
 
+**Test stores:** `src/test/fixtures.ts` builds a `Store` from the committed `.xlsx` in `core/tests/fixtures/` — `buildSyntheticStore` (Y7/9), `buildPrimaryStore` (Y3/5), `buildCombinedStore` (all four). The `.xlsx` are committed binaries (no generator for the originals); regenerate the Y3/5 pair with `node scripts/make-primary-fixtures.mjs` (clones the Y7/9 fixtures, swaps the year-level cells).
+
 **Adding a Tauri plugin = 4 coordinated edits:** npm dep · `src-tauri/Cargo.toml` dep · `.plugin(...)` in `src-tauri/src/lib.rs` · a permission in `src-tauri/capabilities/default.json`. A missing capability fails at **runtime**, not build (e.g. `tauri-plugin-process` + `process:default` for app relaunch after an update).
 
 ## UI shell gotchas
@@ -135,6 +139,10 @@ Tests are two Vitest projects: **core** (`core/tests/**`, node env, parses real 
   built once from the union of staged files.
 - **Updater/diagnostics are Tauri-only** — gate on `isTauri()`; they render nothing in
   the browser. UI tests fabricate state via `src/test/renderWithApp.tsx`.
+- **Verify cohort/analysis views with jsdom tests, not the browser.** Plotly is stubbed in
+  tests, and the dev preview (`preview_start` → `naplan-cohort-tracker-dev`, Vite :5173)
+  can't reach the analysis screens without manually picking files (the import file-picker
+  isn't drivable headlessly). Render a component with a `fixtures.ts` store via `renderWithApp`.
 
 ## Build-minute budget (important)
 
