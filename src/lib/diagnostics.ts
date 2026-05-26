@@ -41,13 +41,15 @@ export function buildDiagnosticsText(d: DiagnosticsInput): string {
     const pairings = buildCohortPairings(d.store, d.primaryYear);
     if (pairings.size > 0) {
       const mr = cohortMatchRate(pairings);
+      const sample = [...pairings.values()][0];
+      const pair = sample ? `Y${sample.earlierLevel}->Y${sample.laterLevel}` : "cohort";
       lines.push(
-        `Y7->Y9 match (${mr.representativeDomain}): ${mr.matched} of ${mr.y9CohortTotal} ` +
+        `${pair} match (${mr.representativeDomain}): ${mr.matched} of ${mr.y9CohortTotal} ` +
           `(${mr.matchRatePct.toFixed(0)}%); leavers ${mr.leavers}, joiners ${mr.joiners}, ` +
           `excluded ${mr.filtered}`,
       );
     } else {
-      lines.push("Y7->Y9 match: no matched cohort for the primary year");
+      lines.push("Cohort match: no matched cohort for the primary year");
     }
   }
 
