@@ -1,7 +1,7 @@
 /**
- * App shell composition: sidebar + (top bar + active view). Before any data is
- * loaded the home view owns the full window (the on-ramp); once loaded the
- * sidebar + top bar appear.
+ * App shell composition: a global top bar (brand + Settings + About, always
+ * present) sits above the body. Before any data is loaded the body is the
+ * centred on-ramp; once loaded it becomes the section sidebar + active view.
  */
 import { useApp } from "./state/AppState";
 import { Sidebar } from "./components/Sidebar";
@@ -34,12 +34,13 @@ function ActiveView() {
 export function App() {
   const { state } = useApp();
 
-  // Pre-load: a single centered on-ramp, no chrome. About + Settings are still
-  // reachable here (via links on the import screen / a Back link on those views).
+  // The top bar is always present, so Settings + About are reachable from the
+  // very first screen. Pre-load: a centred on-ramp (Import / About / Settings).
+  // Loaded: the section sidebar + the active view.
   const body =
     state.status !== "loaded" ? (
-      <div className="min-h-screen">
-        <div className="mx-auto max-w-3xl px-6 py-16">
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-3xl px-6 py-12">
           {state.activeView === "settings" ? (
             <SettingsView />
           ) : state.activeView === "about" ? (
@@ -50,19 +51,16 @@ export function App() {
         </div>
       </div>
     ) : (
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar />
-          <main className="flex-1 overflow-y-auto px-8 py-6">
-            <div className="mx-auto max-w-5xl animate-[fadeIn_0.4s_ease-out]">
-              {/* Keyed so a section crash clears when you navigate elsewhere. */}
-              <ErrorBoundary key={state.activeView}>
-                <ActiveView />
-              </ErrorBoundary>
-            </div>
-          </main>
-        </div>
+        <main className="flex-1 overflow-y-auto px-8 py-6">
+          <div className="mx-auto max-w-5xl animate-[fadeIn_0.4s_ease-out]">
+            {/* Keyed so a section crash clears when you navigate elsewhere. */}
+            <ErrorBoundary key={state.activeView}>
+              <ActiveView />
+            </ErrorBoundary>
+          </div>
+        </main>
       </div>
     );
 
@@ -70,7 +68,10 @@ export function App() {
   return (
     <>
       <UpdateNotice />
-      {body}
+      <div className="flex h-screen flex-col overflow-hidden">
+        <TopBar />
+        {body}
+      </div>
     </>
   );
 }

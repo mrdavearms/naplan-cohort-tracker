@@ -1,8 +1,8 @@
 /**
- * Left sidebar: brand mark + Sections 1–10 nav + Settings. Section 10 (cohort
- * tracking — the headline value-add) is visually separated and marked.
+ * Left sidebar: Sections 1–10 nav (shown once data is loaded). Section 10
+ * (cohort tracking — the headline value-add) is visually separated and marked.
+ * The brand, Settings and About live in the global top bar.
  */
-import { Cog6ToothIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useApp, type ViewId } from "../state/AppState";
 import { SECTIONS } from "../views/sections";
@@ -41,27 +41,7 @@ export function Sidebar() {
 
   return (
     <nav className="flex h-full w-64 shrink-0 flex-col border-r border-alabaster bg-white/50 backdrop-blur-sm">
-      <button
-        type="button"
-        onClick={() => go("home")}
-        className="flex items-center gap-3 px-5 py-5 text-left"
-      >
-        <span className="grid h-9 w-9 place-items-center rounded-full border-2 border-coral bg-graphite font-serif text-sm font-bold text-linen">
-          NCT
-        </span>
-        <span className="flex flex-col">
-          <span className="font-display text-lg font-extrabold leading-[1.18] text-graphite">
-            NAPLAN
-            <br />
-            Cohort Tracker
-          </span>
-          <span className="mt-1 text-[10px] font-medium lowercase tracking-wide text-graphite/45">
-            tracking naplan through the years
-          </span>
-        </span>
-      </button>
-
-      <div className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2">
+      <div className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-2 pt-4">
         <NavButton active={active === "home"} onClick={() => go("home")}>
           <span className="w-5 text-center text-xs text-graphite/40">⌂</span>
           Home
@@ -87,17 +67,6 @@ export function Sidebar() {
         <NavButton active={active === "s10"} onClick={() => loaded && go("s10")}>
           <span className="w-5 text-center text-xs font-semibold text-coral-text">10</span>
           <span className={clsx(!loaded && "opacity-40")}>Cohort tracking</span>
-        </NavButton>
-      </div>
-
-      <div className="space-y-0.5 border-t border-alabaster px-3 py-3">
-        <NavButton active={active === "settings"} onClick={() => go("settings")}>
-          <Cog6ToothIcon className="h-5 w-5 text-graphite/50" />
-          Settings
-        </NavButton>
-        <NavButton active={active === "about"} onClick={() => go("about")}>
-          <InformationCircleIcon className="h-5 w-5 text-graphite/50" />
-          About
         </NavButton>
       </div>
     </nav>

@@ -14,7 +14,6 @@ import {
   DocumentPlusIcon,
   ExclamationTriangleIcon,
   FolderOpenIcon,
-  InformationCircleIcon,
   TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -194,14 +193,6 @@ export function ImportStaging() {
     <div className="relative overflow-hidden rounded-2xl border border-alabaster bg-white/60">
       <div className="dot-grid pointer-events-none absolute inset-0 opacity-[0.08]" />
       <div className="relative px-8 py-10">
-        <button
-          type="button"
-          onClick={() => setView("about")}
-          className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-graphite/60 hover:bg-alabaster/50 hover:text-graphite"
-        >
-          <InformationCircleIcon className="h-4 w-4" />
-          About
-        </button>
         <div className="text-center">
           <h1 className="font-display text-4xl font-extrabold leading-[1.2] tracking-tight">
             <span className="hero-shimmer">NAPLAN Cohort Tracker</span>
