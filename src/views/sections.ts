@@ -1,8 +1,9 @@
 /**
  * Section metadata — drives the sidebar nav and view routing. Numbering mirrors
- * the legacy `naplan/sections/s1..s10`. NAPLAN attribution framing (CLAUDE.md):
- * Year 7 reflects primary-school output; Year 9 reflects the secondary school's
- * contribution; Section 10 (same students Y7→Y9) is the headline value-add.
+ * the legacy `naplan/sections/s1..s10`. NAPLAN attribution framing (CLAUDE.md)
+ * is per year level and lives in core's `attributionNote`; Section 10 (the same
+ * students tracked across two years — 3→5 for primary, 7→9 for secondary) is the
+ * headline school value-add.
  */
 import type { ViewId } from "../state/AppState";
 
@@ -25,7 +26,7 @@ export const SECTIONS: SectionMeta[] = [
   { id: "s7", number: 7, title: "Class groups", blurb: "Proficiency mix by class group." },
   { id: "s8", number: 8, title: "Targeted support", blurb: "Students needing support across one or more domains." },
   { id: "s9", number: 9, title: "Narrative", blurb: "A rules-based leadership narrative for the year." },
-  { id: "s10", number: 10, title: "Cohort tracking", blurb: "The same students Y7→Y9 — the school value-add measure." },
+  { id: "s10", number: 10, title: "Cohort tracking", blurb: "The same students across two years (3→5 or 7→9) — the school value-add measure." },
 ];
 
 export const SECTION_BY_ID: Record<string, SectionMeta> = Object.fromEntries(

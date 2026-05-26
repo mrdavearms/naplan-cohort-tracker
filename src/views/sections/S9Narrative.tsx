@@ -101,7 +101,7 @@ export function S9Narrative() {
           title="Year-on-year"
           items={narrative.yearOnYear}
           accent="neutral"
-          note="Year 7 lines reflect different feeder cohorts each year (primary-school output, not this school's teaching); Year 9 lines reflect the secondary school's contribution."
+          note="Each line compares different cohorts year to year, not the same students. Entry-year results (Year 3 or Year 7) are an intake baseline; later-year results (Year 5 or Year 9) reflect the school's own teaching. Section 10 tracks one cohort across two years."
         />
         <NarrativeCard
           title="Recommendations"

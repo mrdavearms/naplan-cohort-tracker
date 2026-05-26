@@ -1,11 +1,12 @@
 /**
- * Shared scope controls for single-year sections (1–8): a Year 7 / Year 9 tab
- * selector, plus the NAPLAN attribution framing that must accompany any Year-7
- * view (CLAUDE.md). Year 7 reflects PRIMARY-school output (feeder cohorts);
- * Year 9 reflects the secondary school's contribution.
+ * Shared scope controls for single-year sections (1–8): a year-level tab
+ * selector (Year 3/5 for primary, Year 7/9 for secondary), plus the NAPLAN
+ * attribution framing that must accompany each year level (CLAUDE.md). The
+ * per-level wording lives in core's `attributionNote` so it stays correct for
+ * primary (Year 3 baseline / Year 5 contribution) and secondary alike.
  */
 import { useMemo, useState } from "react";
-import { yearLevelsFor, type Store } from "@naplan-cohort-tracker/core";
+import { attributionNote, yearLevelsFor, type Store } from "@naplan-cohort-tracker/core";
 import clsx from "clsx";
 
 /** Year levels present for the primary year, defaulting selection to Year 9. */
@@ -48,13 +49,9 @@ export function YearLevelTabs({
 
 /** The attribution caveat for the selected year level. */
 export function AttributionNote({ yearLevel, year }: { yearLevel: number; year: number }) {
-  const text =
-    yearLevel === 7
-      ? `Year 7 NAPLAN is sat in Term 1 — it reflects students' primary-school learning, not this school's teaching. Treat ${year} Year 7 results as feeder-cohort intake, not a measure of the school improving or declining.`
-      : `Year 9 reflects the secondary school's contribution (the cohort has had ~2 years here). NAPLAN is diagnostic evidence to inform planning, not a target-measurement instrument.`;
   return (
     <p className="mb-4 rounded-lg border border-alabaster bg-linen/50 px-3 py-2 text-xs text-graphite/70">
-      {text}
+      {attributionNote(yearLevel, year)}
     </p>
   );
 }

@@ -13,6 +13,7 @@
  */
 import { NAS, PROFICIENCY_LEVELS } from "../constants";
 import { mcnemarPaired, transitionMatrix } from "../cohort";
+import { nextStepLabel, phaseFor, shortLevel } from "../phase";
 import { wilsonCi } from "../stats";
 import type { McNemarResult, PairedCohort, StudentResultRow } from "../types";
 import type { NarrativeContext } from "./narrative";
@@ -36,7 +37,16 @@ const I = {
 };
 
 // ── Drill-down A — McNemar ──────────────────────────────────────────────────
-export function interpretMcnemar(r: McNemarResult, dom: string, n: number): string[] {
+export function interpretMcnemar(
+  r: McNemarResult,
+  dom: string,
+  n: number,
+  earlierLevel = 7,
+  laterLevel = 9,
+): string[] {
+  const eL = shortLevel(earlierLevel);
+  const lL = shortLevel(laterLevel);
+  const nextStep = nextStepLabel(phaseFor(laterLevel));
   const bullets: string[] = [];
   const movedOut = r.movedOutOfNas;
   const movedIn = r.movedIntoNas;
@@ -46,7 +56,7 @@ export function interpretMcnemar(r: McNemarResult, dom: string, n: number): stri
   if (discordant === 0) {
     bullets.push(
       "**No change in NAS status across the cohort.** Zero students moved into or out of NAS " +
-        "between Y7 and Y9 in this domain. The NAS group is fixed — the same students it was two years ago.",
+        `between ${eL} and ${lL} in this domain. The NAS group is fixed — the same students it was two years ago.`,
     );
   } else if (net > 0) {
     const ratioPhrase =
@@ -61,13 +71,13 @@ export function interpretMcnemar(r: McNemarResult, dom: string, n: number): stri
     bullets.push(
       `**Direction is negative.** ${movedIn} students moved into NAS while only ${movedOut} moved out — ` +
         `a net decline of ${Math.abs(net)} students. In this domain the cohort is moving the wrong way, and the ` +
-        "named students who slipped into NAS in Y9 are the priority list for the leadership team to review.",
+        `named students who slipped into NAS in ${lL} are the priority list for the leadership team to review.`,
     );
   } else {
     bullets.push(
       `**Direction is flat.** ${movedOut} students moved out of NAS and ${movedIn} moved in — equal counts in both ` +
         "directions. The size of the NAS group is preserved but the composition has changed; check whether the new " +
-        "NAS entrants were stronger students in Y7 who lost ground.",
+        `NAS entrants were stronger students in ${eL} who lost ground.`,
     );
   }
 
@@ -93,12 +103,12 @@ export function interpretMcnemar(r: McNemarResult, dom: string, n: number): stri
 
   if (r.stayersNas === 1) {
     bullets.push(
-      "**One student was at NAS in both Y7 and Y9.** That student needs a named intervention plan for Y10 in this " +
+      `**One student was at NAS in both ${eL} and ${lL}.** That student needs a named intervention plan for ${nextStep} in this ` +
         "domain — two years at NAS is the clearest indicator that current support hasn't reached them.",
     );
   } else if (r.stayersNas > 1) {
     bullets.push(
-      `**${r.stayersNas} students were at NAS in both Y7 and Y9.** This is the highest-priority intervention list ` +
+      `**${r.stayersNas} students were at NAS in both ${eL} and ${lL}.** This is the highest-priority intervention list ` +
         "for the next school year in this domain. Two years at NAS is strong evidence the current approach isn't " +
         "reaching them — they need named, individualised plans rather than generic cohort-level support.",
     );
@@ -122,6 +132,8 @@ export function interpretMcnemar(r: McNemarResult, dom: string, n: number): stri
 
 // ── Drill-down B — Attrition ────────────────────────────────────────────────
 export function interpretAttrition(pc: PairedCohort): string[] {
+  const eL = shortLevel(pc.earlierLevel);
+  const lL = shortLevel(pc.laterLevel);
   const leaversTotal = pc.leavers.length;
   const stayersTotal = pc.paired.length;
   const leaversNas = pc.leavers.filter((l) => l.proficiencyY7 === NAS).length;
@@ -139,22 +151,22 @@ export function interpretAttrition(pc: PairedCohort): string[] {
 
   if (Math.abs(diff) < 5) {
     bullets.push(
-      `**No clear selection effect at the NAS end.** Leavers' Y7 NAS rate (${f1(leaversPct)}%) is comparable to ` +
+      `**No clear selection effect at the NAS end.** Leavers' ${eL} NAS rate (${f1(leaversPct)}%) is comparable to ` +
         `stayers' (${f1(stayersPct)}%). The students who left weren't disproportionately weaker in this domain — ` +
-        "the cohort that stayed is broadly representative of the original Y7 group.",
+        `the cohort that stayed is broadly representative of the original ${eL} group.`,
     );
   } else if (diff > 0) {
     const ratio = stayersPct > 0 ? leaversPct / stayersPct : 0;
     const ratioPhrase = ratio ? `${f1(ratio)}× the stayers' rate` : "much higher than stayers'";
     bullets.push(
-      `**Selection effect at the NAS end.** Leavers' Y7 NAS rate (${f1(leaversPct)}%) was ${ratioPhrase} ` +
+      `**Selection effect at the NAS end.** Leavers' ${eL} NAS rate (${f1(leaversPct)}%) was ${ratioPhrase} ` +
         `(${f1(stayersPct)}%). The ${leaversTotal} students who left were disproportionately weaker in this domain ` +
-        "at Y7 — they took the lowest-performing slice of the cohort with them when they left.",
+        `at ${eL} — they took the lowest-performing slice of the cohort with them when they left.`,
     );
   } else {
     bullets.push(
       `**Reverse selection: leavers were stronger at NAS than stayers** (${f1(leaversPct)}% vs ${f1(stayersPct)}% ` +
-        "Y7 NAS). Unusual pattern — the cohort that stayed has a higher NAS concentration than the cohort that left. " +
+        `${eL} NAS). Unusual pattern — the cohort that stayed has a higher NAS concentration than the cohort that left. ` +
         "Worth investigating leavers' destinations (selective schools, interstate moves) before drawing conclusions.",
     );
   }
@@ -168,21 +180,21 @@ export function interpretAttrition(pc: PairedCohort): string[] {
     bullets.push(
       `**Top-end gap reinforces the selection story.** Leavers' Strong+Exceeding rate was ${f1(leaversTopPct)}% vs ` +
         `stayers' ${f1(stayersTopPct)}% — a ${signed1(topDiff)} pp gap. Even at the high end, leavers were less ` +
-        "prepared in Y7 than the cohort that stayed.",
+        `prepared in ${eL} than the cohort that stayed.`,
     );
   } else {
     bullets.push(
       `**Top-end leavers were stronger than top-end stayers** (${f1(leaversTopPct)}% vs ${f1(stayersTopPct)}% ` +
-        "Strong+Exceeding). Some high-performing Y7 students left before Y9 — worth understanding where they went " +
+        `Strong+Exceeding). Some high-performing ${eL} students left before ${lL} — worth understanding where they went ` +
         "and whether retention strategies could have changed the decision.",
     );
   }
 
   if (diff > 10) {
     bullets.push(
-      "**Adjust the headline interpretation accordingly.** A meaningful share of the Y9 cohort improvement in this " +
-        "domain reflects this selection effect — the Y9 cohort isn't 'the Y7 cohort matured', it's the part of the " +
-        "Y7 cohort that remained. When briefing stakeholders, lead with the paired (stayers-only) comparison.",
+      `**Adjust the headline interpretation accordingly.** A meaningful share of the ${lL} cohort improvement in this ` +
+        `domain reflects this selection effect — the ${lL} cohort isn't 'the ${eL} cohort matured', it's the part of the ` +
+        `${eL} cohort that remained. When briefing stakeholders, lead with the paired (stayers-only) comparison.`,
     );
   }
 
@@ -198,6 +210,8 @@ export function interpretAttrition(pc: PairedCohort): string[] {
 
 // ── Drill-down C — Equity sub-cohorts ───────────────────────────────────────
 export function interpretEquity(pc: PairedCohort): string[] {
+  const eL = shortLevel(pc.earlierLevel);
+  const lL = shortLevel(pc.laterLevel);
   const groups: Array<[string, typeof pc.paired]> = [
     ["LBOTE Yes", pc.paired.filter((s) => s.lboteStatus === "Yes")],
     ["LBOTE No", pc.paired.filter((s) => s.lboteStatus === "No")],
@@ -261,7 +275,7 @@ export function interpretEquity(pc: PairedCohort): string[] {
   if (suppressed.length > 0) {
     bullets.push(
       "**For the suppressed subgroups, talk to the case managers.** The students themselves and their support plans " +
-        "are the right unit of analysis. The leadership team should review their Y7→Y9 progress with their named " +
+        `are the right unit of analysis. The leadership team should review their ${eL}→${lL} progress with their named ` +
         "teachers and case workers, not from this report.",
     );
   }
@@ -271,6 +285,8 @@ export function interpretEquity(pc: PairedCohort): string[] {
 
 // ── Drill-down D — Transition matrix ────────────────────────────────────────
 export function interpretTransition(pc: PairedCohort): string[] {
+  const eL = shortLevel(pc.earlierLevel);
+  const lL = shortLevel(pc.laterLevel);
   const m = transitionMatrix(pc.paired);
   const rowSum = (i: number) => m[i]!.reduce((s, x) => s + x, 0);
   const nTotal = m.reduce((s, row) => s + row.reduce((a, b) => a + b, 0), 0);
@@ -292,7 +308,7 @@ export function interpretTransition(pc: PairedCohort): string[] {
     above >= below ? `${above - below} net students` : `${below - above} students in the wrong direction`;
   bullets.push(
     `**The cohort is mostly stable.** ${diagonal} of ${nTotal} students (${round0(diagPct)}%) stayed at the same ` +
-      `proficiency level Y7→Y9. ${above} moved up, ${below} moved down — improvement outweighs decline by ${netPhrase}.`,
+      `proficiency level ${eL}→${lL}. ${above} moved up, ${below} moved down — improvement outweighs decline by ${netPhrase}.`,
   );
 
   const nasTotal = rowSum(I.NAS);
@@ -302,19 +318,19 @@ export function interpretTransition(pc: PairedCohort): string[] {
     const upPct = (movedUp / nasTotal) * 100;
     if (movedUp > stayedNas) {
       bullets.push(
-        `**Y7-NAS students mostly moved up.** Of ${nasTotal} students at NAS in Y7, ${movedUp} moved up to ` +
-          `Developing or above by Y9 (${round0(upPct)}%); ${stayedNas} stayed at NAS. This is the strongest piece of ` +
+        `**${eL}-NAS students mostly moved up.** Of ${nasTotal} students at NAS in ${eL}, ${movedUp} moved up to ` +
+          `Developing or above by ${lL} (${round0(upPct)}%); ${stayedNas} stayed at NAS. This is the strongest piece of ` +
           "evidence in the cohort that targeted support for the lowest performers is reaching the students who stay.",
       );
     } else if (movedUp === stayedNas) {
       bullets.push(
-        `**Y7-NAS students split evenly.** Of ${nasTotal} students at NAS in Y7, ${movedUp} moved up and ` +
+        `**${eL}-NAS students split evenly.** Of ${nasTotal} students at NAS in ${eL}, ${movedUp} moved up and ` +
           `${stayedNas} stayed at NAS. Half-half is a signal that the current intervention reaches some students but ` +
           "not others — worth understanding what differentiates the two groups.",
       );
     } else {
       bullets.push(
-        `**Y7-NAS students mostly stuck at NAS.** Of ${nasTotal} students at NAS in Y7, only ${movedUp} moved up; ` +
+        `**${eL}-NAS students mostly stuck at NAS.** Of ${nasTotal} students at NAS in ${eL}, only ${movedUp} moved up; ` +
           `${stayedNas} stayed at NAS. The persistent-NAS group is the highest-priority named intervention list — ` +
           "the current approach isn't moving them.",
       );
@@ -328,20 +344,20 @@ export function interpretTransition(pc: PairedCohort): string[] {
     const heldPct = (held / topTotal) * 100;
     if (slipped === 0) {
       bullets.push(
-        `**The top end held perfectly.** All ${topTotal} Y7-Strong-or-Exceeding students stayed at Strong or ` +
-          "Exceeding by Y9 — zero slippage. The high-performing cohort is robust under the current approach.",
+        `**The top end held perfectly.** All ${topTotal} ${eL}-Strong-or-Exceeding students stayed at Strong or ` +
+          `Exceeding by ${lL} — zero slippage. The high-performing cohort is robust under the current approach.`,
       );
     } else if (slipped <= 3) {
       bullets.push(
-        `**The top end held well, with a few named slips.** ${held} of ${topTotal} Y7-Strong-or-Exceeding students ` +
+        `**The top end held well, with a few named slips.** ${held} of ${topTotal} ${eL}-Strong-or-Exceeding students ` +
           `(${round0(heldPct)}%) held their position; ${slipped} slipped to Developing or NAS. With small absolute ` +
           "numbers, those individual students are worth a direct conversation rather than a cohort-level response.",
       );
     } else {
       bullets.push(
-        `**Noticeable top-end slippage.** ${slipped} of ${topTotal} Y7-Strong-or-Exceeding students slipped to ` +
-          `Developing or NAS by Y9 (${round0((slipped / topTotal) * 100)}%). Worth investigating: subject-teacher ` +
-          "continuity, engagement signals, wellbeing changes, and Year 8-9 transition factors are the usual culprits.",
+        `**Noticeable top-end slippage.** ${slipped} of ${topTotal} ${eL}-Strong-or-Exceeding students slipped to ` +
+          `Developing or NAS by ${lL} (${round0((slipped / topTotal) * 100)}%). Worth investigating: subject-teacher ` +
+          `continuity, engagement signals, wellbeing changes, and Year ${pc.earlierLevel + 1}-${pc.laterLevel} transition factors are the usual culprits.`,
       );
     }
   }
@@ -353,7 +369,7 @@ export function interpretTransition(pc: PairedCohort): string[] {
     const devDown = m[I.DEV]![I.NAS]!;
     bullets.push(
       `**The Developing cohort is the largest single group and the biggest pedagogical opportunity.** ${devTotal} ` +
-        `Y7-Developing students — ${devUp} moved up to Strong or Exceeding, ${devStayed} stayed Developing, ${devDown} ` +
+        `${eL}-Developing students — ${devUp} moved up to Strong or Exceeding, ${devStayed} stayed Developing, ${devDown} ` +
         "dropped to NAS. Aggregate improvement is maximised when teaching investment moves the Developing band up " +
         "rather than focusing only on the NAS group.",
     );
@@ -364,6 +380,8 @@ export function interpretTransition(pc: PairedCohort): string[] {
 
 // ── Drill-down E — Wilson CI + significance verdict ─────────────────────────
 export function interpretWilson(pc: PairedCohort): string[] {
+  const eL = shortLevel(pc.earlierLevel);
+  const lL = shortLevel(pc.laterLevel);
   const n = pc.paired.length;
   const y7Count = pc.paired.filter((s) => s.proficiencyY7 === NAS).length;
   const y9Count = pc.paired.filter((s) => s.proficiencyY9 === NAS).length;
@@ -378,20 +396,20 @@ export function interpretWilson(pc: PairedCohort): string[] {
   const y9InsideY7 = y7Lo * 100 <= y9Pct && y9Pct <= y7Hi * 100;
   if (y9InsideY7) {
     bullets.push(
-      `**The Y9 point estimate (${f1(y9Pct)}%) sits inside the Y7 uncertainty band ` +
+      `**The ${lL} point estimate (${f1(y9Pct)}%) sits inside the ${eL} uncertainty band ` +
         `(${round0(y7Lo * 100)}–${round0(y7Hi * 100)}%).** Visually that looks like 'no change', but that's the ` +
         "small-cohort uncertainty doing the talking — the paired test is the right place to read significance, not this overlap.",
     );
   } else {
     bullets.push(
-      `**The Y9 point estimate (${f1(y9Pct)}%) sits outside the Y7 uncertainty band ` +
+      `**The ${lL} point estimate (${f1(y9Pct)}%) sits outside the ${eL} uncertainty band ` +
         `(${round0(y7Lo * 100)}–${round0(y7Hi * 100)}%).** Visually that suggests real change, and the paired ` +
         "McNemar test confirms whether the cohort movement supports that reading.",
     );
   }
 
   bullets.push(
-    `**Both intervals are wide because the cohort is small.** Y7 band width is ${round0(y7Width)} pp; Y9 band width ` +
+    `**Both intervals are wide because the cohort is small.** ${eL} band width is ${round0(y7Width)} pp; ${lL} band width ` +
       `is ${round0(y9Width)} pp. At n=${n} students, this is fundamental — every Wilson interval on a low proportion ` +
       "will span 10–15 pp. The intervals aren't noise from messy data; they're the honest uncertainty on what we can " +
       "say from this cohort size.",
@@ -449,11 +467,15 @@ export function interpretReadingSubdomains(
   y7Year: number,
   y9Year: number,
   ctx?: NarrativeContext,
+  earlierLevel = 7,
+  laterLevel = 9,
 ): string[] {
+  const eL = shortLevel(earlierLevel);
+  const lL = shortLevel(laterLevel);
   const y7 = accuracyBySubdomain(y7Results);
   const y9 = accuracyBySubdomain(y9Results);
   const common = [...y7.keys()].filter((s) => y9.has(s)).sort((a, b) => a.localeCompare(b));
-  if (common.length === 0) return ["No subdomain overlap between Y7 and Y9 — cannot compare."];
+  if (common.length === 0) return [`No subdomain overlap between ${eL} and ${lL} — cannot compare.`];
 
   const deltas = common.map((sub) => ({ sub, y7: y7.get(sub)!, y9: y9.get(sub)!, delta: y9.get(sub)! - y7.get(sub)! }));
   deltas.sort((a, b) => b.delta - a.delta);
@@ -463,21 +485,21 @@ export function interpretReadingSubdomains(
 
   const bullets: string[] = [];
   bullets.push(
-    `**Important interpretation note.** These percentages compare Y7 items (set to the Y7 standard, sat in ${y7Year}) ` +
-      `with Y9 items (set to the higher Y9 standard, sat in ${y9Year}). A positive delta means students achieved a ` +
+    `**Important interpretation note.** These percentages compare ${eL} items (set to the ${eL} standard, sat in ${y7Year}) ` +
+      `with ${lL} items (set to the higher ${lL} standard, sat in ${y9Year}). A positive delta means students achieved a ` +
       "similar or higher hit rate against harder year-level questions — that is real capability growth, not item-level repetition.",
   );
 
   if (top.delta > 0) {
     bullets.push(
-      `**Largest improvement: ${top.sub} (${signed1(top.delta)} pp against the higher Y9 standard).** ` +
-        `Y7 ${round0(top.y7)}% → Y9 ${round0(top.y9)}%. This is the subdomain to highlight when discussing what's ` +
+      `**Largest improvement: ${top.sub} (${signed1(top.delta)} pp against the higher ${lL} standard).** ` +
+        `${eL} ${round0(top.y7)}% → ${lL} ${round0(top.y9)}%. This is the subdomain to highlight when discussing what's ` +
         "working in Reading instruction. Ask the English/Literacy team what was different about how this subdomain was approached.",
     );
   } else {
     bullets.push(
       `**Best-performing subdomain: ${top.sub} (${signed1(top.delta)} pp).** Even the best subdomain didn't show ` +
-        "clear improvement against the higher Y9 standard — worth understanding whether this is an instructional gap, " +
+        `clear improvement against the higher ${lL} standard — worth understanding whether this is an instructional gap, ` +
         "an assessment-design issue, or just the natural ceiling of the cohort.",
     );
   }
@@ -485,13 +507,13 @@ export function interpretReadingSubdomains(
   if (bot.sub !== top.sub) {
     if (bot.delta > 0) {
       bullets.push(
-        `**Smallest improvement: ${bot.sub} (${signed1(bot.delta)} pp).** Y7 ${round0(bot.y7)}% → Y9 ${round0(bot.y9)}%. ` +
+        `**Smallest improvement: ${bot.sub} (${signed1(bot.delta)} pp).** ${eL} ${round0(bot.y7)}% → ${lL} ${round0(bot.y9)}%. ` +
           "Targeted improvement here is the practical priority for the next teaching iteration — the smaller the historical gain, the larger the headroom.",
       );
     } else {
       bullets.push(
-        `**Worst-performing subdomain: ${bot.sub} (${signed1(bot.delta)} pp).** Y7 ${round0(bot.y7)}% → Y9 ${round0(bot.y9)}%. ` +
-          "Students lost ground here against the Y9 standard — this is the explicit target for next year's curriculum cycle in this domain.",
+        `**Worst-performing subdomain: ${bot.sub} (${signed1(bot.delta)} pp).** ${eL} ${round0(bot.y7)}% → ${lL} ${round0(bot.y9)}%. ` +
+          `Students lost ground here against the ${lL} standard — this is the explicit target for next year's curriculum cycle in this domain.`,
       );
     }
   }
@@ -504,7 +526,7 @@ export function interpretReadingSubdomains(
   );
 
   bullets.push(
-    `**Overall direction**: ${positive} of ${deltas.length} subdomains improved against the higher Y9 standard. ` +
+    `**Overall direction**: ${positive} of ${deltas.length} subdomains improved against the higher ${lL} standard. ` +
       (positive === deltas.length
         ? "All moved in the right direction — a coherent picture."
         : `The ${deltas.length - positive} subdomain(s) that didn't move warrant a closer look in the next planning cycle.`),
@@ -526,6 +548,8 @@ interface ClassStat {
 }
 
 export function interpretClassGroups(pc: PairedCohort): string[] {
+  const eL = shortLevel(pc.earlierLevel);
+  const lL = shortLevel(pc.laterLevel);
   const byClass = new Map<string, { left: boolean; y7: string | null; y9: string | null }[]>();
   const add = (cls: string | null, m: { left: boolean; y7: string | null; y9: string | null }) => {
     if (cls == null) return;
@@ -557,7 +581,7 @@ export function interpretClassGroups(pc: PairedCohort): string[] {
 
   const substantive = perClass.filter((x) => x.total >= SUPPRESSION_THRESHOLD);
   const excluded = perClass.filter((x) => x.total < SUPPRESSION_THRESHOLD).map((x) => x.cls);
-  if (substantive.length === 0) return ["No Y7 classes met the n>=5 substantive threshold."];
+  if (substantive.length === 0) return [`No ${eL} classes met the n>=5 substantive threshold.`];
 
   const highestNas = substantive.reduce((a, b) => (b.y7NasPct > a.y7NasPct ? b : a));
   const highestAttr = substantive.reduce((a, b) => (b.attritionPct > a.attritionPct ? b : a));
@@ -566,27 +590,27 @@ export function interpretClassGroups(pc: PairedCohort): string[] {
 
   const bullets: string[] = [];
   bullets.push(
-    `**Class ${highestNas.cls} had the highest Y7 NAS concentration**: ${highestNas.y7Nas} of ${highestNas.total} ` +
-      `students (${round0(highestNas.y7NasPct)}%) in this domain. This is consistent with a lower-stream Y7 class — ` +
+    `**Class ${highestNas.cls} had the highest ${eL} NAS concentration**: ${highestNas.y7Nas} of ${highestNas.total} ` +
+      `students (${round0(highestNas.y7NasPct)}%) in this domain. This is consistent with a lower-stream ${eL} class — ` +
       "the streaming model concentrates need into one class group rather than distributing it across all of them.",
   );
   bullets.push(
     `**Class ${highestAttr.cls} had the highest attrition**: ${highestAttr.left} of ${highestAttr.total} students ` +
-      `(${round0(highestAttr.attritionPct)}%) left between Y7 and Y9. Compared with the cohort average of ` +
+      `(${round0(highestAttr.attritionPct)}%) left between ${eL} and ${lL}. Compared with the cohort average of ` +
       `${round0(avgAttrition)}%, this is a meaningful concentration.`,
   );
   if (highestNas.cls === highestAttr.cls) {
     bullets.push(
-      `**Class ${highestNas.cls} has both the highest Y7 NAS rate and the highest attrition.** These two patterns ` +
+      `**Class ${highestNas.cls} has both the highest ${eL} NAS rate and the highest attrition.** These two patterns ` +
         "co-occurring is the classic streaming-plus-disengagement signal: the lowest-stream class was both the most " +
-        "academically disadvantaged AND lost the most students by Y9. Worth a deeper conversation with the relevant " +
+        `academically disadvantaged AND lost the most students by ${lL}. Worth a deeper conversation with the relevant ` +
         "year-level coordinator and student support team about that cohort specifically.",
     );
   }
   if (lowestAttr.cls !== highestAttr.cls) {
     bullets.push(
       `**Class ${lowestAttr.cls} retained students best**: only ${round0(lowestAttr.attritionPct)}% attrition. The ` +
-        `${lowestAttr.stayers} stayers from this class ended Y9 with ${round0(lowestAttr.y9NasPct)}% NAS rate — a ` +
+        `${lowestAttr.stayers} stayers from this class ended ${lL} with ${round0(lowestAttr.y9NasPct)}% NAS rate — a ` +
         "useful comparator for the streaming model's effects on retention.",
     );
   }

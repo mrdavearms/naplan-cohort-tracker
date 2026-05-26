@@ -1,9 +1,10 @@
 /**
  * Section 10 — Cohort tracking. THE headline measure: the same students tracked
- * from Year 7 (primaryYear − 2) to Year 9 (primaryYear), matched on Local
- * Student ID. This is the only section that isolates the secondary school's
- * value-add (same cohort, two years apart), as opposed to year-on-year
- * comparisons of different cohorts. McNemar's exact test (not CI overlap)
+ * across two years (primaryYear − 2 → primaryYear), matched on Local Student ID
+ * — Year 3→5 for a primary school, Year 7→9 for a secondary school. This is the
+ * only section that isolates the school's own value-add (same cohort, two years
+ * apart), as opposed to year-on-year comparisons of different cohorts. Labels
+ * follow the loaded phase's levels. McNemar's exact test (not CI overlap)
  * assesses whether the paired NAS change is distinguishable from chance.
  */
 import { useMemo, useState } from "react";
@@ -15,6 +16,7 @@ import {
   classGroupTracking,
   cohortHeadline,
   cohortYears,
+  inferCohortLevels,
   declinedOrStalled,
   equitySubCohorts,
   getEntry,
@@ -73,6 +75,16 @@ export function S10CohortTracking() {
 
   const pairings = useMemo(() => buildCohortPairings(store, primaryYear), [store, primaryYear]);
   const domains = useMemo(() => [...pairings.keys()], [pairings]);
+
+  // Label with the active phase's levels (Year 3→5 primary, 7→9 secondary);
+  // fall back to a best guess from the loaded data for the empty state.
+  const sample = [...pairings.values()][0];
+  const { earlier: earlierLevel, later: laterLevel } = sample
+    ? { earlier: sample.earlierLevel, later: sample.laterLevel }
+    : inferCohortLevels([...store.values()].map((e) => e.yearLevel));
+  const earlierLabel = `Year ${earlierLevel}`;
+  const laterLabel = `Year ${laterLevel}`;
+
   const [domain, setDomain] = useState<string>(() => domains[0] ?? "");
   const activeDomain = pairings.has(domain) ? domain : (domains[0] ?? "");
   const pc: PairedCohort | undefined = activeDomain ? pairings.get(activeDomain) : undefined;
@@ -89,9 +101,9 @@ export function S10CohortTracking() {
   if (domains.length === 0) {
     return (
       <div>
-        <SectionHeading number={10} title="Cohort tracking" blurb="The same students Year 7 → Year 9 — the school value-add measure." />
-        <EmptyState title="No matched Y7→Y9 cohort">
-          This section needs a Year 7 file from <strong>{y7Year}</strong> and a Year 9 file from{" "}
+        <SectionHeading number={10} title="Cohort tracking" blurb={`The same students ${earlierLabel} → ${laterLabel} — the school value-add measure.`} />
+        <EmptyState title={`No matched ${earlierLabel}→${laterLabel} cohort`}>
+          This section needs a {earlierLabel} file from <strong>{y7Year}</strong> and a {laterLabel} file from{" "}
           <strong>{y9Year}</strong> in the loaded folder, for at least one domain.
         </EmptyState>
       </div>
@@ -105,7 +117,7 @@ export function S10CohortTracking() {
       <SectionHeading
         number={10}
         title="Cohort tracking"
-        blurb={`The same students from Year 7 (${y7Year}) to Year 9 (${y9Year}) — the school's value-add measure.`}
+        blurb={`The same students from ${earlierLabel} (${y7Year}) to ${laterLabel} (${y9Year}) — the school's value-add measure.`}
       />
 
       <div className="flex justify-end">
@@ -124,8 +136,8 @@ export function S10CohortTracking() {
             <tr className="border-b border-alabaster text-left text-xs uppercase tracking-wide text-graphite/50">
               <th className="py-2">Domain</th>
               <th className="py-2 text-right">Paired n</th>
-              <th className="py-2 text-right">Y7 NAS%</th>
-              <th className="py-2 text-right">Y9 NAS%</th>
+              <th className="py-2 text-right">Y{earlierLevel} NAS%</th>
+              <th className="py-2 text-right">Y{laterLevel} NAS%</th>
               <th className="py-2 text-right">Δ NAS</th>
               <th className="py-2 text-right">Δ Meeting+</th>
               <th className="py-2 text-right">McNemar p</th>
@@ -242,8 +254,14 @@ function DomainDrilldown({
   const subCohorts = equitySubCohorts(pc);
   const classRows = classGroupTracking(pc);
 
-  const y7Results = getEntry(store, y7Year, 7, pc.domain)?.studentResults ?? [];
-  const y9Results = getEntry(store, y9Year, 9, pc.domain)?.studentResults ?? [];
+  // Phase labels for this cohort (Year 3→5 primary, Year 7→9 secondary).
+  const earlierLabel = `Year ${pc.earlierLevel}`;
+  const laterLabel = `Year ${pc.laterLevel}`;
+  const eShort = `Y${pc.earlierLevel}`;
+  const lShort = `Y${pc.laterLevel}`;
+
+  const y7Results = getEntry(store, y7Year, pc.earlierLevel, pc.domain)?.studentResults ?? [];
+  const y9Results = getEntry(store, y9Year, pc.laterLevel, pc.domain)?.studentResults ?? [];
   const subdomainMoves = subdomainMovement(y7Results, y9Results);
   const isReading = pc.domain === "Reading";
 
@@ -254,7 +272,7 @@ function DomainDrilldown({
       <Card>
         <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} — no matched students</h2>
         <p className="text-sm text-graphite/70">
-          No students could be matched between Year 7 ({y7Year}) and Year 9 ({y9Year}) for {pc.domain}.
+          No students could be matched between {earlierLabel} ({y7Year}) and {laterLabel} ({y9Year}) for {pc.domain}.
           This usually means the Local Student IDs don&rsquo;t reconcile across the two files, so there&rsquo;s
           nothing to track for this domain — check that both years use the school&rsquo;s Local Student ID.
         </p>
@@ -268,7 +286,7 @@ function DomainDrilldown({
       <Card>
         <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} — proficiency transition</h2>
         <p className="mb-3 text-xs text-graphite/60">
-          Where the matched cohort moved between proficiency bands, Year 7 → Year 9.
+          Where the matched cohort moved between proficiency bands, {earlierLabel} → {laterLabel}.
         </p>
         <div className="grid gap-4 lg:grid-cols-2">
           <Chart figure={transitionSankeyFigure(pc, y7Year, y9Year)} height={420} />
@@ -293,7 +311,7 @@ function DomainDrilldown({
 
       {/* NAS Wilson CI + McNemar */}
       <Card>
-        <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} — NAS rate, Y7 vs Y9</h2>
+        <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} — NAS rate, {eShort} vs {lShort}</h2>
         <p className="mb-3 text-xs text-graphite/60">
           Wilson 95% confidence intervals on the paired NAS rate, with McNemar’s exact test on the
           discordant pairs.
@@ -306,7 +324,7 @@ function DomainDrilldown({
           <span className="text-graphite/60">{mc.note}</span>
         </div>
         <div className="mt-3">
-          <Bullets items={interpretMcnemar(mc, pc.domain, pc.paired.length)} />
+          <Bullets items={interpretMcnemar(mc, pc.domain, pc.paired.length, pc.earlierLevel, pc.laterLevel)} />
           <Bullets items={interpretWilson(pc)} />
         </div>
       </Card>
@@ -315,7 +333,7 @@ function DomainDrilldown({
       <Card>
         <h2 className="mb-1 text-lg font-semibold text-graphite">Attrition — stayers vs leavers</h2>
         <p className="mb-3 text-xs text-graphite/60">
-          Did the students who left between Year 7 and Year 9 differ from those who stayed? (A
+          Did the students who left between {earlierLabel} and {laterLabel} differ from those who stayed? (A
           selection effect would bias the headline.)
         </p>
         <table className="w-full text-sm">
@@ -323,8 +341,8 @@ function DomainDrilldown({
             <tr className="border-b border-alabaster text-left text-xs uppercase tracking-wide text-graphite/50">
               <th className="py-2">Group</th>
               <th className="py-2 text-right">n</th>
-              <th className="py-2 text-right">Y7 NAS count</th>
-              <th className="py-2 text-right">Y7 NAS%</th>
+              <th className="py-2 text-right">{eShort} NAS count</th>
+              <th className="py-2 text-right">{eShort} NAS%</th>
             </tr>
           </thead>
           <tbody>
@@ -351,7 +369,7 @@ function DomainDrilldown({
       <Card>
         <h2 className="mb-1 text-lg font-semibold text-graphite">Equity within the matched cohort</h2>
         <p className="mb-3 text-xs text-graphite/60">
-          LBOTE and Aboriginal/Torres Strait Islander NAS movement (Year 7 entry status). Groups
+          LBOTE and Aboriginal/Torres Strait Islander NAS movement ({earlierLabel} entry status). Groups
           under n=5 are suppressed; n=5–9 are indicative only.
         </p>
         <table className="w-full text-sm">
@@ -359,8 +377,8 @@ function DomainDrilldown({
             <tr className="border-b border-alabaster text-left text-xs uppercase tracking-wide text-graphite/50">
               <th className="py-2">Sub-cohort</th>
               <th className="py-2 text-right">n</th>
-              <th className="py-2 text-right">Y7 NAS%</th>
-              <th className="py-2 text-right">Y9 NAS%</th>
+              <th className="py-2 text-right">{eShort} NAS%</th>
+              <th className="py-2 text-right">{lShort} NAS%</th>
               <th className="py-2 text-right">Δ NAS</th>
             </tr>
           </thead>
@@ -409,19 +427,19 @@ function DomainDrilldown({
 
       {/* Class-group tracking */}
       <Card>
-        <h2 className="mb-1 text-lg font-semibold text-graphite">Year 7 class-group tracking</h2>
+        <h2 className="mb-1 text-lg font-semibold text-graphite">{earlierLabel} class-group tracking</h2>
         <p className="mb-3 text-xs text-graphite/60">
-          Where each Year 7 class went by Year 9, and how its NAS rate moved (paired students only).
+          Where each {earlierLabel} class went by {laterLabel}, and how its NAS rate moved (paired students only).
         </p>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-alabaster text-left text-xs uppercase tracking-wide text-graphite/50">
-              <th className="py-2">Y7 class</th>
+              <th className="py-2">{eShort} class</th>
               <th className="py-2 text-right">Total</th>
               <th className="py-2 text-right">Stayed</th>
               <th className="py-2 text-right">Left</th>
-              <th className="py-2 text-right">Y7 NAS%</th>
-              <th className="py-2 text-right">Y9 NAS%</th>
+              <th className="py-2 text-right">{eShort} NAS%</th>
+              <th className="py-2 text-right">{lShort} NAS%</th>
               <th className="py-2">Main destinations</th>
             </tr>
           </thead>
@@ -454,17 +472,17 @@ function DomainDrilldown({
       {/* Subdomains — all domains */}
       {subdomainMoves.length > 0 ? (
         <Card>
-          <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} subdomains — Y7 vs Y9 % correct</h2>
+          <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} subdomains — {eShort} vs {lShort} % correct</h2>
           <p className="mb-3 text-xs text-graphite/60">
             Capability against the year-level standard, weakest first. This is a <strong>directional</strong>{" "}
-            signal, not true growth — the Y7 and Y9 tests differ in difficulty.
+            signal, not true growth — the {eShort} and {lShort} tests differ in difficulty.
           </p>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-alabaster text-left text-xs uppercase tracking-wide text-graphite/50">
                 <th className="py-2">Subdomain</th>
-                <th className="py-2 text-right">Y7 % correct</th>
-                <th className="py-2 text-right">Y9 % correct</th>
+                <th className="py-2 text-right">{eShort} % correct</th>
+                <th className="py-2 text-right">{lShort} % correct</th>
                 <th className="py-2 text-right">Δ</th>
               </tr>
             </thead>
@@ -494,7 +512,7 @@ function DomainDrilldown({
           </table>
           {isReading && (
             <div className="mt-3">
-              <Bullets items={interpretReadingSubdomains(y7Results, y9Results, y7Year, y9Year, ctx)} />
+              <Bullets items={interpretReadingSubdomains(y7Results, y9Results, y7Year, y9Year, ctx, pc.earlierLevel, pc.laterLevel)} />
             </div>
           )}
         </Card>
@@ -525,9 +543,9 @@ function DomainDrilldown({
                   <tr className="border-b border-alabaster text-left text-xs uppercase tracking-wide text-graphite/50">
                     <th className="py-2">Local ID</th>
                     <th className="py-2">Flag</th>
-                    <th className="py-2">Y7 class</th>
-                    <th className="py-2">Y9 class</th>
-                    <th className="py-2">Y7 → Y9 band</th>
+                    <th className="py-2">{eShort} class</th>
+                    <th className="py-2">{lShort} class</th>
+                    <th className="py-2">{eShort} → {lShort} band</th>
                   </tr>
                 </thead>
                 <tbody>

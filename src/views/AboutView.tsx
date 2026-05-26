@@ -33,7 +33,8 @@ export function AboutView() {
           preliminary SSSR gives schools the School (IDA) Report, Class Summary Report, Class
           Test Report, Student Reports and proficiency-standard information. This app reads those
           files and surfaces participation, proficiency, equity and skill gaps — and, as the
-          headline, tracks the same students from Year 7 to Year 9 (your school’s value-add).
+          headline, tracks the same students across two years (Year 3 to Year 5 for a primary
+          school, or Year 7 to Year 9 for a secondary school — your school’s value-add).
           Everything runs on your device; no student data leaves the machine.
         </p>
       </Card>
@@ -42,8 +43,9 @@ export function AboutView() {
         <h2 className="text-lg font-semibold text-graphite">Which files you need</h2>
         <p className="mt-2 text-sm text-graphite/80">
           Add all the files from the <strong>SSSR Preliminary reports</strong> — for your current
-          Year 9s, and the same students’ Year 7 files from two years earlier — across every
-          domain (Reading, Numeracy, Spelling, Grammar and Punctuation) and both year levels. The
+          exit year (Year 5 or Year 9), and the same students’ entry-year files (Year 3 or Year 7)
+          from two years earlier — across every domain (Reading, Numeracy, Spelling, Grammar and
+          Punctuation) and both year levels. The
           files for each year can sit in different folders; add each folder, or pick the files
           directly, on the home screen.
         </p>

@@ -2,10 +2,12 @@
  * Sections 1–9 overview PDF. Per-year-level participation, proficiency (with the
  * stacked-bar chart), cross-domain ranking, equity and skill gaps, plus the
  * year-on-year movement and the rules-based school narrative. NAPLAN attribution
- * framing is preserved (Year 7 = primary-school output; Year 9 = the school's
- * contribution). No student names appear.
+ * framing is per year level (from core's `attributionNote`): Year 3 baseline /
+ * Year 5 primary contribution / Year 7 feeder intake / Year 9 secondary
+ * contribution. No student names appear.
  */
 import {
+  attributionNote,
   availableYears,
   bottomDescriptors,
   buildSchoolNarrative,
@@ -30,17 +32,12 @@ import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
 import { figureToPng } from "./chartImage";
 import { bulletList, coverPage, footer, pct1, PDF_STYLES, table } from "./common";
 
-const ATTR_Y7 =
-  "Year 7 NAPLAN (sat in Term 1) reflects students' primary-school learning — feeder-cohort intake, not this school's teaching.";
-const ATTR_Y9 =
-  "Year 9 reflects the secondary school's contribution (the cohort has had about two years here). NAPLAN is diagnostic evidence, not a target instrument.";
-
 async function yearLevelSection(store: Store, primaryYear: number, yearLevel: number): Promise<Content[]> {
   const domains = domainsFor(store, primaryYear, yearLevel);
   if (domains.length === 0) return [];
   const out: Content[] = [];
   out.push({ text: `Year ${yearLevel} — ${primaryYear}`, style: "h2" });
-  out.push({ text: yearLevel === 7 ? ATTR_Y7 : ATTR_Y9, style: "caption" });
+  out.push({ text: attributionNote(yearLevel, primaryYear), style: "caption" });
 
   // S1 Participation
   out.push({ text: "Participation", style: "h3" });
@@ -128,11 +125,14 @@ async function yearLevelSection(store: Store, primaryYear: number, yearLevel: nu
 
 function skillGapsSection(store: Store, primaryYear: number): Content[] {
   const out: Content[] = [];
-  const yearLevel = 9; // diagnostic skill gaps most relevant for the school's own cohort
+  // Diagnostic skill gaps are most relevant for the school's own exit cohort —
+  // the highest year level present (Year 5 for primary, Year 9 for secondary).
+  const yearLevel = yearLevelsFor(store, primaryYear).at(-1);
+  if (yearLevel == null) return out;
   const domains = domainsFor(store, primaryYear, yearLevel);
   if (domains.length === 0) return out;
   out.push({ text: "Skill gaps — hardest-going descriptors (Section 5)", style: "h2" });
-  out.push({ text: `Year 9, ${primaryYear}. Items attempted by at least half the students who saw them.`, style: "caption" });
+  out.push({ text: `Year ${yearLevel}, ${primaryYear}. Items attempted by at least half the students who saw them.`, style: "caption" });
   for (const dom of domains) {
     const results = getEntry(store, primaryYear, yearLevel, dom)?.studentResults ?? [];
     const bottom = bottomDescriptors(results, 5);
@@ -155,7 +155,7 @@ function yearOnYearSection(store: Store, primaryYear: number): Content[] {
   if (years.length < 2) return out;
   out.push({ text: "Year-on-year NAS movement (Section 3)", style: "h2", pageBreak: "before" });
   out.push({
-    text: "Each year is a different cohort. Year 7 movement is feeder-cohort variation; Year 9 reflects the school. Lower NAS is better. Cohort tracking of the same students is in the separate Section 10 report.",
+    text: "Each year is a different cohort. Entry-year movement (Year 3 / Year 7) is an intake signal; exit-year movement (Year 5 / Year 9) reflects the school. Lower NAS is better. Cohort tracking of the same students is in the separate Section 10 report.",
     style: "caption",
   });
   for (const yearLevel of yearLevelsFor(store, primaryYear)) {

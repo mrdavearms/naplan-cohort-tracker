@@ -18,6 +18,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import {
+  COHORT_PHASES,
   inspectWorkbook,
   resolveYearOfTest,
   type RawWorkbookFile,
@@ -41,8 +42,9 @@ const nextId = (): string => {
   return `stg-${Date.now().toString(36)}-${counter.toString(36)}`;
 };
 
-/** Is the staged set able to track one cohort Year 7 → Year 9 (same students, two
- *  years apart)? Returns an advisory message when not — never blocks Load. */
+/** Is the staged set able to track one cohort across two years — Year 3→5
+ *  (primary) or Year 7→9 (secondary), same students two years apart? Returns an
+ *  advisory message when not — never blocks Load. */
 function readiness(staged: StagedSource[]): string | null {
   const present: { year: number; level: number }[] = [];
   for (const s of staged) {
@@ -53,16 +55,18 @@ function readiness(staged: StagedSource[]): string | null {
     }
   }
   if (present.length === 0) return null;
-  const hasPair = present.some(
-    (p) => p.level === 7 && present.some((q) => q.level === 9 && q.year === p.year + 2),
+  const hasPair = COHORT_PHASES.some((ph) =>
+    present.some(
+      (p) => p.level === ph.earlier && present.some((q) => q.level === ph.later && q.year === p.year + 2),
+    ),
   );
   if (hasPair) return null;
   const labels = [...new Set(present.map((p) => `Year ${p.level} ${p.year}`))].sort();
   return (
-    `So far you've added ${labels.join(", ")}. To track the same cohort from Year 7 ` +
-    `to Year 9, also add a Year 7 file from two years before a Year 9 file ` +
-    `(for example Year 7 2024 with Year 9 2026). You can still load now for ` +
-    `single-year analysis (Sections 1–9).`
+    `So far you've added ${labels.join(", ")}. To track the same cohort across two years, also ` +
+    `add an entry-year file two years before its exit-year file — Year 3 with Year 5 ` +
+    `(for example Year 3 2024 with Year 5 2026), or Year 7 with Year 9. You can still load now ` +
+    `for single-year analysis (Sections 1–9).`
   );
 }
 
@@ -205,8 +209,8 @@ export function ImportStaging() {
             year ACARA (the Australian Curriculum, Assessment and Reporting Authority) releases
             a preliminary Student and School Summary Report (SSSR), usually during Term 2. Point
             NAPLAN&nbsp;Cohort&nbsp;Tracker at those files and it surfaces participation, proficiency,
-            equity and skill gaps — and, as the headline, tracks the same students from Year 7
-            to Year 9. Nothing leaves your machine.
+            equity and skill gaps — and, as the headline, tracks the same students across two
+            years (Year 3 to Year 5, or Year 7 to Year 9). Nothing leaves your machine.
           </p>
         </div>
 
@@ -217,8 +221,8 @@ export function ImportStaging() {
           <div className="mt-3 space-y-3">
             <p>
               <strong>What to add:</strong> all the files from the <strong>SSSR Preliminary
-              reports</strong> for your current Year 9s, <em>and</em> the same students’ Year 7
-              files from two years earlier. The preliminary SSSR includes the School (IDA)
+              reports</strong> for your current exit year (Year 5 or Year 9), <em>and</em> the same
+              students’ entry-year files (Year 3 or Year 7) from two years earlier. The preliminary SSSR includes the School (IDA)
               Report, Class Summary Report, Class Test Report, Student Reports and
               proficiency-standard information — add the full set, across every domain (Reading,
               Numeracy, Spelling, Grammar and Punctuation) and both year levels, so every section

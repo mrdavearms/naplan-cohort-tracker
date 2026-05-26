@@ -45,7 +45,7 @@ export function HomeView() {
       <MatchRateBanner store={store} primaryYear={primaryYear} />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatTile label="Primary year" value={primaryYear} sub="Year 9 cohort anchor" />
+        <StatTile label="Primary year" value={primaryYear} sub="most recent test year" />
         <StatTile label="Years loaded" value={years.length} sub={years.join(", ")} />
         <StatTile label="Datasets" value={store.size} sub="year × level × domain" />
         <StatTile label={`${primaryYear} datasets`} value={primaryEntries.length} />

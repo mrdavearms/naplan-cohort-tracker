@@ -38,6 +38,18 @@ export function phaseFor(level: number): Phase {
   return level <= 5 ? "primary" : "secondary";
 }
 
+/**
+ * Best-guess cohort levels to label/prompt with, given the year levels present
+ * in a store. Prefers the secondary pair when any secondary level is present
+ * (matching `buildCohortPairings`' senior-phase default), else primary. Used for
+ * the match-rate banner's labels and its "no cohort yet" prompt.
+ */
+export function inferCohortLevels(levelsPresent: readonly number[]): { earlier: number; later: number } {
+  if (levelsPresent.some((l) => l >= 7)) return { earlier: 7, later: 9 };
+  if (levelsPresent.some((l) => l <= 5)) return { earlier: 3, later: 5 };
+  return { earlier: 7, later: 9 };
+}
+
 /** Short level label as used in charts and tables, e.g. "Y7" or "Y3". */
 export function shortLevel(level: number): string {
   return `Y${level}`;

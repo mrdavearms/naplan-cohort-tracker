@@ -1,8 +1,9 @@
 /**
  * Section 10 cohort deep-dive PDF — the headline value-add report. Tracks the
- * same students from Year 7 (primaryYear − 2) to Year 9 (primaryYear), matched
- * on Local Student ID. McNemar's exact test (not CI overlap) assesses the paired
- * NAS change. No student names appear; the "left WHS" sentinel is relabelled.
+ * same students across two years (primaryYear − 2 → primaryYear), matched on
+ * Local Student ID — Year 3→5 for primary, Year 7→9 for secondary. McNemar's
+ * exact test (not CI overlap) assesses the paired NAS change. No student names
+ * appear; the "left WHS" sentinel is relabelled.
  */
 import {
   attritionAnalysis,
@@ -12,6 +13,7 @@ import {
   cohortHeadline,
   cohortMatchRate,
   cohortYears,
+  inferCohortLevels,
   crossDomainSummary,
   declinedOrStalled,
   divergingDeltaFigure,
@@ -43,13 +45,17 @@ const ppStr = (x: number | null): string => (x == null ? "—" : `${x >= 0 ? "+"
 
 async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, store: Store): Promise<Content[]> {
   const out: Content[] = [];
-  out.push({ text: `${pc.domain} — Year 7 to Year 9 transition`, style: "h2", pageBreak: "before" });
+  const earlierLabel = `Year ${pc.earlierLevel}`;
+  const laterLabel = `Year ${pc.laterLevel}`;
+  const eShort = `Y${pc.earlierLevel}`;
+  const lShort = `Y${pc.laterLevel}`;
+  out.push({ text: `${pc.domain} — ${earlierLabel} to ${laterLabel} transition`, style: "h2", pageBreak: "before" });
 
   // No reconciled students: skip the charts/tables (which would all read n=0)
   // and explain why, rather than printing a page that looks broken.
   if (pc.paired.length === 0) {
     out.push({
-      text: `No students could be matched between Year 7 (${y7Year}) and Year 9 (${y9Year}) for ${pc.domain}. This usually means the Local Student IDs don't reconcile across the two files, so there's nothing to track for this domain — check that both years use the school's Local Student ID.`,
+      text: `No students could be matched between ${earlierLabel} (${y7Year}) and ${laterLabel} (${y9Year}) for ${pc.domain}. This usually means the Local Student IDs don't reconcile across the two files, so there's nothing to track for this domain — check that both years use the school's Local Student ID.`,
       style: "lead",
     });
     return out;
@@ -63,10 +69,10 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
 
   const wilson = await figureToPng(wilsonCiDotPlotFigure(pc, y7Year, y9Year), 520, 200);
   const mc = mcnemarPaired(pc.paired);
-  out.push({ text: "NAS rate, Year 7 vs Year 9 (Wilson 95% CI · McNemar)", style: "h3" });
+  out.push({ text: `NAS rate, ${earlierLabel} vs ${laterLabel} (Wilson 95% CI · McNemar)`, style: "h3" });
   out.push({ image: wilson, width: 500, margin: [0, 2, 0, 6] });
   out.push({ text: `McNemar exact p = ${fmtP(mc.pValue)}. ${mc.note}`, style: "caption" });
-  out.push(bulletList([...interpretMcnemar(mc, pc.domain, pc.paired.length), ...interpretWilson(pc)]));
+  out.push(bulletList([...interpretMcnemar(mc, pc.domain, pc.paired.length, pc.earlierLevel, pc.laterLevel), ...interpretWilson(pc)]));
 
   const movePng = await figureToPng(
     movementStackedFigure([{ label: `${pc.domain} (n=${pc.paired.length})`, movement: bandMovement(pc) }]),
@@ -76,14 +82,14 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
   out.push({ text: "Band movement", style: "h3" });
   out.push({ image: movePng, width: 500, margin: [0, 2, 0, 6] });
 
-  const y7Results = store.get(`${y7Year}|7|${pc.domain}`)?.studentResults ?? [];
-  const y9Results = store.get(`${y9Year}|9|${pc.domain}`)?.studentResults ?? [];
+  const y7Results = store.get(`${y7Year}|${pc.earlierLevel}|${pc.domain}`)?.studentResults ?? [];
+  const y9Results = store.get(`${y9Year}|${pc.laterLevel}|${pc.domain}`)?.studentResults ?? [];
   const subs = subdomainMovement(y7Results, y9Results);
   if (subs.length > 0) {
-    out.push({ text: "Subdomains — Y7 vs Y9 % correct (directional, not true growth)", style: "h3" });
+    out.push({ text: `Subdomains — ${eShort} vs ${lShort} % correct (directional, not true growth)`, style: "h3" });
     out.push(
       table(
-        ["Subdomain", "Y7 %", "Y9 %", "Δ"],
+        ["Subdomain", `${eShort} %`, `${lShort} %`, "Δ"],
         [...subs]
           .sort((a, b) => (a.y9PctCorrect ?? Infinity) - (b.y9PctCorrect ?? Infinity))
           .map((s) => [
@@ -102,7 +108,7 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
     out.push({ text: "Students to follow up (Local IDs only)", style: "h3" });
     out.push(
       table(
-        ["Local ID", "Flag", "Y7 class", "Y9 class", "Y7 → Y9 band"],
+        ["Local ID", "Flag", `${eShort} class`, `${lShort} class`, `${eShort} → ${lShort} band`],
         [
           ...ds.declined.map((s) => [s.localStudentId, "Declined", s.classGroupY7 ?? "—", s.classGroupY9 ?? "—", `${s.proficiencyY7} → ${s.proficiencyY9}`]),
           ...ds.stalled.map((s) => [s.localStudentId, "Stalled at NAS", s.classGroupY7 ?? "—", s.classGroupY9 ?? "—", `${s.proficiencyY7} → ${s.proficiencyY9}`]),
@@ -116,7 +122,7 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
   out.push({ text: "Attrition — stayers vs leavers", style: "h3" });
   out.push(
     table(
-      ["Group", "n", "Y7 NAS count", "Y7 NAS%"],
+      ["Group", "n", `${eShort} NAS count`, `${eShort} NAS%`],
       [
         ["Stayers (matched)", attr.stayersN, attr.stayersNasCount, pct1(attr.stayersNasPct)],
         ["Leavers", attr.leaversN, attr.leaversNasCount, pct1(attr.leaversNasPct)],
@@ -130,7 +136,7 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
   out.push({ text: "Equity within the matched cohort", style: "h3" });
   out.push(
     table(
-      ["Sub-cohort", "n", "Y7 NAS%", "Y9 NAS%", "Δ NAS"],
+      ["Sub-cohort", "n", `${eShort} NAS%`, `${lShort} NAS%`, "Δ NAS"],
       sub.map((r) =>
         r.suppressed
           ? [r.subgroup, r.n, "suppressed", "(n<5)", "—"]
@@ -151,6 +157,14 @@ export async function buildCohortDoc(
   const generatedAt = new Date();
   const [y7Year, y9Year] = cohortYears(primaryYear);
   const pairings = buildCohortPairings(store, primaryYear);
+  const sample = [...pairings.values()][0];
+  const { earlier, later } = sample
+    ? { earlier: sample.earlierLevel, later: sample.laterLevel }
+    : inferCohortLevels([...store.values()].map((e) => e.yearLevel));
+  const earlierLabel = `Year ${earlier}`;
+  const laterLabel = `Year ${later}`;
+  const eShort = `Y${earlier}`;
+  const lShort = `Y${later}`;
   const ctx = {
     schoolName: settings.schoolName || "This school",
     schoolNumber: settings.schoolNumber,
@@ -165,13 +179,13 @@ export async function buildCohortDoc(
 
   if (pairings.size === 0) {
     body.push({
-      text: `No matched Year 7 to Year 9 cohort for ${primaryYear}. This report needs a Year 7 file from ${y7Year} and a Year 9 file from ${y9Year} for at least one domain.`,
+      text: `No matched ${earlierLabel} to ${laterLabel} cohort for ${primaryYear}. This report needs a ${earlierLabel} file from ${y7Year} and a ${laterLabel} file from ${y9Year} for at least one domain.`,
       style: "lead",
     });
   } else {
     const mr = cohortMatchRate(pairings);
     body.push({
-      text: `The same ${mr.matched} students tracked from Year 7 (${y7Year}) to Year 9 (${y9Year}), matched on Local Student ID (${pct1(mr.matchRatePct)} of the ${mr.y9CohortTotal} Year 9 students). ${mr.leavers} left after Year 7; ${mr.joiners} joined after Year 7.`,
+      text: `The same ${mr.matched} students tracked from ${earlierLabel} (${y7Year}) to ${laterLabel} (${y9Year}), matched on Local Student ID (${pct1(mr.matchRatePct)} of the ${mr.y9CohortTotal} ${laterLabel} students). ${mr.leavers} left after ${earlierLabel}; ${mr.joiners} joined after ${earlierLabel}.`,
       style: "lead",
     });
 
@@ -179,7 +193,7 @@ export async function buildCohortDoc(
     body.push({ text: "Paired-cohort headline", style: "h2" });
     body.push(
       table(
-        ["Domain", "Paired n", "Y7 NAS%", "Y9 NAS%", "Δ NAS", "McNemar p"],
+        ["Domain", "Paired n", `${eShort} NAS%`, `${lShort} NAS%`, "Δ NAS", "McNemar p"],
         [...pairings.entries()].map(([dom, pc]) => {
           const h = cohortHeadline(pc);
           const mc = mcnemarPaired(pc.paired);
@@ -197,7 +211,7 @@ export async function buildCohortDoc(
       y9Value: r.y9NasPct,
       direction: r.deltaNasPp < 0 ? "improved" : r.deltaNasPp > 0 ? "worsened" : "flat",
     }));
-    const dumbbellPng = await figureToPng(dumbbellFigure(dumbbellRows, { axisTitle: "NAS %" }), 360, 220);
+    const dumbbellPng = await figureToPng(dumbbellFigure(dumbbellRows, { axisTitle: "NAS %", earlierLabel, laterLabel }), 360, 220);
     const deltaPng = await figureToPng(
       divergingDeltaFigure(summary.map((r) => ({ domain: r.domain, deltaNasPp: r.deltaNasPp }))),
       360,
@@ -206,7 +220,7 @@ export async function buildCohortDoc(
     const movementRows: MovementBarRow[] = summary.map((r) => ({ label: `${r.domain} (n=${r.pairedN})`, movement: r.movement }));
     const movementPng = await figureToPng(movementStackedFigure(movementRows), 520, 220);
 
-    body.push({ text: "Across all domains (Year 7 → Year 9)", style: "h2" });
+    body.push({ text: `Across all domains (${earlierLabel} → ${laterLabel})`, style: "h2" });
     body.push({ columns: [{ image: dumbbellPng, width: 250 }, { image: deltaPng, width: 250 }], columnGap: 10, margin: [0, 2, 0, 6] });
     body.push({ text: "Band movement — moved down · stayed · moved up", style: "h3" });
     body.push({ image: movementPng, width: 500, margin: [0, 2, 0, 8] });
@@ -246,7 +260,7 @@ export async function buildCohortDoc(
     content: [
       ...coverPage({
         title: "NAPLAN Cohort Tracking",
-        subtitle: `Section 10 · Year 7 ${y7Year} → Year 9 ${y9Year}`,
+        subtitle: `Section 10 · ${earlierLabel} ${y7Year} → ${laterLabel} ${y9Year}`,
         schoolName: settings.schoolName,
         schoolNumber: settings.schoolNumber,
         generatedAt,

@@ -4,10 +4,10 @@
  * Ported from the legacy s3_aip_target. Lower NAS is better, so a falling NAS
  * count counts as "improved".
  *
- * Framing caveat: for Year 7 this is FEEDER-COHORT variation — different
- * students each year, not the school improving or declining. For Year 9 it
- * reflects the school's contribution but is still a different cohort each year
- * (tracking one cohort Y7→Y9 is Section 10).
+ * Framing caveat: every year shown is a different cohort, not the same students
+ * tracked over time. The per-level attribution (entry-year baseline vs the
+ * school's contribution) comes from core's `attributionNote`; tracking one
+ * cohort across two years (3→5 or 7→9) is Section 10.
  */
 import { useMemo, useState } from "react";
 import {
@@ -62,19 +62,11 @@ export function S3YearOnYear() {
       <YearLevelTabs yearLevels={yearLevels} value={yearLevel} onChange={setYearLevel} />
       <AttributionNote yearLevel={yearLevel} year={primaryYear} />
 
-      {yearLevel === 7 ? (
-        <p className="mb-4 rounded-lg border border-alabaster bg-linen/50 px-3 py-2 text-xs text-graphite/70">
-          Each year shown is a different group of students arriving from primary
-          school. Treat any movement here as feeder-cohort variation, not the
-          school improving or declining.
-        </p>
-      ) : (
-        <p className="mb-4 rounded-lg border border-alabaster bg-linen/50 px-3 py-2 text-xs text-graphite/70">
-          Each year shown is a different Year 9 cohort, not the same students
-          tracked over time. To follow one cohort from Year 7 to Year 9, see
-          Section 10.
-        </p>
-      )}
+      <p className="mb-4 rounded-lg border border-alabaster bg-linen/50 px-3 py-2 text-xs text-graphite/70">
+        Each year shown is a different group of students, not the same students
+        tracked over time. To follow one cohort across two years (Year{" "}
+        {yearLevel <= 5 ? "3 to Year 5" : "7 to Year 9"}), see Section 10.
+      </p>
 
       {domains.length === 0 ? (
         <EmptyState title="No data for this year level" />
