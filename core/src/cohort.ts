@@ -34,6 +34,8 @@ export function buildPairedCohort(
   y7StudentReports: readonly StudentReportRow[],
   y9StudentReports: readonly StudentReportRow[],
   domain: string,
+  earlierLevel = 7,
+  laterLevel = 9,
 ): PairedCohort {
   const participated = (r: StudentReportRow): boolean =>
     r.participationCode === PARTICIPATED && r.localStudentId != null;
@@ -91,7 +93,7 @@ export function buildPairedCohort(
       participationCode: PARTICIPATED,
     }));
 
-  return { domain, paired, leavers, joiners, pairedFilteredCount };
+  return { domain, earlierLevel, laterLevel, paired, leavers, joiners, pairedFilteredCount };
 }
 
 /**

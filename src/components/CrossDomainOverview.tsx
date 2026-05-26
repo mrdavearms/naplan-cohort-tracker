@@ -32,6 +32,11 @@ export function CrossDomainOverview({ pairings }: { pairings: Map<string, Paired
   const rows: CrossDomainRow[] = useMemo(() => crossDomainSummary(pairings), [pairings]);
   if (rows.length === 0) return null;
 
+  // All pairings in a phase share the same earlier/later levels (3→5 or 7→9).
+  const sample = [...pairings.values()][0];
+  const earlierLabel = sample ? `Year ${sample.earlierLevel}` : "Year 7";
+  const laterLabel = sample ? `Year ${sample.laterLevel}` : "Year 9";
+
   const dumbbellRows: DumbbellRow[] = rows.map((r) => {
     const y7 = metric === "nas" ? r.y7NasPct : r.y7MeetingPct;
     const y9 = metric === "nas" ? r.y9NasPct : r.y9MeetingPct;
@@ -66,9 +71,9 @@ export function CrossDomainOverview({ pairings }: { pairings: Map<string, Paired
       <div className="grid gap-4 lg:grid-cols-2">
         <div>
           <h3 className="mb-1 text-sm font-medium text-graphite/70">
-            {metric === "nas" ? "NAS %" : "Strong + Exceeding %"}: Year 7 → Year 9
+            {metric === "nas" ? "NAS %" : "Strong + Exceeding %"}: {earlierLabel} → {laterLabel}
           </h3>
-          <Chart figure={dumbbellFigure(dumbbellRows, { axisTitle: metric === "nas" ? "NAS %" : "Meeting+ %" })} height={200} />
+          <Chart figure={dumbbellFigure(dumbbellRows, { axisTitle: metric === "nas" ? "NAS %" : "Meeting+ %", earlierLabel, laterLabel })} height={200} />
         </div>
         <div>
           <h3 className="mb-1 text-sm font-medium text-graphite/70">Net change in NAS (pp)</h3>

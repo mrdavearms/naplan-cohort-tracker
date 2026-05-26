@@ -20,7 +20,9 @@ export const NAS = "Needs additional support";
 /** Participation code marking a sat test (vs Absent / Withdrawn / Exempt). */
 export const PARTICIPATED = "Participated";
 
-export const VALID_YEAR_LEVELS = [7, 9] as const;
+/** NAPLAN is sat in Years 3, 5, 7 and 9. The within-school growth pairs are
+ *  3→5 (primary) and 7→9 (secondary); see `phase.ts`. */
+export const VALID_YEAR_LEVELS = [3, 5, 7, 9] as const;
 export type YearLevel = (typeof VALID_YEAR_LEVELS)[number];
 
 export const VALID_DOMAINS = [

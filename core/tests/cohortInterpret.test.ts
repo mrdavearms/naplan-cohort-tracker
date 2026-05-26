@@ -52,7 +52,7 @@ function leaver(y7: string | null, classY7: string | null = null): LeaverRow {
 }
 
 function cohort(paired: PairedStudent[], leavers: LeaverRow[] = []): PairedCohort {
-  return { domain: "Reading", paired, leavers, joiners: [], pairedFilteredCount: 0 };
+  return { domain: "Reading", earlierLevel: 7, laterLevel: 9, paired, leavers, joiners: [], pairedFilteredCount: 0 };
 }
 
 describe("interpretMcnemar", () => {

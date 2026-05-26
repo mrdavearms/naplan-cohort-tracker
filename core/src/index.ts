@@ -10,6 +10,7 @@
  * land next; folder discovery + file reads stay in the Tauri layer.
  */
 export * from "./constants";
+export * from "./phase";
 export * from "./types";
 export * from "./stats";
 export * from "./cohort";

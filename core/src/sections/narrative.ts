@@ -9,6 +9,7 @@
  * works for any school without hard-coded WHS/AIP/KIS strings.
  */
 import { NAS } from "../constants";
+import { shortLevel, yearOnYearContext } from "../phase";
 import { mcnemarExactPValue } from "../stats";
 import type { LoadedFile, PairedCohort, StudentReportRow } from "../types";
 import { bottomDescriptors } from "./skillGap";
@@ -148,16 +149,18 @@ function yearOnYearLines(allEntries: LoadedFile[], ctx: NarrativeContext): strin
   const tracked = ctx.trackedDomains ?? DEFAULT_TRACKED;
   const get = (year: number, yl: number, dom: string) =>
     allEntries.find((e) => e.yearOfTest === year && e.yearLevel === yl && e.domain === dom);
+  // The year levels actually present for the primary year, ascending — works for
+  // primary (3, 5), secondary (7, 9), or a combined school (all four).
+  const levels = [
+    ...new Set(allEntries.filter((e) => e.yearOfTest === ctx.primaryYear).map((e) => e.yearLevel)),
+  ].sort((a, b) => a - b);
   const lines: string[] = [];
-  for (const yl of [7, 9]) {
+  for (const yl of levels) {
     for (const dom of tracked) {
       const current = get(ctx.primaryYear, yl, dom);
       if (!current) continue;
       const curNas = proficiencyCounts(current.studentReports)["Needs additional support"];
-      const context =
-        yl === 7
-          ? "(feeder-cohort variation — not a secondary-school performance measure)"
-          : "(consecutive Year 9 cohorts)";
+      const context = yearOnYearContext(yl);
       const prior = get(ctx.primaryYear - 1, yl, dom);
       if (!prior) {
         lines.push(`Year ${yl} ${dom} ${context}: ${curNas} students at NAS in ${ctx.primaryYear}. No ${ctx.primaryYear - 1} data loaded.`);
@@ -294,6 +297,12 @@ export function buildCohortNarrative(
 ): CohortNarrative {
   const summary = summariseCohort(pairings);
 
+  // All pairings in a phase share the same levels (3→5 primary, 7→9 secondary).
+  const sample = [...pairings.values()][0];
+  const eL = sample ? shortLevel(sample.earlierLevel) : "Y7";
+  const lL = sample ? shortLevel(sample.laterLevel) : "Y9";
+  const laterYearLabel = sample ? `Year ${sample.laterLevel}` : "Year 9";
+
   const supported: string[] = [];
   for (const [dom, s] of summary) {
     if (s.delta < 0 && s.pValue !== null && s.pValue < 0.05) {
@@ -315,7 +324,7 @@ export function buildCohortNarrative(
   for (const [dom, s] of summary) {
     if (s.leaversTotal > 0 && s.leaversNasPct > s.stayersY7NasPct + 10) {
       concernsOut.push(
-        `${dom}: leavers' Y7 NAS rate (${s.leaversNasPct.toFixed(1)}%) was substantially higher than ` +
+        `${dom}: leavers' ${eL} NAS rate (${s.leaversNasPct.toFixed(1)}%) was substantially higher than ` +
           `stayers' (${s.stayersY7NasPct.toFixed(1)}%). Part of the cohort improvement may reflect ` +
           `selection rather than teaching effect.`,
       );
@@ -333,9 +342,9 @@ export function buildCohortNarrative(
 
   const patterns = [
     "The transition matrix is the single most informative chart for follow-up with subject leaders. " +
-      "Look at: (a) Y7-NAS students who moved to Strong or Exceeding — what worked? and (b) Y7-Strong " +
+      `Look at: (a) ${eL}-NAS students who moved to Strong or Exceeding — what worked? and (b) ${eL}-Strong ` +
       "students who slipped to NAS or Developing — what changed for them?",
-    "The class-group drill-down shows whether any Y7 class produced disproportionate Y9 NAS rates. " +
+    `The class-group drill-down shows whether any ${eL} class produced disproportionate ${lL} NAS rates. ` +
       "Useful context, but treat carefully — class composition reflects school streaming.",
     "Equity sub-cohort sizes are small, so any directional finding warrants follow-up with the " +
       "individual students rather than statistical generalisation.",
@@ -354,13 +363,13 @@ export function buildCohortNarrative(
   for (const entry of summary) if (!weakest || entry[1].p9 > weakest[1].p9) weakest = entry;
   if (weakest) {
     actions.push(
-      `Prioritise ${weakest[0]} for next year. This is the weakest Year 9 result in the paired cohort ` +
+      `Prioritise ${weakest[0]} for next year. This is the weakest ${laterYearLabel} result in the paired cohort ` +
         `(${weakest[1].p9.toFixed(1)}% NAS).${citePlanRef(ctx, "data-inquiry")}`,
     );
   }
   actions.push(
     `Use this cohort analysis to inform the NAPLAN target in the ${ctx.primaryYear} ${planLabel(ctx)}. ` +
-      `A 5–7 pp paired-cohort NAS reduction across Y7 → Y9 is defensible and achievable based on what the ` +
+      `A 5–7 pp paired-cohort NAS reduction across ${eL} → ${lL} is defensible and achievable based on what the ` +
       `data shows here.`,
   );
   actions.push(

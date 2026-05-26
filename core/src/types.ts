@@ -84,9 +84,16 @@ export interface JoinerRow {
   participationCode: string;
 }
 
-/** Result of pairing one domain's Y7 cohort with its Y9 cohort. */
+/** Result of pairing one domain's earlier-year cohort with its later-year cohort
+ *  (Year 3 → 5 for primary, Year 7 → 9 for secondary). The `*Y7`/`*Y9` field
+ *  names on the rows are historical and mean "earlier"/"later", not literally
+ *  7/9 — `earlierLevel`/`laterLevel` carry the actual NAPLAN year levels. */
 export interface PairedCohort {
   domain: string;
+  /** Earlier (entry) NAPLAN year level — 3 (primary) or 7 (secondary). */
+  earlierLevel: number;
+  /** Later (exit) NAPLAN year level — 5 (primary) or 9 (secondary). */
+  laterLevel: number;
   paired: PairedStudent[];
   leavers: LeaverRow[];
   joiners: JoinerRow[];

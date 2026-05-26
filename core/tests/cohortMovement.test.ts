@@ -25,7 +25,7 @@ function ps(y7: string, y9: string): PairedStudent {
 }
 
 function cohort(paired: PairedStudent[]): PairedCohort {
-  return { domain: "Reading", paired, leavers: [], joiners: [], pairedFilteredCount: 0 };
+  return { domain: "Reading", earlierLevel: 7, laterLevel: 9, paired, leavers: [], joiners: [], pairedFilteredCount: 0 };
 }
 
 function psFull(id: string, y7: string, y9: string, cg7: string | null, cg9: string | null): PairedStudent {
@@ -45,6 +45,8 @@ describe("declinedOrStalled", () => {
   it("lists students who dropped a band and those who stalled at NAS", () => {
     const pc: PairedCohort = {
       domain: "Reading",
+      earlierLevel: 7,
+      laterLevel: 9,
       paired: [
         psFull("A", "Strong", "Developing", "07A", "09A"), // declined
         psFull("B", NAS, NAS, "07B", "09C"), // stalled at NAS

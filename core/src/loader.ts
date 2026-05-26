@@ -255,7 +255,7 @@ export function detectDomainAndYear(reports: readonly StudentReportRow[]): {
     throw new LoaderError(`Unexpected domain '${domain}'. Expected one of: ${VALID_DOMAINS.join(", ")}`);
   }
   if (!(VALID_YEAR_LEVELS as readonly number[]).includes(yearLevel)) {
-    throw new LoaderError(`Unexpected year level '${yearLevel}'. Expected 7 or 9.`);
+    throw new LoaderError(`Unexpected year level '${yearLevel}'. Expected 3, 5, 7 or 9.`);
   }
   return { domain, yearLevel };
 }

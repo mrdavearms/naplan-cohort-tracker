@@ -15,6 +15,8 @@ export function wilsonCiDotPlotFigure(
   y9Year: number,
 ): PlotlyFigure {
   const n = pc.paired.length;
+  const eL = `Y${pc.earlierLevel}`;
+  const lL = `Y${pc.laterLevel}`;
   const y7Count = pc.paired.filter((s) => s.proficiencyY7 === NAS).length;
   const y9Count = pc.paired.filter((s) => s.proficiencyY9 === NAS).length;
   const [y7Lo, y7Hi] = wilsonCi(y7Count, n);
@@ -39,9 +41,9 @@ export function wilsonCiDotPlotFigure(
   });
 
   return {
-    data: [point("Y7", y7Pct, y7Lo, y7Hi), point("Y9", y9Pct, y9Lo, y9Hi)],
+    data: [point(eL, y7Pct, y7Lo, y7Hi), point(lL, y9Pct, y9Lo, y9Hi)],
     layout: {
-      title: { text: `${pc.domain}: NAS proportion with Wilson 95% CI (Y7 ${y7Year} → Y9 ${y9Year})` },
+      title: { text: `${pc.domain}: NAS proportion with Wilson 95% CI (${eL} ${y7Year} → ${lL} ${y9Year})` },
       xaxis: { title: "% NAS", range: [0, Math.max(50, y7Hi * 100 + 5, y9Hi * 100 + 5)] },
       yaxis: { title: "" },
       height: 240,

@@ -8,30 +8,59 @@
  */
 import { buildPairedCohort } from "./cohort";
 import { VALID_DOMAINS } from "./constants";
+import { COHORT_PHASES, type CohortPhase } from "./phase";
 import { bandMovement, cohortHeadline, type BandMovement } from "./sections/cohortTracking";
 import { getEntry, type Store } from "./store";
 import type { PairedCohort } from "./types";
 
-/** (y7Year, y9Year) — same students two years apart. */
+/** (earlierYear, laterYear) — same students two years apart. */
 export function cohortYears(primaryYear: number): [number, number] {
   return [primaryYear - 2, primaryYear];
 }
 
 /**
- * Build a PairedCohort for every domain that has BOTH a Y7 entry (primaryYear−2)
- * and a Y9 entry (primaryYear). Domains are visited in canonical order.
+ * The cohort phases that actually have trackable data for `primaryYear`: a phase
+ * is trackable when at least one domain has BOTH an earlier-level entry
+ * (primaryYear−2) and a later-level entry (primaryYear). Returns them in school
+ * order (primary before secondary) — a single-phase school gets one, a combined
+ * P–12 school gets both.
+ */
+export function trackablePhases(store: Store, primaryYear: number): CohortPhase[] {
+  const [earlierYear, laterYear] = cohortYears(primaryYear);
+  return COHORT_PHASES.filter((p) =>
+    VALID_DOMAINS.some(
+      (dom) =>
+        getEntry(store, earlierYear, p.earlier, dom) && getEntry(store, laterYear, p.later, dom),
+    ),
+  );
+}
+
+/**
+ * Build a PairedCohort per domain for a single phase. A primary school's data
+ * resolves to the (3 → 5) phase, a secondary school's to (7 → 9). When no phase
+ * is given, the trackable phase is detected; if both are present (P–12), the
+ * secondary phase is used here — the per-phase view (Section 10) selects between
+ * them. Domains are visited in canonical order.
  */
 export function buildCohortPairings(
   store: Store,
   primaryYear: number,
+  phase?: CohortPhase,
 ): Map<string, PairedCohort> {
-  const [y7Year, y9Year] = cohortYears(primaryYear);
+  const phases = trackablePhases(store, primaryYear);
+  // Default: prefer the senior phase when more than one is present.
+  const active = phase ?? phases[phases.length - 1];
   const out = new Map<string, PairedCohort>();
+  if (!active) return out;
+  const [earlierYear, laterYear] = cohortYears(primaryYear);
   for (const dom of VALID_DOMAINS) {
-    const y7 = getEntry(store, y7Year, 7, dom);
-    const y9 = getEntry(store, y9Year, 9, dom);
-    if (y7 && y9) {
-      out.set(dom, buildPairedCohort(y7.studentReports, y9.studentReports, dom));
+    const earlier = getEntry(store, earlierYear, active.earlier, dom);
+    const later = getEntry(store, laterYear, active.later, dom);
+    if (earlier && later) {
+      out.set(
+        dom,
+        buildPairedCohort(earlier.studentReports, later.studentReports, dom, active.earlier, active.later),
+      );
     }
   }
   return out;

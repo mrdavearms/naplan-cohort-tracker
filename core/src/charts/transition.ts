@@ -37,6 +37,8 @@ export function transitionSankeyFigure(
 ): PlotlyFigure {
   const L = PROFICIENCY_LEVELS;
   const n = L.length;
+  const eL = `Y${pc.earlierLevel}`;
+  const lL = `Y${pc.laterLevel}`;
   const m = transitionMatrix(pc.paired);
   const rowTotals = rowTotalsOf(m);
   const colTotals = colTotalsOf(m);
@@ -59,7 +61,7 @@ export function transitionSankeyFigure(
       linkColors.push(j > i ? DIRECTION_FILL.improver : j < i ? DIRECTION_FILL.decliner : DIRECTION_FILL.stayer);
       const rt = rowTotals[i]!;
       const pct = rt > 0 ? (count / rt) * 100 : 0;
-      linkLabels.push(`${L[i]} → ${L[j]}: ${count} students (${Math.round(pct)}% of Y7 ${L[i]})`);
+      linkLabels.push(`${L[i]} → ${L[j]}: ${count} students (${Math.round(pct)}% of ${eL} ${L[i]})`);
     }
   }
 
@@ -68,8 +70,8 @@ export function transitionSankeyFigure(
 
   const labelFont = { size: 13, color: "#000000", family: CHART_FONT };
   const annotations: Record<string, unknown>[] = [
-    { text: `<b>Y7 ${y7Year}</b>`, x: 0.0, y: 1.06, xref: "paper", yref: "paper", showarrow: false, xanchor: "left", font: { size: 14, color: "#1A237E" } },
-    { text: `<b>Y9 ${y9Year}</b>`, x: 1.0, y: 1.06, xref: "paper", yref: "paper", showarrow: false, xanchor: "right", font: { size: 14, color: "#1A237E" } },
+    { text: `<b>${eL} ${y7Year}</b>`, x: 0.0, y: 1.06, xref: "paper", yref: "paper", showarrow: false, xanchor: "left", font: { size: 14, color: "#1A237E" } },
+    { text: `<b>${lL} ${y9Year}</b>`, x: 1.0, y: 1.06, xref: "paper", yref: "paper", showarrow: false, xanchor: "right", font: { size: 14, color: "#1A237E" } },
   ];
   for (let i = 0; i < n; i++) {
     annotations.push({
@@ -110,7 +112,7 @@ export function transitionSankeyFigure(
     ],
     layout: {
       title: {
-        text: `${pc.domain}: Y7 ${y7Year} → Y9 ${y9Year} movement (n=${nTotal})`,
+        text: `${pc.domain}: ${eL} ${y7Year} → ${lL} ${y9Year} movement (n=${nTotal})`,
         x: 0.5, xanchor: "center", y: 0.99, yanchor: "top",
       },
       height: 600,
@@ -128,6 +130,8 @@ export function transitionHeatmapFigure(
 ): PlotlyFigure {
   const L = PROFICIENCY_LEVELS;
   const n = L.length;
+  const eL = `Y${pc.earlierLevel}`;
+  const lL = `Y${pc.laterLevel}`;
   const m = transitionMatrix(pc.paired);
   const rowTotals = rowTotalsOf(m);
   const nTotal = rowTotals.reduce((a, b) => a + b, 0);
@@ -172,16 +176,16 @@ export function transitionHeatmapFigure(
         zmin: -absMax,
         zmax: absMax,
         showscale: false,
-        hovertemplate: "Y7: %{y}<br>Y9: %{x}<br>%{text}<extra></extra>",
+        hovertemplate: `${eL}: %{y}<br>${lL}: %{x}<br>%{text}<extra></extra>`,
       },
     ],
     layout: {
       title: {
-        text: `${pc.domain}: Y7 ${y7Year} → Y9 ${y9Year} (n=${nTotal})`,
+        text: `${pc.domain}: ${eL} ${y7Year} → ${lL} ${y9Year} (n=${nTotal})`,
         x: 0.5, xanchor: "center", y: 0.97, yanchor: "top",
       },
-      xaxis: { title: { text: `Y9 ${y9Year} proficiency →`, standoff: 10 }, side: "top" },
-      yaxis: { title: `Y7 ${y7Year} proficiency →`, autorange: "reversed" },
+      xaxis: { title: { text: `${lL} ${y9Year} proficiency →`, standoff: 10 }, side: "top" },
+      yaxis: { title: `${eL} ${y7Year} proficiency →`, autorange: "reversed" },
       height: 460,
       margin: { l: 160, r: 20, t: 140, b: 60 },
       font: { family: CHART_FONT },

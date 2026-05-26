@@ -19,6 +19,10 @@ export interface DumbbellRow {
 export interface DumbbellOptions {
   axisTitle?: string;
   height?: number;
+  /** Legend/hover label for the earlier year (defaults to "Year 7"). */
+  earlierLabel?: string;
+  /** Legend/hover label for the later year (defaults to "Year 9"). */
+  laterLabel?: string;
 }
 
 const Y7_GREY = "#9e9e9e";
@@ -60,6 +64,8 @@ export function divergingDeltaFigure(rows: readonly DeltaRow[], options: Dumbbel
 
 export function dumbbellFigure(rows: readonly DumbbellRow[], options: DumbbellOptions = {}): PlotlyFigure {
   const domains = rows.map((r) => r.domain);
+  const earlierLabel = options.earlierLabel ?? "Year 7";
+  const laterLabel = options.laterLabel ?? "Year 9";
   const shapes = rows.map((r) => ({
     type: "line",
     xref: "x",
@@ -75,20 +81,20 @@ export function dumbbellFigure(rows: readonly DumbbellRow[], options: DumbbellOp
       {
         type: "scatter",
         mode: "markers",
-        name: "Year 7",
+        name: earlierLabel,
         x: rows.map((r) => r.y7Value),
         y: domains,
         marker: { color: Y7_GREY, size: 11 },
-        hovertemplate: "Year 7: %{x:.1f}<extra></extra>",
+        hovertemplate: `${earlierLabel}: %{x:.1f}<extra></extra>`,
       },
       {
         type: "scatter",
         mode: "markers",
-        name: "Year 9",
+        name: laterLabel,
         x: rows.map((r) => r.y9Value),
         y: domains,
         marker: { color: rows.map((r) => dirColor(r.direction)), size: 13 },
-        hovertemplate: "Year 9: %{x:.1f}<extra></extra>",
+        hovertemplate: `${laterLabel}: %{x:.1f}<extra></extra>`,
       },
     ],
     layout: {

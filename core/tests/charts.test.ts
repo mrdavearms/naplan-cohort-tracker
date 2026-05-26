@@ -33,6 +33,8 @@ function ps(y7: string, y9: string): PairedStudent {
 // Known transitions: NAS→NAS, NAS→Strong, Developing→Strong, Strong→NAS, Strong→Exceeding
 const pc: PairedCohort = {
   domain: "Reading",
+  earlierLevel: 7,
+  laterLevel: 9,
   paired: [ps(NAS, NAS), ps(NAS, "Strong"), ps("Developing", "Strong"), ps("Strong", NAS), ps("Strong", "Exceeding")],
   leavers: [],
   joiners: [],

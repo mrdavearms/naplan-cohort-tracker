@@ -94,7 +94,7 @@ function pairedStudent(y7: string, y9: string): PairedStudent {
 }
 
 function pairedCohort(domain: string, paired: PairedStudent[]): PairedCohort {
-  return { domain, paired, leavers: [], joiners: [], pairedFilteredCount: 0 };
+  return { domain, earlierLevel: 7, laterLevel: 9, paired, leavers: [], joiners: [], pairedFilteredCount: 0 };
 }
 
 describe("buildCohortNarrative", () => {
