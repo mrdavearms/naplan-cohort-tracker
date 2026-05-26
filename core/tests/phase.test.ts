@@ -12,6 +12,8 @@ import {
   COHORT_PHASES,
   detectDomainAndYear,
   inferCohortLevels,
+  mcnemarPaired,
+  NAS,
   nextStepLabel,
   phaseFor,
   shortLevel,
@@ -20,6 +22,7 @@ import {
   VALID_YEAR_LEVELS,
   yearOnYearContext,
   type LoadedFile,
+  type PairedStudent,
   type Store,
   type StudentReportRow,
 } from "../src/index";
@@ -94,6 +97,38 @@ describe("phase classification + wording", () => {
     expect(yearOnYearContext(3)).toContain("baseline");
     expect(yearOnYearContext(3)).not.toContain("secondary");
     expect(yearOnYearContext(7)).toContain("feeder");
+  });
+});
+
+describe("mcnemarPaired note is labelled by phase", () => {
+  const ps = (y7: string, y9: string): PairedStudent => ({
+    localStudentId: "x",
+    classGroupY7: null,
+    proficiencyY7: y7,
+    lboteStatus: null,
+    atsiGroup: null,
+    participationCode: "Participated",
+    classGroupY9: null,
+    proficiencyY9: y9,
+  });
+  // one discordant pair (NAS→Strong) so the test-applicable note path runs
+  const cohort = [ps(NAS, "Strong"), ps("Strong", "Strong")];
+
+  it("uses Y3/Y5 for a primary cohort (never Y7/Y9)", () => {
+    const note = mcnemarPaired(cohort, 3, 5).note;
+    expect(note).toContain("Y3");
+    expect(note).toContain("Y5");
+    expect(note).not.toContain("Y7");
+    expect(note).not.toContain("Y9");
+  });
+
+  it("defaults to Y7/Y9 when no levels are passed", () => {
+    expect(mcnemarPaired(cohort).note).toContain("Y7");
+  });
+
+  it("labels the no-change note too", () => {
+    const noChange = [ps("Strong", "Strong"), ps(NAS, NAS)]; // zero discordant pairs
+    expect(mcnemarPaired(noChange, 3, 5).note).toContain("between Y3 and Y5");
   });
 });
 

@@ -97,10 +97,18 @@ export function buildPairedCohort(
 }
 
 /**
- * McNemar exact test on the Y7 NAS → Y9 NAS transition for the paired cohort.
- * Returns `pValue: null` when there are zero discordant pairs (no signal).
+ * McNemar exact test on the earlier→later NAS transition for the paired cohort
+ * (Year 3→5 for primary, 7→9 for secondary). `earlierLevel`/`laterLevel` only
+ * label the human-readable `note`; they default to 7/9 so existing callers are
+ * unchanged. Returns `pValue: null` when there are zero discordant pairs.
  */
-export function mcnemarPaired(paired: readonly PairedStudent[]): McNemarResult {
+export function mcnemarPaired(
+  paired: readonly PairedStudent[],
+  earlierLevel = 7,
+  laterLevel = 9,
+): McNemarResult {
+  const eL = `Y${earlierLevel}`;
+  const lL = `Y${laterLevel}`;
   let stayersNas = 0;
   let stayersNotNas = 0;
   let movedOutOfNas = 0; // improved
@@ -124,7 +132,7 @@ export function mcnemarPaired(paired: readonly PairedStudent[]): McNemarResult {
       movedIntoNas,
       pValue: null,
       note:
-        "No students changed NAS status between Y7 and Y9 in this domain; " +
+        `No students changed NAS status between ${eL} and ${lL} in this domain; ` +
         "statistical testing is not applicable.",
     };
   }
@@ -140,7 +148,7 @@ export function mcnemarPaired(paired: readonly PairedStudent[]): McNemarResult {
     pValue: p,
     note:
       `Of ${paired.length} paired students, ${movedOutOfNas} moved out of NAS ` +
-      `between Y7 and Y9, ${movedIntoNas} moved into NAS, and ` +
+      `between ${eL} and ${lL}, ${movedIntoNas} moved into NAS, and ` +
       `${stayersNas + stayersNotNas} stayed in the same NAS state. ` +
       `McNemar exact p = ${p.toFixed(4)} — the cohort ${direction} is ${sig} at p<0.05.`,
   };

@@ -177,7 +177,7 @@ export function S10CohortTracking() {
             {domains.map((dom) => {
               const dpc = pairings.get(dom)!;
               const h = cohortHeadline(dpc);
-              const mc = mcnemarPaired(dpc.paired);
+              const mc = mcnemarPaired(dpc.paired, dpc.earlierLevel, dpc.laterLevel);
               const better = h.deltaNasPp < 0;
               return (
                 <tr key={dom} className="border-b border-alabaster/60 last:border-0">
@@ -279,7 +279,7 @@ function DomainDrilldown({
   store: ReturnType<typeof useApp>["state"]["store"];
   ctx: NarrativeContext;
 }) {
-  const mc = mcnemarPaired(pc.paired);
+  const mc = mcnemarPaired(pc.paired, pc.earlierLevel, pc.laterLevel);
   const attrition = attritionAnalysis(pc);
   const subCohorts = equitySubCohorts(pc);
   const classRows = classGroupTracking(pc);

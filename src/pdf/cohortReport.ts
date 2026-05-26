@@ -71,7 +71,7 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
   out.push(bulletList(interpretTransition(pc)));
 
   const wilson = await figureToPng(wilsonCiDotPlotFigure(pc, y7Year, y9Year), 520, 200);
-  const mc = mcnemarPaired(pc.paired);
+  const mc = mcnemarPaired(pc.paired, pc.earlierLevel, pc.laterLevel);
   out.push({ text: `NAS rate, ${earlierLabel} vs ${laterLabel} (Wilson 95% CI · McNemar)`, style: "h3" });
   out.push({ image: wilson, width: 500, margin: [0, 2, 0, 6] });
   out.push({ text: `McNemar exact p = ${fmtP(mc.pValue)}. ${mc.note}`, style: "caption" });
@@ -195,7 +195,7 @@ async function phaseSection(
       ["Domain", "Paired n", `${eShort} NAS%`, `${lShort} NAS%`, "Δ NAS", "McNemar p"],
       [...pairings.entries()].map(([dom, pc]) => {
         const h = cohortHeadline(pc);
-        const mc = mcnemarPaired(pc.paired);
+        const mc = mcnemarPaired(pc.paired, pc.earlierLevel, pc.laterLevel);
         return [dom, h.pairedN, pct1(h.y7NasPct), pct1(h.y9NasPct), ppStr(h.deltaNasPp), fmtP(mc.pValue)];
       }),
       ["*", "auto", "auto", "auto", "auto", "auto"],

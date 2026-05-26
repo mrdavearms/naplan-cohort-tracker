@@ -390,7 +390,7 @@ export function interpretWilson(pc: PairedCohort): string[] {
   const y9Pct = n > 0 ? (y9Count / n) * 100 : 0;
   const y7Width = (y7Hi - y7Lo) * 100;
   const y9Width = (y9Hi - y9Lo) * 100;
-  const mc = mcnemarPaired(pc.paired);
+  const mc = mcnemarPaired(pc.paired, pc.earlierLevel, pc.laterLevel);
 
   const bullets: string[] = [];
   const y9InsideY7 = y7Lo * 100 <= y9Pct && y9Pct <= y7Hi * 100;
