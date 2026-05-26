@@ -9,7 +9,7 @@ This script READS the legacy repo (read-only) and the local fixture; it only
 WRITES into this repo. Run with the legacy venv:
 
     NAPLAN_DATA_SOURCE=local:/tmp/nt_empty \
-      /Users/davidarmstrong/Antigravity/naplan_analysis_app/.venv/bin/python \
+      /path/to/naplan_analysis_app/.venv/bin/python \
       verification/gen_loader_snapshot.py
 """
 from __future__ import annotations
@@ -19,7 +19,7 @@ import math
 import sys
 from pathlib import Path
 
-LEGACY = "/Users/davidarmstrong/Antigravity/naplan_analysis_app"
+LEGACY = "/path/to/naplan_analysis_app"
 sys.path.insert(0, LEGACY)
 
 import pandas as pd  # noqa: E402

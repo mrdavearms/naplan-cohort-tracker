@@ -9,7 +9,7 @@ transitionMatrix / wilsonCi reproduce these numbers.
 Reads the legacy repo (read-only) + local fixtures; writes only into this repo.
 
     NAPLAN_DATA_SOURCE=local:/tmp/nt_empty \
-      /Users/davidarmstrong/Antigravity/naplan_analysis_app/.venv/bin/python \
+      /path/to/naplan_analysis_app/.venv/bin/python \
       verification/gen_cohort_snapshot.py
 """
 from __future__ import annotations
@@ -18,7 +18,7 @@ import json
 import sys
 from pathlib import Path
 
-LEGACY = "/Users/davidarmstrong/Antigravity/naplan_analysis_app"
+LEGACY = "/path/to/naplan_analysis_app"
 sys.path.insert(0, LEGACY)
 
 import pandas as pd  # noqa: E402

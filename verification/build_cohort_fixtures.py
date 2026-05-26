@@ -8,7 +8,7 @@ null-Local-ID student (both excluded from pairing).
 
 Fake data only. Run with the legacy venv (has pandas + openpyxl):
 
-    /Users/davidarmstrong/Antigravity/naplan_analysis_app/.venv/bin/python \
+    /path/to/naplan_analysis_app/.venv/bin/python \
       verification/build_cohort_fixtures.py
 """
 from __future__ import annotations

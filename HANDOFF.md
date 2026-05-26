@@ -173,7 +173,7 @@ If charts/PDFs misbehave under the CSP (unlikely), loosen `app.security.csp` in
 
 ### Analysis core + frontend (no Rust)
 ```bash
-cd /Users/davidarmstrong/Antigravity/naplan-throughline
+cd ~/Antigravity/naplan-throughline
 npm install
 npm run dev        # Vite dev server (browser) — folder picker uses a directory <input>
 npm test           # vitest — 118 tests (core + UI + PDF)

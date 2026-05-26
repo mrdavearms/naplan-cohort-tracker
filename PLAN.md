@@ -2,7 +2,7 @@
 
 ## Context
 
-Rewrite the WHS-internal Python/Streamlit NAPLAN app (`/Users/davidarmstrong/Antigravity/naplan_analysis_app/`) as a distributable, multi-school, **on-device** desktop app for Mac + Windows. The existing repo is **left untouched** and serves two roles: the **specification** (its analytical logic is exact) and the **validation oracle** (`verification/verify_cohort.py` produces reference numbers we test the port against).
+Rewrite the internal Python/Streamlit NAPLAN app (`~/Antigravity/naplan_analysis_app/`) as a distributable, multi-school, **on-device** desktop app for Mac + Windows. The existing repo is **left untouched** and serves two roles: the **specification** (its analytical logic is exact) and the **validation oracle** (`verification/verify_cohort.py` produces reference numbers we test the port against).
 
 Why a rewrite rather than packaging Streamlit: a TypeScript/Tauri stack matches Dave's existing React skill set, produces real native installers with auto-update, and — because charts move to Plotly.js (which renders/exports images in the webview) — eliminates the kaleido/Chromium bundling problem that made packaging the Python app fragile.
 
@@ -15,8 +15,8 @@ Why a rewrite rather than packaging Streamlit: a TypeScript/Tauri stack matches 
 - **Privacy model:** on-device, local-only; user supplies a folder containing Y7 and Y9 cohort SSSR files. Cloud-AI / pseudonymisation workflow is **not** ported.
 
 ### Assumed setup (correct me on plan review if wrong)
-- Repo: `github.com/mrdavearms/naplan-throughline` (private), account `dave@dandsarmstrong.com`
-- Local path: `/Users/davidarmstrong/Antigravity/naplan-throughline`
+- Repo: `github.com/mrdavearms/naplan-throughline` (private), account `dave.armstrong@education.vic.gov.au`
+- Local path: `~/Antigravity/naplan-throughline`
 - Tauri bundle identifier: `com.dandsarmstrong.naplanthroughline`
 
 ## Architecture — the keystone decisions (expensive to change later)
@@ -25,7 +25,7 @@ Why a rewrite rather than packaging Streamlit: a TypeScript/Tauri stack matches 
    - `core/` — pure TypeScript analysis library. No React, no Tauri, no DOM. This is the crown jewel and must be independently unit-testable. Decoupling it means a web build, CLI, or different shell could reuse it later.
    - `ui/` — React 19 + Vite + Tailwind + shadcn/ui (same stack as Dave's other apps). Consumes `core/`.
    - Tauri shell — native window, native folder/file dialogs, packaging, updater.
-2. **School identity is data, never code.** Name, school number, AIP/KIS references live in app settings (an in-app Settings screen writing to local app-data), so there is zero "Wangaratta High School" hard-coding. This is the multi-school enabler.
+2. **School identity is data, never code.** Name, school number, AIP/KIS references live in app settings (an in-app Settings screen writing to local app-data), so there is zero real-school-name hard-coding. This is the multi-school enabler.
 3. **A visible Y7↔Y9 ID match-rate check** surfaced in the UI ("matched 71 of 95 students") so the most common "looks broken" case (Local Student IDs that don't reconcile across years) is self-diagnosing, not silent.
 
 ## Architecture review — early-foundations decisions (added 2026-05-20)
@@ -115,10 +115,10 @@ A senior-engineer review before Phase 1 surfaced foundations that are cheap to s
 1. **Numbers match the oracle.** Vitest suite green; ported stats (Wilson CI, McNemar p, NAS%, paired counts, transition matrix) match `verify_cohort.py` output for the same input within tolerance.
 2. **Side-by-side parity.** Run the same Y7+Y9 dataset through the old Python app and Naplan Throughline → identical headline numbers across all 10 sections.
 3. **Cross-platform launch.** App launches on Mac and Windows, user points it at a folder of SSSR files, all 10 sections render, both PDFs generate, ID match-rate banner shows.
-4. **No WHS hard-coding.** Fresh install with blank settings shows neutral branding; entering a different school name/number propagates everywhere.
+4. **No school-name hard-coding.** Fresh install with blank settings shows neutral branding; entering a different school name/number propagates everywhere.
 
 ## Out of scope for v1
 - Code-signing / notarization (ship unsigned — audience is personal/unmanaged machines; revisit for managed Dept Windows fleets)
 - Custom update-server infrastructure (we use GitHub Releases + a public releases repo instead — note: the Tauri updater itself IS in v1; see early-foundations #1)
-- Cloud-AI / pseudonymisation workflow (stays WHS-internal in the old repo)
+- Cloud-AI / pseudonymisation workflow (stays internal in the old repo)
 - Mac App Store / Microsoft Store submission

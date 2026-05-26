@@ -62,7 +62,6 @@ describe("buildSchoolNarrative", () => {
     const entries = [entry(2026, 9, "Reading", ["Strong", "Strong", NAS, "Exceeding"])];
     const n = buildSchoolNarrative(entries, ctx);
     expect(n.heading).toBe("Example High School (1234) — 2026 NAPLAN narrative");
-    expect(n.heading).not.toContain("Wangaratta");
     expect(n.overall).toContain("Reading");
     expect(n.strengths.length).toBeGreaterThan(0);
     expect(n.concerns.length).toBeGreaterThan(0);

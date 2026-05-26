@@ -4,7 +4,7 @@ Project guidance for Claude (or any AI assistant) working in this folder. Adapte
 
 ## What this is
 
-Naplan Throughline is a cross-platform desktop app (**Tauri 2 + React 19 + TypeScript**) for NAPLAN cohort analysis. It is a from-scratch rewrite of the WHS-internal Python/Streamlit app at `/Users/davidarmstrong/Antigravity/naplan_analysis_app/`.
+Naplan Throughline is a cross-platform desktop app (**Tauri 2 + React 19 + TypeScript**) for NAPLAN cohort analysis. It is a from-scratch rewrite of an internal Python/Streamlit app at `~/Antigravity/naplan_analysis_app/`.
 
 That legacy repo is **read-only** and serves two roles:
 
@@ -13,7 +13,7 @@ That legacy repo is **read-only** and serves two roles:
 
 **Never write to the legacy repo.** Read from it freely.
 
-Unlike the legacy app (single school, hard-coded WHS), Naplan Throughline is **multi-school and on-device**: a user points it at a folder of Year 7 and Year 9 SSSR Extract files, and school identity (name, school number, AIP/KIS references) is **data in app settings, never code**.
+Unlike the legacy app (single school, hard-coded to one school), Naplan Throughline is **multi-school and on-device**: a user points it at a folder of Year 7 and Year 9 SSSR Extract files, and school identity (name, school number, AIP/KIS references) is **data in app settings, never code**.
 
 ## Architecture — keystone decisions (expensive to change later)
 
@@ -21,7 +21,7 @@ Unlike the legacy app (single school, hard-coded WHS), Naplan Throughline is **m
    - `core/` — pure-TypeScript analysis library. **No React, no Tauri, no DOM.** Independently unit-testable; the crown jewel. A web build, CLI, or different shell could reuse it later.
    - `src/` (UI) — React 19 + Vite + Tailwind + shadcn/ui. Consumes `core/`.
    - `src-tauri/` — native window, native folder/file dialogs, packaging, updater.
-2. **School identity is data, never code.** No "Wangaratta High School" string anywhere in code. A Settings screen writes school identity to local app-data. This is the multi-school enabler.
+2. **School identity is data, never code.** No real school name hard-coded anywhere in code. A Settings screen writes school identity to local app-data. This is the multi-school enabler.
 3. **A visible Y7↔Y9 ID match-rate banner** ("matched 71 of 95 students") so the most common "looks broken" case — Local Student IDs that don't reconcile across years — is self-diagnosing, not silent.
 
 **Build the `core/` library and prove it against the oracle *before* building the Tauri shell. Do not scaffold the shell first.**
@@ -98,7 +98,7 @@ Keep Y7 and Y9 separated and clearly labelled. Frame NAPLAN as **diagnostic evid
 | PDF | Plotly `toImage` + `pdf-lib`/`pdfmake` | assembled in JS; no native dependency |
 | Tests | Vitest | validated against the Python oracle |
 
-Bundle identifier: `com.dandsarmstrong.naplanthroughline`. Repo: `github.com/mrdavearms/naplan-throughline` (private), account `dave@dandsarmstrong.com`.
+Bundle identifier: `com.dandsarmstrong.naplanthroughline`. Repo: `github.com/mrdavearms/naplan-throughline` (private), contact `dave.armstrong@education.vic.gov.au`.
 
 ## Commands & local checks
 
@@ -106,21 +106,45 @@ Before claiming done, all must be green:
 - `npm run lint` · `npm run typecheck` · `npm test` · `npm run build`
 - Rust shell: `cd src-tauri && cargo check && cargo clippy`. **Needs `dist/` to exist first** — `generate_context!` embeds the frontend, so run `npm run build` beforehand.
 
-Tests are two Vitest projects: **core** (`core/tests/**`, node env, parses real `.xlsx`) and **ui** (`src/**/*.test.{ts,tsx}`, jsdom, Plotly stubbed via `src/test/stubs/`). CI runs lint + typecheck + test + `cargo check` on macOS **and** Windows.
+Tests are two Vitest projects: **core** (`core/tests/**`, node env, parses real `.xlsx`) and **ui** (`src/**/*.test.{ts,tsx}`, jsdom, Plotly stubbed via `src/test/stubs/`). CI runs lint + typecheck + test + build on a **Linux** runner only (cheap); the Rust shell and the macOS/Windows installers are compiled by the **release** workflow on a version tag. Run `cargo check`/`clippy` locally when touching Rust — that's the gate.
+
+**Adding a Tauri plugin = 4 coordinated edits:** npm dep · `src-tauri/Cargo.toml` dep · `.plugin(...)` in `src-tauri/src/lib.rs` · a permission in `src-tauri/capabilities/default.json`. A missing capability fails at **runtime**, not build (e.g. `tauri-plugin-process` + `process:default` for app relaunch after an update).
+
+## UI shell gotchas
+
+- **Pre-load renders no chrome.** When `status !== "loaded"`, `App.tsx` shows a centred
+  view with **no sidebar/top bar**; screens reachable before data loads (Import, About,
+  Settings) need their own nav. A new screen = add to `ViewId`, the `ActiveView` switch,
+  the pre-load branch, and `TopBar` `viewTitle`.
+- **Import keeps raw file bytes in a provider ref, never in reducer state** (privacy +
+  avoids serialising/bloating state); the reducer holds only metadata. The analysis is
+  built once from the union of staged files.
+- **Updater/diagnostics are Tauri-only** — gate on `isTauri()`; they render nothing in
+  the browser. UI tests fabricate state via `src/test/renderWithApp.tsx`.
+
+## Build-minute budget (important)
+
+GitHub Actions minutes are scarce — conserve them:
+- **Local checks are free; use them as the gate** (`lint`/`typecheck`/`test`/`build` +
+  `cargo check`/`clippy`) before anything is pushed.
+- **Routine CI runs on Linux** (cheap). Still, batch commits and push once, not per tweak.
+- **Tagging `vX.Y.Z` triggers the release build (macOS = 10× minute multiplier, Windows
+  2×) — the biggest cost.** Tag only when a batch is ready and Dave has confirmed.
+- `scripts/mirror-release.sh` runs locally (gh API) — no Actions minutes.
 
 ## Privacy invariants
 
 - On-device, local-only. **No external network calls. No student data leaves the machine.**
 - No student names in any chart, table, exported CSV, or generated PDF. Local student IDs only (`{PSI}*` fallback).
 - ATSI / small subgroups suppressed at `n < 5`; the privacy note stays visible.
-- The legacy **cloud-AI / pseudonymisation / de-identification** workflow is **NOT ported** — it stays WHS-internal in the legacy repo.
+- The legacy **cloud-AI / pseudonymisation / de-identification** workflow is **NOT ported** — it stays internal in the legacy repo.
 
 ## Verification (definition of done)
 
 1. **Numbers match the oracle.** Vitest suite green; Wilson CI, McNemar p, NAS%, paired counts, transition matrix match `verify_cohort.py` output for the same input within tolerance.
 2. **Side-by-side parity.** Same Y7+Y9 dataset through the legacy Python app and Naplan Throughline → identical headline numbers across all 10 sections.
 3. **Cross-platform launch.** Launches on Mac and Windows; point at a folder of SSSR files, all 10 sections render, both PDFs generate, the match-rate banner shows.
-4. **No WHS hard-coding.** A fresh blank-settings install shows neutral branding; entering a different school name/number propagates everywhere.
+4. **No school-name hard-coding.** A fresh blank-settings install shows neutral branding; entering a different school name/number propagates everywhere.
 
 **Never claim numbers are right without checking against the oracle or source spreadsheets.**
 
@@ -145,10 +169,17 @@ the other Antigravity apps:
 - Releases are still cut from `main` via a version tag (`vX.Y.Z`) which triggers
   `release.yml`, then `scripts/mirror-release.sh vX.Y.Z` publishes to the public
   auto-update feed.
+- `release.yml` makes a **draft** release in this (private) repo. The in-app updater
+  reads the **public** `naplan-throughline-releases` feed, so it sees nothing new
+  until `scripts/mirror-release.sh vX.Y.Z` runs (mirrors assets + regenerates the
+  Pages download page; runs locally via `gh`, no Actions minutes). After mirroring,
+  `/releases/latest/download/latest.json` is CDN-cached and can lag a few minutes —
+  verify with a cache-busted curl before assuming it failed.
 - **Three version fields must match when releasing:** `src-tauri/tauri.conf.json`
   (authoritative — drives the bundle + auto-updater), `src-tauri/Cargo.toml`, and
   `package.json`. The `app_info` command reports `tauri.conf.json`'s version via
-  `package_info()`.
+  `package_info()`. After editing the three, run `cd src-tauri && cargo check` to
+  sync `Cargo.lock`'s `app` version too (the 4th place the version lives).
 
 ## Out of scope for v1
 

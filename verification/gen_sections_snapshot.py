@@ -5,7 +5,7 @@ and writes `core/tests/fixtures/sections_snapshot.json`. Reads the legacy repo
 (read-only) + local fixture; writes only into this repo.
 
     NAPLAN_DATA_SOURCE=local:/tmp/nt_empty \
-      /Users/davidarmstrong/Antigravity/naplan_analysis_app/.venv/bin/python \
+      /path/to/naplan_analysis_app/.venv/bin/python \
       verification/gen_sections_snapshot.py
 """
 from __future__ import annotations
@@ -15,7 +15,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-LEGACY = "/Users/davidarmstrong/Antigravity/naplan_analysis_app"
+LEGACY = "/path/to/naplan_analysis_app"
 sys.path.insert(0, LEGACY)
 
 import pandas as pd  # noqa: E402

@@ -5,14 +5,14 @@ on:
     branches: [main, test]
   pull_request:
 
+# Routine checks run on a single cheap Linux runner (lint / typecheck / test /
+# build). The Rust shell and the macOS/Windows installers are compiled by
+# release.yml on a version tag — the only place the costly macOS (10×) and
+# Windows (2×) runners are used. Run `cargo check`/`clippy` locally when touching
+# Rust; that's the gate for the native shell.
 jobs:
-  test:
-    name: test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest]
+  checks:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -23,16 +23,4 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
-
-      # Compile-check the Tauri/Rust shell on both OSes so a broken native build
-      # is caught on push — not only when a release tag is pushed. `cargo check`
-      # expands `generate_context!`, which embeds the frontend, so `dist/` must
-      # exist first (hence the build step).
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: "./src-tauri -> target"
       - run: npm run build
-      - run: cargo check --manifest-path src-tauri/Cargo.toml
