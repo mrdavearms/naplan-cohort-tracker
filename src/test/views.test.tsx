@@ -5,9 +5,9 @@
  * packaged app — it exercises the core→view wiring for all 10 sections.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { buildCohortPairings, type Store } from "@naplan-cohort-tracker/core";
-import { buildSyntheticStore } from "./fixtures";
+import { buildCombinedStore, buildPrimaryStore, buildSyntheticStore } from "./fixtures";
 import { renderWithApp } from "./renderWithApp";
 
 import { HomeView } from "../views/HomeView";
@@ -86,5 +86,50 @@ describe("Section 10 per-domain additions", () => {
     renderWithApp(<S10CohortTracking />, { store });
     expect(screen.getAllByText(/band movement/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/students to follow up/i).length).toBeGreaterThan(0);
+  });
+});
+
+describe("primary school (Year 3 → 5) rendering", () => {
+  let primaryStore: Store;
+  beforeAll(async () => {
+    primaryStore = await buildPrimaryStore();
+  });
+
+  it("Section 10 labels the cohort Year 3 → Year 5, with no phase toggle", () => {
+    renderWithApp(<S10CohortTracking />, { store: primaryStore });
+    expect(screen.getAllByText(/Year 3 \(2024\)/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Year 5 \(2026\)/).length).toBeGreaterThan(0);
+    // single phase → no Primary/Secondary toggle
+    expect(screen.queryByRole("button", { name: /Primary \(Year 3/ })).toBeNull();
+  });
+
+  it("the match-rate banner reads Year 3 → Year 5", () => {
+    renderWithApp(<MatchRateBanner store={primaryStore} primaryYear={2026} />, { store: primaryStore });
+    expect(screen.getByText(/from Year 3 \(2024\) to Year 5 \(2026\)/)).toBeInTheDocument();
+  });
+});
+
+describe("combined P–12 school (both cohorts) rendering", () => {
+  let combinedStore: Store;
+  beforeAll(async () => {
+    combinedStore = await buildCombinedStore();
+  });
+
+  it("Section 10 shows a phase toggle and switches between cohorts", () => {
+    renderWithApp(<S10CohortTracking />, { store: combinedStore });
+    // toggle present with both phases
+    const primaryBtn = screen.getByRole("button", { name: /Primary \(Year 3/ });
+    expect(screen.getByRole("button", { name: /Secondary \(Year 7/ })).toBeInTheDocument();
+    // defaults to the senior (secondary) phase
+    expect(screen.getAllByText(/Year 7 \(2024\)/).length).toBeGreaterThan(0);
+    // switch to primary → now shows the Year 3 → 5 cohort
+    fireEvent.click(primaryBtn);
+    expect(screen.getAllByText(/Year 3 \(2024\)/).length).toBeGreaterThan(0);
+  });
+
+  it("Home shows a match-rate banner for each cohort", () => {
+    renderWithApp(<HomeView />, { store: combinedStore });
+    expect(screen.getByText(/from Year 3 \(2024\) to Year 5 \(2026\)/)).toBeInTheDocument();
+    expect(screen.getByText(/from Year 7 \(2024\) to Year 9 \(2026\)/)).toBeInTheDocument();
   });
 });

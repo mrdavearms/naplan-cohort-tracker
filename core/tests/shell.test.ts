@@ -24,6 +24,7 @@ import {
   SETTINGS_SCHEMA_VERSION,
   storeEntries,
   storeKey,
+  trackablePhases,
   type LoadedFile,
   type RawWorkbookFile,
   type Store,
@@ -205,5 +206,62 @@ describe("store selectors + cohort pairing (Reading Y7 2024 → Y9 2026)", () =>
     if (mr.y9CohortTotal > 0) {
       expect(mr.matchRatePct).toBeCloseTo((mr.matched / mr.y9CohortTotal) * 100, 6);
     }
+  });
+});
+
+describe("primary + combined cohorts through the real parse pipeline", () => {
+  // Exercises the actual SSSR parse path (parseWorkbook + cleanStudentReports +
+  // column aliases) for Year 3/5 fixtures — the path that synthetic-object tests
+  // can't cover. Fixtures: scripts/make-primary-fixtures.mjs.
+  async function entry(file: string, yearOfTest: number): Promise<LoadedFile> {
+    const wb = await parseWorkbook(bytes(file));
+    const reports = cleanStudentReports(wb.sheet("Student Reports")!);
+    return {
+      yearOfTest,
+      yearLevel: reports[0]!.yearLevel!,
+      domain: reports[0]!.domain!,
+      studentReports: reports,
+      studentResults: [],
+      sourceFilename: file,
+      participants: reports.filter((r) => r.participationCode === "Participated").length,
+      totalStudents: reports.length,
+    };
+  }
+
+  it("parses the Year 3/5 fixtures and pairs the primary cohort", async () => {
+    const y3 = await entry("synthetic_y3_2024_reading.xlsx", 2024);
+    const y5 = await entry("synthetic_y5_2026_reading.xlsx", 2026);
+    expect(y3.yearLevel).toBe(3);
+    expect(y5.yearLevel).toBe(5);
+    const store = new Map<string, LoadedFile>([
+      [storeKey(2024, 3, "Reading"), y3],
+      [storeKey(2026, 5, "Reading"), y5],
+    ]);
+    expect(trackablePhases(store, 2026)).toEqual([{ phase: "primary", earlier: 3, later: 5 }]);
+    const pc = buildCohortPairings(store, 2026).get("Reading")!;
+    expect(pc.earlierLevel).toBe(3);
+    expect(pc.laterLevel).toBe(5);
+    expect(pc.paired.length).toBeGreaterThan(0);
+  });
+
+  it("a combined P–12 store (Year 3/5/7/9) tracks both phases independently", async () => {
+    const store = new Map<string, LoadedFile>();
+    for (const [file, yr] of [
+      ["synthetic_y3_2024_reading.xlsx", 2024],
+      ["synthetic_y5_2026_reading.xlsx", 2026],
+      ["synthetic_y7_2024_reading.xlsx", 2024],
+      ["synthetic_y9_2026_reading.xlsx", 2026],
+    ] as const) {
+      const e = await entry(file, yr);
+      store.set(storeKey(e.yearOfTest, e.yearLevel, e.domain), e);
+    }
+    expect(trackablePhases(store, 2026)).toEqual([
+      { phase: "primary", earlier: 3, later: 5 },
+      { phase: "secondary", earlier: 7, later: 9 },
+    ]);
+    const primary = buildCohortPairings(store, 2026, { phase: "primary", earlier: 3, later: 5 });
+    const secondary = buildCohortPairings(store, 2026, { phase: "secondary", earlier: 7, later: 9 });
+    expect(primary.get("Reading")!.earlierLevel).toBe(3);
+    expect(secondary.get("Reading")!.earlierLevel).toBe(7);
   });
 });

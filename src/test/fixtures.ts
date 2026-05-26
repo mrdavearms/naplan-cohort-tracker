@@ -52,3 +52,30 @@ export async function buildSyntheticStore(): Promise<Store> {
   for (const e of entries) store.set(storeKey(e.yearOfTest, e.yearLevel, e.domain), e);
   return store;
 }
+
+async function storeFrom(files: [string, number][]): Promise<Store> {
+  const store: Store = new Map();
+  for (const [file, year] of files) {
+    const e = await entry(file, year);
+    store.set(storeKey(e.yearOfTest, e.yearLevel, e.domain), e);
+  }
+  return store;
+}
+
+/** A primary school: Year 3 (2024) + Year 5 (2026) paired Reading cohort. */
+export function buildPrimaryStore(): Promise<Store> {
+  return storeFrom([
+    ["synthetic_y3_2024_reading.xlsx", 2024],
+    ["synthetic_y5_2026_reading.xlsx", 2026],
+  ]);
+}
+
+/** A combined P–12 school: both cohorts (Year 3→5 and Year 7→9) at once. */
+export function buildCombinedStore(): Promise<Store> {
+  return storeFrom([
+    ["synthetic_y3_2024_reading.xlsx", 2024],
+    ["synthetic_y5_2026_reading.xlsx", 2026],
+    ["synthetic_y7_2024_reading.xlsx", 2024],
+    ["synthetic_y9_2026_reading.xlsx", 2026],
+  ]);
+}
