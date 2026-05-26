@@ -4,7 +4,7 @@ _Date: 2026-05-23 · Status: approved design, pending spec review · Author: bra
 
 ## Context
 
-Naplan Throughline already ships a rich Section 10 ("Cohort tracking") that
+NAPLAN Cohort Tracker already ships a rich Section 10 ("Cohort tracking") that
 compares the **same students** from Year 7 to Year 9, matched on Local Student
 ID — the school's value-add measure. Today it shows, **one domain at a time**: a
 transition Sankey, a direction-coloured heatmap, a Wilson-CI dot plot, the

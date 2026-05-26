@@ -17,7 +17,7 @@ import {
   nasSummary,
   yearOnYearNas,
   type YearOnYearPoint,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { useApp } from "../../state/AppState";
 import { Card, EmptyState, Pill, SectionHeading, StatTile } from "../../components/ui";
 import { AttributionNote, useYearLevel, YearLevelTabs } from "./scope";

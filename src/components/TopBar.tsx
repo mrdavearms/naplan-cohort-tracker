@@ -2,7 +2,7 @@
  * Top bar: shows the loaded source folder, the primary-year selector (the year
  * whose Year 9 cohort anchors the analysis), and a change-folder action.
  */
-import { availableYears } from "@naplan-throughline/core";
+import { availableYears } from "@naplan-cohort-tracker/core";
 import { FolderOpenIcon } from "@heroicons/react/24/outline";
 import { useApp } from "../state/AppState";
 import { SECTION_BY_ID } from "../views/sections";

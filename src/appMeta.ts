@@ -3,10 +3,10 @@
  * consistent in one place. Plain content only — no logic.
  */
 
-export const APP_NAME = "Naplan Throughline";
+export const APP_NAME = "NAPLAN Cohort Tracker";
 
 /** Public download & info page (GitHub Pages). The source repo is private. */
-export const GITHUB_URL = "https://mrdavearms.github.io/naplan-throughline-releases/";
+export const GITHUB_URL = "https://mrdavearms.github.io/naplan-cohort-tracker-releases/";
 
 export const DEVELOPER = "Dave Armstrong, a Victorian school Principal";
 

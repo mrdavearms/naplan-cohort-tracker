@@ -64,7 +64,7 @@ export function UpdateNotice() {
             <span className="text-coral-text">{error}</span>
           ) : (
             <>
-              <strong>Update available:</strong> Naplan Throughline {update.version} is ready to
+              <strong>Update available:</strong> NAPLAN Cohort Tracker {update.version} is ready to
               install.
             </>
           )}

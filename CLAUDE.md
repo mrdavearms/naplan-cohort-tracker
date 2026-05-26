@@ -1,10 +1,10 @@
-# CLAUDE.md — Naplan Throughline
+# CLAUDE.md — NAPLAN Cohort Tracker
 
 Project guidance for Claude (or any AI assistant) working in this folder. Adapted from the legacy Python/Streamlit repo's CLAUDE.md — it carries the data-format quirks, keying rule, and attribution framing that are easy to violate by inference. Read this before any non-trivial change.
 
 ## What this is
 
-Naplan Throughline is a cross-platform desktop app (**Tauri 2 + React 19 + TypeScript**) for NAPLAN cohort analysis. It is a from-scratch rewrite of an internal Python/Streamlit app at `~/Antigravity/naplan_analysis_app/`.
+NAPLAN Cohort Tracker is a cross-platform desktop app (**Tauri 2 + React 19 + TypeScript**) for NAPLAN cohort analysis. It is a from-scratch rewrite of an internal Python/Streamlit app at `~/Antigravity/naplan_analysis_app/`.
 
 That legacy repo is **read-only** and serves two roles:
 
@@ -13,7 +13,7 @@ That legacy repo is **read-only** and serves two roles:
 
 **Never write to the legacy repo.** Read from it freely.
 
-Unlike the legacy app (single school, hard-coded to one school), Naplan Throughline is **multi-school and on-device**: a user points it at a folder of Year 7 and Year 9 SSSR Extract files, and school identity (name, school number, AIP/KIS references) is **data in app settings, never code**.
+Unlike the legacy app (single school, hard-coded to one school), NAPLAN Cohort Tracker is **multi-school and on-device**: a user points it at a folder of Year 7 and Year 9 SSSR Extract files, and school identity (name, school number, AIP/KIS references) is **data in app settings, never code**.
 
 ## Architecture — keystone decisions (expensive to change later)
 
@@ -98,7 +98,7 @@ Keep Y7 and Y9 separated and clearly labelled. Frame NAPLAN as **diagnostic evid
 | PDF | Plotly `toImage` + `pdf-lib`/`pdfmake` | assembled in JS; no native dependency |
 | Tests | Vitest | validated against the Python oracle |
 
-Bundle identifier: `com.dandsarmstrong.naplanthroughline`. Repo: `github.com/mrdavearms/naplan-throughline` (private), contact `dave.armstrong@education.vic.gov.au`.
+Bundle identifier: `com.dandsarmstrong.naplancohorttracker`. Repo: `github.com/mrdavearms/naplan-cohort-tracker` (private), contact `dave.armstrong@education.vic.gov.au`.
 
 ## Commands & local checks
 
@@ -142,7 +142,7 @@ GitHub Actions minutes are scarce — conserve them:
 ## Verification (definition of done)
 
 1. **Numbers match the oracle.** Vitest suite green; Wilson CI, McNemar p, NAS%, paired counts, transition matrix match `verify_cohort.py` output for the same input within tolerance.
-2. **Side-by-side parity.** Same Y7+Y9 dataset through the legacy Python app and Naplan Throughline → identical headline numbers across all 10 sections.
+2. **Side-by-side parity.** Same Y7+Y9 dataset through the legacy Python app and NAPLAN Cohort Tracker → identical headline numbers across all 10 sections.
 3. **Cross-platform launch.** Launches on Mac and Windows; point at a folder of SSSR files, all 10 sections render, both PDFs generate, the match-rate banner shows.
 4. **No school-name hard-coding.** A fresh blank-settings install shows neutral branding; entering a different school name/number propagates everywhere.
 
@@ -170,7 +170,7 @@ the other Antigravity apps:
   `release.yml`, then `scripts/mirror-release.sh vX.Y.Z` publishes to the public
   auto-update feed.
 - `release.yml` makes a **draft** release in this (private) repo. The in-app updater
-  reads the **public** `naplan-throughline-releases` feed, so it sees nothing new
+  reads the **public** `naplan-cohort-tracker-releases` feed, so it sees nothing new
   until `scripts/mirror-release.sh vX.Y.Z` runs (mirrors assets + regenerates the
   Pages download page; runs locally via `gh`, no Actions minutes). After mirroring,
   `/releases/latest/download/latest.json` is CDN-cached and can lag a few minutes —

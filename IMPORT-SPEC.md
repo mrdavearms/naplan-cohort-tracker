@@ -20,7 +20,7 @@ can check it for breakage, knock-on effects, and worthwhile additions.
 
 Principals usually analyse **two years' worth** of SSSR files (e.g. a Year 7 cohort
 in 2024 and the same cohort's Year 9 results in 2026 — the headline Section 10
-"throughline"). Those files commonly live in **two different folders / locations**
+cohort tracking). Those files commonly live in **two different folders / locations**
 (e.g. separate `Naplan 2024` and `Naplan 2026` folders in OneDrive).
 
 Today the app can only point at **one** folder, and picking a second folder
@@ -43,7 +43,7 @@ no graceful recovery.
 5. **Mistakes are recoverable** both before Load (remove/clear staged rows, with a
    red "not recognised" status shown on add) and after Load ("Edit imported files"
    reopens the staging screen with the list intact, so the user fixes and reloads).
-6. **Throughline-readiness warning [R, v1].** The staging screen warns up front when
+6. **Cohort-readiness warning [R, v1].** The staging screen warns up front when
    the staged set won't support a Year 7 → Year 9 cohort comparison (e.g. only one
    year of test staged), so the most common "why is Section 10 empty?" case is caught
    before Load rather than after. (Confirmed with Dave, 2026-05-25.)
@@ -273,7 +273,7 @@ keying, and stats are untouched.
   replace-on-pick. `FolderPicker` may then be removed if it has no other users
   (orphan cleanup — see §7).
 
-### 4.9 Throughline-readiness warning [R, v1]
+### 4.9 Cohort-readiness warning [R, v1]
 
 A pure derivation over the recognised staged files (each carries `yearLevel` and an
 effective year from `inspectWorkbook` + §4.2), shown on the staging panel — no parse,
@@ -390,7 +390,7 @@ Resolved by the senior review (2026-05-25):
   and an abstraction for no perceptible gain.
 - **Import view vs boolean** — *resolved: `ViewId "import"`* (§4.5).
 - **Bytes location** — *resolved: ref Map, not reducer* (§4.5).
-- **Throughline-readiness warning** — *resolved: in v1* (§4.9).
+- **Cohort-readiness warning** — *resolved: in v1* (§4.9).
 
 Tradeoffs / out of scope:
 - **One year per loose-file batch** — keeps the dropdown unambiguous; per-file year

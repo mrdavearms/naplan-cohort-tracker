@@ -21,9 +21,9 @@ TAG="${1:-}"
 if [ -z "$TAG" ]; then echo "usage: $0 <tag e.g. v0.1.3>"; exit 1; fi
 VERSION="${TAG#v}"
 
-SRC="mrdavearms/naplan-throughline"
-PUB="mrdavearms/naplan-throughline-releases"
-PAGES_URL="https://mrdavearms.github.io/naplan-throughline-releases/"
+SRC="mrdavearms/naplan-cohort-tracker"
+PUB="mrdavearms/naplan-cohort-tracker-releases"
+PAGES_URL="https://mrdavearms.github.io/naplan-cohort-tracker-releases/"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -47,7 +47,7 @@ fi
 # Friendly release notes (open-warning instructions baked in).
 NOTES="$WORK/NOTES.md"
 cat > "$NOTES" <<EOF
-**Naplan Throughline $VERSION** — on-device NAPLAN cohort analysis.
+**NAPLAN Cohort Tracker $VERSION** — on-device NAPLAN cohort analysis.
 
 ### Download
 - **macOS:** the \`.dmg\` file below
@@ -70,7 +70,7 @@ fi
 echo "Publishing $TAG to $PUB ..."
 gh release create "$TAG" \
   --repo "$PUB" \
-  --title "Naplan Throughline $TAG" \
+  --title "NAPLAN Cohort Tracker $TAG" \
   --notes-file "$NOTES" \
   --latest \
   "$WORK"/*
@@ -101,7 +101,7 @@ index = f"""<!doctype html>
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Naplan Throughline — download</title>
+<title>NAPLAN Cohort Tracker — download</title>
 <meta name="description" content="On-device NAPLAN cohort analysis for schools. Download for macOS or Windows."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -135,8 +135,8 @@ index = f"""<!doctype html>
 </head>
 <body>
 <header>
-  <div class="logo">NT</div>
-  <h1>Naplan Throughline</h1>
+  <div class="logo">NCT</div>
+  <h1>NAPLAN Cohort Tracker</h1>
   <p class="tagline">See how your students grew from Year&nbsp;7 to Year&nbsp;9 — clearly, on your own computer. No spreadsheets, no logins, nothing leaves your machine.</p>
 </header>
 <div class="wrap">
@@ -176,7 +176,7 @@ index = f"""<!doctype html>
     <p>Once installed, the app checks for new versions itself — you'll be told when an update is ready. You can always come back to this page for the latest installer too.</p>
   </div>
 </div>
-<footer>Naplan Throughline · made for schools · <a href="{pages_url}">always get the newest version here</a></footer>
+<footer>NAPLAN Cohort Tracker · made for schools · <a href="{pages_url}">always get the newest version here</a></footer>
 <script>
   (function() {{
     var p = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent).toLowerCase();
@@ -188,7 +188,7 @@ index = f"""<!doctype html>
 </html>
 """
 
-readme = f"""# Naplan Throughline — download
+readme = f"""# NAPLAN Cohort Tracker — download
 
 **On-device NAPLAN cohort analysis for schools.** See how the *same students* grew
 from Year 7 to Year 9 — clearly, on your own computer. No spreadsheets, no logins,
@@ -239,7 +239,7 @@ PY
 ( cd "$SITE"
   git add index.html README.md
   if ! git diff --cached --quiet; then
-    git -c user.email="noreply@anthropic.com" -c user.name="Naplan Throughline" \
+    git -c user.email="noreply@anthropic.com" -c user.name="NAPLAN Cohort Tracker" \
       commit -q -m "Download page for $TAG"
     git push -q origin HEAD
     echo "  pushed updated download page"

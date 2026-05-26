@@ -11,7 +11,7 @@ differently, the default taken is the most conventional one for the stack.
 
 ## Phase 6 — release + auto-update
 
-- **Auto-update via Option B: separate PUBLIC releases repo (`naplan-throughline-releases`), source stays private.** — Honours PLAN's "proprietary → private repo". Installers + `latest.json` are mirrored there (binaries only); the app's baked endpoint reads that public feed. Verified live (HTTP 200, signed manifest, asset downloads unauthenticated).
+- **Auto-update via Option B: separate PUBLIC releases repo (`naplan-cohort-tracker-releases`), source stays private.** — Honours PLAN's "proprietary → private repo". Installers + `latest.json` are mirrored there (binaries only); the app's baked endpoint reads that public feed. Verified live (HTTP 200, signed manifest, asset downloads unauthenticated).
 - **Future releases mirrored by a local `scripts/mirror-release.sh` (uses `gh` login), not a CI PAT.** — Cross-repo publishing from Actions would need a Personal Access Token; mirroring locally with the existing `gh` auth avoids storing another secret. CI still builds the installers in the private repo on tag.
 
 ## Phase 6 — CI builds
@@ -28,7 +28,7 @@ differently, the default taken is the most conventional one for the stack.
 ## Phase 4 — UI shell
 
 - **React app at repo root (`src/`, `index.html`, `vite.config.ts`); `core/` stays a workspace dep.** — Per PLAN.md senior-review layout note; keeps `core/` independently testable.
-- **Vite resolves `@naplan-throughline/core` via an alias to `core/src/index.ts`.** — Guarantees Vite/esbuild transpiles the workspace TypeScript source (no separate build step for core).
+- **Vite resolves `@naplan-cohort-tracker/core` via an alias to `core/src/index.ts`.** — Guarantees Vite/esbuild transpiles the workspace TypeScript source (no separate build step for core).
 - **Typecheck = `tsc -b && tsc -p tsconfig.app.json --noEmit`.** — Keeps the existing composite `core` build untouched; the app is typechecked separately (avoids forcing `composite`/emit on a no-emit React app).
 - **State: React Context + `useReducer`; no router; active section via state.** — Mirrors Curriculum Planner exactly (it has no react-router); simplest for a desktop single-window app.
 - **Fonts self-hosted via `@fontsource` (Inter, Roboto Slab, Syne), NOT Google Fonts CDN.** — Privacy invariant: no external network calls. CP uses the CDN; we cannot.

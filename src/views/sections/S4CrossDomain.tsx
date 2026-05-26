@@ -10,7 +10,7 @@ import {
   proficiencyPercentages,
   rankDomainsByNas,
   type ProficiencyPercentages,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { useApp } from "../../state/AppState";
 import { Card, EmptyState, Pill, SectionHeading } from "../../components/ui";
 import { AttributionNote, useYearLevel, YearLevelTabs } from "./scope";

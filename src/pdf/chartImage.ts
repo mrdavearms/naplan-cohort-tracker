@@ -4,7 +4,7 @@
  * the WebView2 and WebKit engines (PLAN.md early-foundations #5).
  */
 import Plotly from "plotly.js-dist-min";
-import type { PlotlyFigure } from "@naplan-throughline/core";
+import type { PlotlyFigure } from "@naplan-cohort-tracker/core";
 
 export async function figureToPng(
   figure: PlotlyFigure,

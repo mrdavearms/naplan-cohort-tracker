@@ -14,7 +14,7 @@ import {
   PRIVACY_THRESHOLD,
   type EquityBreakdown,
   type EquitySubgroup,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { useApp } from "../../state/AppState";
 import { Card, EmptyState, Pill, PrivacyNote, SectionHeading, StatTile } from "../../components/ui";
 import { AttributionNote, useYearLevel, YearLevelTabs } from "./scope";

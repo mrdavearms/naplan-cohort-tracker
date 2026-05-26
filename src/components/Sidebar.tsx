@@ -47,13 +47,13 @@ export function Sidebar() {
         className="flex items-center gap-3 px-5 py-5 text-left"
       >
         <span className="grid h-9 w-9 place-items-center rounded-full border-2 border-coral bg-graphite font-serif text-sm font-bold text-linen">
-          NT
+          NCT
         </span>
         <span className="flex flex-col">
           <span className="font-display text-lg font-extrabold leading-[1.18] text-graphite">
-            Naplan
+            NAPLAN
             <br />
-            Throughline
+            Cohort Tracker
           </span>
           <span className="mt-1 text-[10px] font-medium lowercase tracking-wide text-graphite/45">
             tracking naplan through the years

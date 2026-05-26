@@ -1,4 +1,4 @@
-//! Naplan Throughline — Tauri native shell.
+//! NAPLAN Cohort Tracker — Tauri native shell.
 //!
 //! The analysis core (`core/`) is filesystem-free: the native layer discovers
 //! files and reads their bytes, then hands them to the frontend, which injects
@@ -158,7 +158,7 @@ pub fn run() {
         ))
         .target(tauri_plugin_log::Target::new(
             tauri_plugin_log::TargetKind::LogDir {
-                file_name: Some("naplan-throughline".into()),
+                file_name: Some("naplan-cohort-tracker".into()),
             },
         ))
         .max_file_size(1_000_000)

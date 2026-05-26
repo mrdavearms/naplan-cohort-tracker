@@ -34,7 +34,7 @@ import {
   wilsonCiDotPlotFigure,
   type NarrativeContext,
   type PairedCohort,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { useApp } from "../../state/AppState";
 import { Card, EmptyState, Pill, SectionHeading } from "../../components/ui";
 import { Chart } from "../../components/Chart";

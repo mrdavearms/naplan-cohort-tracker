@@ -12,7 +12,7 @@ import {
   DIFFICULTY_BAND_ORDER,
   domainsFor,
   getEntry,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { useApp } from "../../state/AppState";
 import { Card, EmptyState, PrivacyNote, SectionHeading } from "../../components/ui";
 import { AttributionNote, useYearLevel, YearLevelTabs } from "./scope";

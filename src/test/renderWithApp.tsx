@@ -1,7 +1,7 @@
 /** Render a component with a fabricated loaded app state (no async file load). */
 import type { ReactElement } from "react";
 import { render } from "@testing-library/react";
-import { defaultSettings, type Settings, type Store } from "@naplan-throughline/core";
+import { defaultSettings, type Settings, type Store } from "@naplan-cohort-tracker/core";
 import { AppContext, type AppContextValue, type AppState, type ViewId } from "../state/AppState";
 
 export function makeState(store: Store, overrides: Partial<AppState> = {}): AppState {

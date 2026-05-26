@@ -6,7 +6,7 @@
 import type { Update } from "@tauri-apps/plugin-updater";
 import { isTauri } from "./dataSource";
 
-const LAST_CHECK_KEY = "naplan-throughline.lastUpdateCheck";
+const LAST_CHECK_KEY = "naplan-cohort-tracker.lastUpdateCheck";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** True if we haven't checked in the last 24h (or never). */

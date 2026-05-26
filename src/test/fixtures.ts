@@ -11,7 +11,7 @@ import {
   storeKey,
   type LoadedFile,
   type Store,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 
 const FIX = join(dirname(fileURLToPath(import.meta.url)), "../../core/tests/fixtures");
 const bytes = (name: string): Uint8Array => readFileSync(join(FIX, name));

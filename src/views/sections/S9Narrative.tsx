@@ -10,7 +10,7 @@ import {
   buildSchoolNarrative,
   storeEntries,
   type NarrativeContext,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { useApp } from "../../state/AppState";
 import { Card, SectionHeading } from "../../components/ui";
 

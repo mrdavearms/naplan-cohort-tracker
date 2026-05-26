@@ -21,7 +21,7 @@ export default defineConfig({
           alias: {
             "plotly.js-dist-min": path.resolve(__dirname, "src/test/stubs/plotly-dist.ts"),
             "react-plotly.js/factory": path.resolve(__dirname, "src/test/stubs/react-plotly-factory.tsx"),
-            "@naplan-throughline/core": path.resolve(__dirname, "core/src/index.ts"),
+            "@naplan-cohort-tracker/core": path.resolve(__dirname, "core/src/index.ts"),
             "@": path.resolve(__dirname, "src"),
           },
         },

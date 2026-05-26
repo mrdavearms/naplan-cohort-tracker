@@ -20,7 +20,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error("Naplan Throughline — unhandled UI error:", error, info.componentStack);
+    console.error("NAPLAN Cohort Tracker — unhandled UI error:", error, info.componentStack);
   }
 
   reset = (): void => this.setState({ error: null });

@@ -9,7 +9,7 @@ import {
   cohortMatchRate,
   type SkippedFile,
   type Store,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 
 export interface DiagnosticsInput {
   appVersion: string;
@@ -25,7 +25,7 @@ export interface DiagnosticsInput {
 
 export function buildDiagnosticsText(d: DiagnosticsInput): string {
   const lines: string[] = [];
-  lines.push("Naplan Throughline — diagnostics");
+  lines.push("NAPLAN Cohort Tracker — diagnostics");
   lines.push(`Generated: ${new Date().toISOString()}`);
   lines.push("");
   lines.push(`App version: ${d.appVersion}`);

@@ -72,11 +72,11 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: Naplan Throughline ${{ github.ref_name }}
+          releaseName: NAPLAN Cohort Tracker ${{ github.ref_name }}
           releaseBody: |
             On-device NAPLAN cohort analysis (unsigned build).
             First time you open it — macOS: right-click → Open → Open again. Windows: "More info" → "Run anyway".
-            Public downloads + a friendly install page are mirrored to the naplan-throughline-releases repo.
+            Public downloads + a friendly install page are mirrored to the naplan-cohort-tracker-releases repo.
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}

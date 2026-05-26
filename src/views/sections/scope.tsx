@@ -5,7 +5,7 @@
  * Year 9 reflects the secondary school's contribution.
  */
 import { useMemo, useState } from "react";
-import { yearLevelsFor, type Store } from "@naplan-throughline/core";
+import { yearLevelsFor, type Store } from "@naplan-cohort-tracker/core";
 import clsx from "clsx";
 
 /** Year levels present for the primary year, defaulting selection to Year 9. */

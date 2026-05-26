@@ -3,7 +3,7 @@
  * skipped files, and a way back to the import screen to add or fix files. The
  * empty-state on-ramp lives in ImportStaging, rendered by App before any load.
  */
-import { availableYears, getPrimaryYearEntries } from "@naplan-throughline/core";
+import { availableYears, getPrimaryYearEntries } from "@naplan-cohort-tracker/core";
 import { ExclamationTriangleIcon, FolderOpenIcon } from "@heroicons/react/24/outline";
 import { useApp } from "../state/AppState";
 import { ImportStaging } from "../components/ImportStaging";

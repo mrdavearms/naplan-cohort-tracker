@@ -33,7 +33,7 @@ import {
   type PairedCohort,
   type Settings,
   type Store,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
 import { figureToPng } from "./chartImage";
 import { bulletList, coverPage, footer, pct1, PDF_STYLES, table } from "./common";
@@ -237,7 +237,7 @@ export async function buildCohortDoc(
   }
 
   return {
-    info: { title: `NAPLAN ${primaryYear} cohort tracking`, creator: "Naplan Throughline" },
+    info: { title: `NAPLAN ${primaryYear} cohort tracking`, creator: "NAPLAN Cohort Tracker" },
     pageSize: "A4",
     pageMargins: [40, 40, 40, 40],
     styles: PDF_STYLES,

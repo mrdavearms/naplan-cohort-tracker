@@ -9,7 +9,7 @@
     "noEmit": true,
     "types": ["node", "vite/client"],
     "paths": {
-      "@naplan-throughline/core": ["./core/src/index.ts"],
+      "@naplan-cohort-tracker/core": ["./core/src/index.ts"],
       "@/*": ["./src/*"]
     }
   },

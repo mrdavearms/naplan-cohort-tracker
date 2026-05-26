@@ -4,9 +4,9 @@
  * it survives restarts and stays local-only. The pure schema + `migrate()` live
  * in core/; this layer only serialises the blob.
  */
-import { migrate, type Settings } from "@naplan-throughline/core";
+import { migrate, type Settings } from "@naplan-cohort-tracker/core";
 
-const KEY = "naplan-throughline.settings";
+const KEY = "naplan-cohort-tracker.settings";
 
 export function loadSettings(): Settings {
   try {

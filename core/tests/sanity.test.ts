@@ -3,6 +3,6 @@ import { CORE_PACKAGE } from "../src/index";
 
 describe("scaffold smoke test", () => {
   it("core package resolves across the workspace", () => {
-    expect(CORE_PACKAGE).toBe("@naplan-throughline/core");
+    expect(CORE_PACKAGE).toBe("@naplan-cohort-tracker/core");
   });
 });

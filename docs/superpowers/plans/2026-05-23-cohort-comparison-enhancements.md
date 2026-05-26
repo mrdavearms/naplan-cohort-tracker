@@ -343,7 +343,7 @@ export function subdomainMovement(
 
 - [ ] **Step 5: Update the caller `src/views/sections/S10CohortTracking.tsx`**
 
-In the import block from `@naplan-throughline/core`, change `readingSubdomainMovement` to `subdomainMovement`. In `DomainDrilldown`, change the call:
+In the import block from `@naplan-cohort-tracker/core`, change `readingSubdomainMovement` to `subdomainMovement`. In `DomainDrilldown`, change the call:
 
 ```typescript
 const subdomainMoves = isReading ? subdomainMovement(y7Reading, y9Reading) : [];
@@ -838,7 +838,7 @@ import {
   type DumbbellRow,
   type MovementBarRow,
   type PairedCohort,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { Card } from "./ui";
 import { Chart } from "./Chart";
 
@@ -935,7 +935,7 @@ Expected: exits 0.
 
 ```tsx
 import { CrossDomainOverview } from "../components/CrossDomainOverview";
-import { buildCohortPairings } from "@naplan-throughline/core";
+import { buildCohortPairings } from "@naplan-cohort-tracker/core";
 
 describe("cross-domain overview", () => {
   it("renders the overview against the synthetic cohort without throwing", () => {
@@ -971,7 +971,7 @@ git commit -m "feat(ui): cross-domain Y7->Y9 overview block in Section 10"
 
 - [ ] **Step 1: Update imports in `S10CohortTracking.tsx`**
 
-Add to the `@naplan-throughline/core` import block: `bandMovement`, `declinedOrStalled`, `movementStackedFigure`. (`subdomainMovement` is already imported from Task 3.)
+Add to the `@naplan-cohort-tracker/core` import block: `bandMovement`, `declinedOrStalled`, `movementStackedFigure`. (`subdomainMovement` is already imported from Task 3.)
 
 - [ ] **Step 2: Add the per-domain movement bar in `DomainDrilldown`**
 
@@ -1162,7 +1162,7 @@ git commit -m "feat(ui): per-domain movement bar, all-domain subdomains, decline
 
 - [ ] **Step 1: Update imports in `cohortReport.ts`**
 
-Add to the `@naplan-throughline/core` import block: `bandMovement`, `crossDomainSummary`, `declinedOrStalled`, `divergingDeltaFigure`, `dumbbellFigure`, `movementStackedFigure`, `subdomainMovement`, and type `MovementBarRow`, `DumbbellRow`.
+Add to the `@naplan-cohort-tracker/core` import block: `bandMovement`, `crossDomainSummary`, `declinedOrStalled`, `divergingDeltaFigure`, `dumbbellFigure`, `movementStackedFigure`, `subdomainMovement`, and type `MovementBarRow`, `DumbbellRow`.
 
 - [ ] **Step 2: Add an overview section to `buildCohortDoc`**
 

@@ -13,7 +13,7 @@ import {
   type DumbbellRow,
   type MovementBarRow,
   type PairedCohort,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { Card } from "./ui";
 import { Chart } from "./Chart";
 

@@ -1,7 +1,7 @@
-# Naplan Throughline — design system
+# NAPLAN Cohort Tracker — design system
 
 The UI follows the **Curriculum Planner design system** (Dave's existing app), so
-Naplan Throughline feels like part of the same family. Tokens below are lifted
+NAPLAN Cohort Tracker feels like part of the same family. Tokens below are lifted
 verbatim from `Curriculum-Planner/apps/frontend/src/index.css` (Tailwind v4
 `@theme`), confirmed against the shared design template.
 
@@ -52,7 +52,7 @@ intentionally distinct from the brand palette above.
 - **Hero texture**: dot-grid, 28px, ~8% opacity.
 - **Spinner**: coral ring, transparent top, 1s linear spin.
 - **Logo**: "AI" monogram lockup (graphite circle + coral ring + slab serif).
-  Naplan Throughline can reuse the monogram or get its own neutral mark.
+  NAPLAN Cohort Tracker can reuse the monogram or get its own neutral mark.
 
 ## Components (patterns to mirror, from the design template)
 

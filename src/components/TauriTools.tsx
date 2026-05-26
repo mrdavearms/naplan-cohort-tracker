@@ -35,7 +35,7 @@ export function TauriTools() {
         skipped: state.skipped,
         unresolved: state.unresolved,
       });
-      const path = await saveDiagnostics(text, "naplan-throughline-diagnostics.txt");
+      const path = await saveDiagnostics(text, "naplan-cohort-tracker-diagnostics.txt");
       setMsg(path ? `Saved diagnostics to ${path}` : "Cancelled.");
     } catch (e) {
       setMsg(`Could not export diagnostics: ${e instanceof Error ? e.message : String(e)}`);

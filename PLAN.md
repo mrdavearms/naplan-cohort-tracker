@@ -1,4 +1,4 @@
-# Naplan Throughline — implementation roadmap
+# NAPLAN Cohort Tracker — implementation roadmap
 
 ## Context
 
@@ -7,7 +7,7 @@ Rewrite the internal Python/Streamlit NAPLAN app (`~/Antigravity/naplan_analysis
 Why a rewrite rather than packaging Streamlit: a TypeScript/Tauri stack matches Dave's existing React skill set, produces real native installers with auto-update, and — because charts move to Plotly.js (which renders/exports images in the webview) — eliminates the kaleido/Chromium bundling problem that made packaging the Python app fragile.
 
 ### Decisions locked
-- **Name:** Naplan Throughline
+- **Name:** NAPLAN Cohort Tracker
 - **Shell:** Tauri (small installers, built-in updater hooks)
 - **v1 scope:** all 10 sections + both PDF reports
 - **License:** proprietary for now → **private repo**
@@ -15,9 +15,9 @@ Why a rewrite rather than packaging Streamlit: a TypeScript/Tauri stack matches 
 - **Privacy model:** on-device, local-only; user supplies a folder containing Y7 and Y9 cohort SSSR files. Cloud-AI / pseudonymisation workflow is **not** ported.
 
 ### Assumed setup (correct me on plan review if wrong)
-- Repo: `github.com/mrdavearms/naplan-throughline` (private), account `dave.armstrong@education.vic.gov.au`
-- Local path: `~/Antigravity/naplan-throughline`
-- Tauri bundle identifier: `com.dandsarmstrong.naplanthroughline`
+- Repo: `github.com/mrdavearms/naplan-cohort-tracker` (private), account `dave.armstrong@education.vic.gov.au`
+- Local path: `~/Antigravity/naplan-cohort-tracker`
+- Tauri bundle identifier: `com.dandsarmstrong.naplancohorttracker`
 
 ## Architecture — the keystone decisions (expensive to change later)
 
@@ -113,7 +113,7 @@ A senior-engineer review before Phase 1 surfaced foundations that are cheap to s
 ## Verification (definition of done)
 
 1. **Numbers match the oracle.** Vitest suite green; ported stats (Wilson CI, McNemar p, NAS%, paired counts, transition matrix) match `verify_cohort.py` output for the same input within tolerance.
-2. **Side-by-side parity.** Run the same Y7+Y9 dataset through the old Python app and Naplan Throughline → identical headline numbers across all 10 sections.
+2. **Side-by-side parity.** Run the same Y7+Y9 dataset through the old Python app and NAPLAN Cohort Tracker → identical headline numbers across all 10 sections.
 3. **Cross-platform launch.** App launches on Mac and Windows, user points it at a folder of SSSR files, all 10 sections render, both PDFs generate, ID match-rate banner shows.
 4. **No school-name hard-coding.** Fresh install with blank settings shows neutral branding; entering a different school name/number propagates everywhere.
 

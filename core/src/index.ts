@@ -1,5 +1,5 @@
 /**
- * @naplan-throughline/core — pure-TypeScript NAPLAN cohort analysis library.
+ * @naplan-cohort-tracker/core — pure-TypeScript NAPLAN cohort analysis library.
  *
  * No React, no Tauri, no DOM. This layer is the validation target against the
  * Python oracle (`verification/verify_cohort.py` in the legacy repo) and must
@@ -21,4 +21,4 @@ export * from "./settings";
 export * from "./sections/index";
 export * from "./charts/index";
 
-export const CORE_PACKAGE = "@naplan-throughline/core" as const;
+export const CORE_PACKAGE = "@naplan-cohort-tracker/core" as const;

@@ -9,7 +9,7 @@ import {
   VALID_DOMAINS,
   type ImprovementPlanRef,
   type Settings,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { useApp } from "../state/AppState";
 import { Card, SectionHeading } from "../components/ui";
 import { TauriTools } from "../components/TauriTools";

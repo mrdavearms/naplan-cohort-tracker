@@ -1,10 +1,10 @@
-# Naplan Throughline — user guide
+# NAPLAN Cohort Tracker — user guide
 
 A one-page guide for school leaders. No technical knowledge needed.
 
 ## What it does
 
-Naplan Throughline reads your school's NAPLAN SSSR Extract files and shows you,
+NAPLAN Cohort Tracker reads your school's NAPLAN SSSR Extract files and shows you,
 on your own computer, what they mean: who sat the tests, the proficiency mix,
 where the gaps are, equity, and — most importantly — how the **same students**
 progressed from Year 7 to Year 9 (the school's value-add).
@@ -27,7 +27,7 @@ No student names appear on screen or in any report — only Local Student IDs.
 
 ## Using the app
 
-1. Open **Naplan Throughline**.
+1. Open **NAPLAN Cohort Tracker**.
 2. Click **Choose your NAPLAN folder** and select the folder from step 1.
 3. The app loads everything and shows an **Overview**. The coloured banner tells
    you how many students it matched across Year 7 → Year 9, for example

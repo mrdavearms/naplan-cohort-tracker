@@ -9,7 +9,7 @@ import {
   getEntry,
   participationBreakdown,
   participationSummary,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { useApp } from "../../state/AppState";
 import { Card, EmptyState, SectionHeading } from "../../components/ui";
 import { AttributionNote, useYearLevel, YearLevelTabs } from "./scope";

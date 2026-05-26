@@ -14,7 +14,7 @@ export default defineConfig({
   clearScreen: false,
   resolve: {
     alias: {
-      "@naplan-throughline/core": path.resolve(__dirname, "core/src/index.ts"),
+      "@naplan-cohort-tracker/core": path.resolve(__dirname, "core/src/index.ts"),
       "@": path.resolve(__dirname, "src"),
     },
   },

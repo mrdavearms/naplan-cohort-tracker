@@ -6,7 +6,7 @@
 import { useMemo } from "react";
 import Plotly from "plotly.js-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
-import type { PlotlyFigure } from "@naplan-throughline/core";
+import type { PlotlyFigure } from "@naplan-cohort-tracker/core";
 
 const Plot = createPlotlyComponent(Plotly);
 

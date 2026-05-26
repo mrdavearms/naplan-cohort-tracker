@@ -13,7 +13,7 @@ import {
   type SkippedFile,
   type Store,
   type WorkbookInspection,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { loadSettings, saveSettings } from "../lib/persist";
 
 export type ViewId =

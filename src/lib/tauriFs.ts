@@ -5,7 +5,7 @@
  */
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import type { RawWorkbookFile } from "@naplan-throughline/core";
+import type { RawWorkbookFile } from "@naplan-cohort-tracker/core";
 
 export interface PickedFolder {
   label: string | null;

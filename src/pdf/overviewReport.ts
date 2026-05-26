@@ -25,7 +25,7 @@ import {
   type Settings,
   type StackedBarRow,
   type Store,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
 import { figureToPng } from "./chartImage";
 import { bulletList, coverPage, footer, pct1, PDF_STYLES, table } from "./common";
@@ -242,7 +242,7 @@ export async function buildOverviewDoc(
   body.push(...narrativeSection(store, primaryYear, settings));
 
   return {
-    info: { title: `NAPLAN ${primaryYear} overview`, creator: "Naplan Throughline" },
+    info: { title: `NAPLAN ${primaryYear} overview`, creator: "NAPLAN Cohort Tracker" },
     pageSize: "A4",
     pageMargins: [40, 40, 40, 40],
     styles: PDF_STYLES,

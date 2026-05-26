@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the Naplan Throughline app icon — an "NT" monogram in the design
+"""Generate the NAPLAN Cohort Tracker app icon — an "NCT" monogram in the design
 palette (graphite circle, coral ring, linen lettering). Outputs a 1024x1024 PNG
 that `tauri icon` expands into all platform sizes.
 
@@ -32,9 +32,9 @@ def main(out: str) -> None:
         fill=GRAPHITE,
     )
 
-    # "NT" centred.
-    font = ImageFont.truetype(FONT_PATH, int(S * 0.40))
-    text = "NT"
+    # "NCT" centred.
+    font = ImageFont.truetype(FONT_PATH, int(S * 0.30))
+    text = "NCT"
     bbox = d.textbbox((0, 0), text, font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
     x = (S - tw) / 2 - bbox[0]

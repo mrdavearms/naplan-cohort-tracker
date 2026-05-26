@@ -12,8 +12,8 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 const chart = vi.hoisted(() => ({ png: "" }));
 vi.mock("../pdf/chartImage", () => ({ figureToPng: async () => chart.png }));
 
-import type { Store } from "@naplan-throughline/core";
-import { defaultSettings } from "@naplan-throughline/core";
+import type { Store } from "@naplan-cohort-tracker/core";
+import { defaultSettings } from "@naplan-cohort-tracker/core";
 import type { TDocumentDefinitions } from "pdfmake/interfaces";
 import { buildSyntheticStore } from "./fixtures";
 import { buildOverviewDoc } from "../pdf/overviewReport";

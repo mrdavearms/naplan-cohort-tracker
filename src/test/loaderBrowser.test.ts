@@ -13,7 +13,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { loadStoreFromFiles, type RawWorkbookFile } from "@naplan-throughline/core";
+import { loadStoreFromFiles, type RawWorkbookFile } from "@naplan-cohort-tracker/core";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = join(here, "../../core/tests/fixtures/synthetic_raw_2026.xlsx");

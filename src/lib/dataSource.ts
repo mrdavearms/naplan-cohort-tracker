@@ -4,7 +4,7 @@
  *   - Tauri shell: native folder dialog + recursive fs read (added in the shell phase).
  *   - Browser dev: a <input type="file" webkitdirectory> directory picker.
  */
-import type { RawWorkbookFile } from "@naplan-throughline/core";
+import type { RawWorkbookFile } from "@naplan-cohort-tracker/core";
 
 /** True when running inside the Tauri webview (native shell available). */
 export function isTauri(): boolean {

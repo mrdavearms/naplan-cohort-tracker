@@ -4,7 +4,7 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { defaultSettings, migrate } from "@naplan-throughline/core";
+import { defaultSettings, migrate } from "@naplan-cohort-tracker/core";
 import { renderWithApp } from "./renderWithApp";
 import { HomeView } from "../views/HomeView";
 import { SettingsView } from "../views/SettingsView";

@@ -10,7 +10,7 @@ import {
   cohortMatchRate,
   cohortYears,
   type Store,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 
 export function MatchRateBanner({ store, primaryYear }: { store: Store; primaryYear: number }) {
   const [y7Year, y9Year] = cohortYears(primaryYear);

@@ -22,7 +22,7 @@ import {
   inspectWorkbook,
   resolveYearOfTest,
   type RawWorkbookFile,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import {
   effectiveYear,
   useApp,
@@ -204,7 +204,7 @@ export function ImportStaging() {
         </button>
         <div className="text-center">
           <h1 className="font-display text-4xl font-extrabold leading-[1.2] tracking-tight">
-            <span className="hero-shimmer">Naplan Throughline</span>
+            <span className="hero-shimmer">NAPLAN Cohort Tracker</span>
           </h1>
           <p className="mt-1 text-sm font-medium lowercase tracking-wide text-graphite/55">
             tracking naplan through the years
@@ -213,7 +213,7 @@ export function ImportStaging() {
             This app analyses your school’s NAPLAN <strong>Preliminary</strong> results. Each
             year ACARA (the Australian Curriculum, Assessment and Reporting Authority) releases
             a preliminary Student and School Summary Report (SSSR), usually during Term 2. Point
-            Naplan&nbsp;Throughline at those files and it surfaces participation, proficiency,
+            NAPLAN&nbsp;Cohort&nbsp;Tracker at those files and it surfaces participation, proficiency,
             equity and skill gaps — and, as the headline, tracks the same students from Year 7
             to Year 9. Nothing leaves your machine.
           </p>

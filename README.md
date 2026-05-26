@@ -1,8 +1,8 @@
-# Naplan Throughline
+# NAPLAN Cohort Tracker
 
-> ### ⬇️ Just want the app? → **[Download page](https://mrdavearms.github.io/naplan-throughline-releases/)**
+> ### ⬇️ Just want the app? → **[Download page](https://mrdavearms.github.io/naplan-cohort-tracker-releases/)**
 > Big "Download for Mac / Windows" buttons, plus how to open it the first time.
-> (Or grab an installer straight from the [latest release](https://github.com/mrdavearms/naplan-throughline-releases/releases/latest).)
+> (Or grab an installer straight from the [latest release](https://github.com/mrdavearms/naplan-cohort-tracker-releases/releases/latest).)
 > This README below is for developers.
 
 ---
@@ -13,7 +13,7 @@ of an internal Python/Streamlit tool.
 
 ## What this app does
 
-Naplan Throughline analyses your school's NAPLAN **Preliminary** results. Each
+NAPLAN Cohort Tracker analyses your school's NAPLAN **Preliminary** results. Each
 year ACARA (the Australian Curriculum, Assessment and Reporting Authority)
 releases a preliminary Student and School Summary Report (SSSR), usually during
 Term 2. The preliminary SSSR gives schools the School (IDA) Report, Class Summary

@@ -12,7 +12,7 @@ import {
   PROFICIENCY_LEVELS,
   stackedProficiencyBarFigure,
   type StackedBarRow,
-} from "@naplan-throughline/core";
+} from "@naplan-cohort-tracker/core";
 import { useApp } from "../../state/AppState";
 import { Card, EmptyState, SectionHeading } from "../../components/ui";
 import { Chart } from "../../components/Chart";

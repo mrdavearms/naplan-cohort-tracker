@@ -1,5 +1,5 @@
 {
-  "name": "@naplan-throughline/core",
+  "name": "@naplan-cohort-tracker/core",
   "version": "0.0.0",
   "private": true,
   "type": "module",

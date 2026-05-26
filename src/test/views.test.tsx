@@ -6,7 +6,7 @@
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import { screen } from "@testing-library/react";
-import { buildCohortPairings, type Store } from "@naplan-throughline/core";
+import { buildCohortPairings, type Store } from "@naplan-cohort-tracker/core";
 import { buildSyntheticStore } from "./fixtures";
 import { renderWithApp } from "./renderWithApp";
 
