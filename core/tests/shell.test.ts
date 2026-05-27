@@ -201,10 +201,10 @@ describe("store selectors + cohort pairing (Reading Y7 2024 → Y9 2026)", () =>
     expect(mr.representativeDomain).toBe("Reading");
     // structural coherence (exact counts depend on the synthetic overlap)
     expect(mr.matched).toBeGreaterThanOrEqual(0);
-    expect(mr.y9CohortTotal).toBe(mr.matched + mr.joiners);
-    expect(mr.y7CohortTotal).toBe(mr.matched + mr.leavers);
-    if (mr.y9CohortTotal > 0) {
-      expect(mr.matchRatePct).toBeCloseTo((mr.matched / mr.y9CohortTotal) * 100, 6);
+    expect(mr.laterCohortTotal).toBe(mr.matched + mr.joiners);
+    expect(mr.earlierCohortTotal).toBe(mr.matched + mr.leavers);
+    if (mr.laterCohortTotal > 0) {
+      expect(mr.matchRatePct).toBeCloseTo((mr.matched / mr.laterCohortTotal) * 100, 6);
     }
   });
 });

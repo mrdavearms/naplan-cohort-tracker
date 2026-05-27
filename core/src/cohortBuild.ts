@@ -71,17 +71,17 @@ export interface CohortMatchRate {
   representativeDomain: string | null;
   /** Students present and proficiency-scored in BOTH years (matched by Local ID). */
   matched: number;
-  /** Sat Y7 here but gone by Y9. */
+  /** Sat the entry year here but gone by the exit year. */
   leavers: number;
-  /** Joined after Y7 (only in Y9). */
+  /** Joined after the entry year (only in the exit year). */
   joiners: number;
   /** Paired by ID but dropped — no proficiency record one year (Absent/Withdrawn). */
   filtered: number;
-  /** Y7-origin cohort = matched + leavers. */
-  y7CohortTotal: number;
-  /** This year's Y9 cohort = matched + joiners. */
-  y9CohortTotal: number;
-  /** matched / y9CohortTotal × 100 (0 when no Y9 cohort). */
+  /** Entry-year cohort = matched + leavers (Year 3 for primary, Year 7 for secondary). */
+  earlierCohortTotal: number;
+  /** Exit-year cohort = matched + joiners (Year 5 for primary, Year 9 for secondary). */
+  laterCohortTotal: number;
+  /** matched / laterCohortTotal × 100 (0 when no exit-year cohort). */
   matchRatePct: number;
 }
 
@@ -110,8 +110,8 @@ export function cohortMatchRate(pairings: Map<string, PairedCohort>): CohortMatc
       leavers: 0,
       joiners: 0,
       filtered: 0,
-      y7CohortTotal: 0,
-      y9CohortTotal: 0,
+      earlierCohortTotal: 0,
+      laterCohortTotal: 0,
       matchRatePct: 0,
     };
   }
@@ -119,16 +119,16 @@ export function cohortMatchRate(pairings: Map<string, PairedCohort>): CohortMatc
   const matched = best.paired.length;
   const leavers = best.leavers.length;
   const joiners = best.joiners.length;
-  const y9CohortTotal = matched + joiners;
+  const laterCohortTotal = matched + joiners;
   return {
     representativeDomain: best.domain,
     matched,
     leavers,
     joiners,
     filtered: best.pairedFilteredCount,
-    y7CohortTotal: matched + leavers,
-    y9CohortTotal,
-    matchRatePct: y9CohortTotal > 0 ? (matched / y9CohortTotal) * 100 : 0,
+    earlierCohortTotal: matched + leavers,
+    laterCohortTotal,
+    matchRatePct: laterCohortTotal > 0 ? (matched / laterCohortTotal) * 100 : 0,
   };
 }
 

@@ -184,7 +184,7 @@ async function phaseSection(
 
   const mr = cohortMatchRate(pairings);
   out.push({
-    text: `The same ${mr.matched} students tracked from ${earlierLabel} (${y7Year}) to ${laterLabel} (${y9Year}), matched on Local Student ID (${pct1(mr.matchRatePct)} of the ${mr.y9CohortTotal} ${laterLabel} students). ${mr.leavers} left after ${earlierLabel}; ${mr.joiners} joined after ${earlierLabel}.`,
+    text: `The same ${mr.matched} students tracked from ${earlierLabel} (${y7Year}) to ${laterLabel} (${y9Year}), matched on Local Student ID (${pct1(mr.matchRatePct)} of the ${mr.laterCohortTotal} ${laterLabel} students). ${mr.leavers} left after ${earlierLabel}; ${mr.joiners} joined after ${earlierLabel}.`,
     style: "lead",
   });
 

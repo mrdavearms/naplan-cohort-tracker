@@ -44,7 +44,7 @@ export function buildDiagnosticsText(d: DiagnosticsInput): string {
       const sample = [...pairings.values()][0];
       const pair = sample ? `Y${sample.earlierLevel}->Y${sample.laterLevel}` : "cohort";
       lines.push(
-        `${pair} match (${mr.representativeDomain}): ${mr.matched} of ${mr.y9CohortTotal} ` +
+        `${pair} match (${mr.representativeDomain}): ${mr.matched} of ${mr.laterCohortTotal} ` +
           `(${mr.matchRatePct.toFixed(0)}%); leavers ${mr.leavers}, joiners ${mr.joiners}, ` +
           `excluded ${mr.filtered}`,
       );

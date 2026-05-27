@@ -7,7 +7,7 @@
  * follow the loaded phase's levels. McNemar's exact test (not CI overlap)
  * assesses whether the paired NAS change is distinguishable from chance.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   attritionAnalysis,
   bandMovement,
@@ -81,6 +81,12 @@ export function S10CohortTracking() {
   const [selectedPhase, setSelectedPhase] = useState<"primary" | "secondary" | null>(null);
   const activePhase: CohortPhase | undefined =
     phases.find((p) => p.phase === selectedPhase) ?? phases[phases.length - 1];
+
+  // If the loaded data changes so the selected phase no longer exists (e.g. a
+  // re-import drops a phase), clear the stale choice and fall back to the default.
+  useEffect(() => {
+    if (selectedPhase && !phases.some((p) => p.phase === selectedPhase)) setSelectedPhase(null);
+  }, [phases, selectedPhase]);
 
   const pairings = useMemo(
     () => buildCohortPairings(store, primaryYear, activePhase),

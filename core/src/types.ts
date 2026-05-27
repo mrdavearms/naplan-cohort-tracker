@@ -51,8 +51,12 @@ export interface LoadedFile {
   totalStudents: number;
 }
 
-/** A student present (and proficiency-scored) in BOTH Y7 and Y9.
- *  LBOTE/ATSI are the Y7 entry-state baseline (never mixed with Y9). */
+// NOTE: the `*Y7`/`*Y9` field suffixes on the three row types below are
+// HISTORICAL and mean "earlier"/"later" — for a primary (Year 3→5) cohort they
+// hold Year 3 / Year 5 values, not Year 7/9. See PairedCohort.earlierLevel/laterLevel.
+
+/** A student present (and proficiency-scored) in BOTH the earlier and later year.
+ *  LBOTE/ATSI are the earlier-year entry-state baseline (never mixed). */
 export interface PairedStudent {
   localStudentId: string;
   classGroupY7: string | null;
@@ -64,7 +68,7 @@ export interface PairedStudent {
   proficiencyY9: string;
 }
 
-/** A student in Y7 only — left before Y9. Proficiency may be null. */
+/** A student in the earlier year only — left before the later year. Proficiency may be null. */
 export interface LeaverRow {
   localStudentId: string;
   classGroupY7: string | null;
@@ -74,7 +78,7 @@ export interface LeaverRow {
   participationCode: string;
 }
 
-/** A student in Y9 only — joined after Y7. Proficiency may be null. */
+/** A student in the later year only — joined after the earlier year. Proficiency may be null. */
 export interface JoinerRow {
   localStudentId: string;
   classGroupY9: string | null;

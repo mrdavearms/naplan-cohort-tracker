@@ -65,7 +65,7 @@ export function MatchRateBanner({
         )}
         <div className="text-sm">
           <p className="font-medium text-graphite">
-            Matched <strong>{mr.matched}</strong> of <strong>{mr.y9CohortTotal}</strong>{" "}
+            Matched <strong>{mr.matched}</strong> of <strong>{mr.laterCohortTotal}</strong>{" "}
             {laterLabel} students back to their {earlierLabel} record ({mr.matchRatePct.toFixed(0)}%).
           </p>
           <p className="mt-1 text-graphite/70">
