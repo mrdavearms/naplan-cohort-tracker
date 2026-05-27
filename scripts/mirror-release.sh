@@ -51,13 +51,18 @@ cat > "$NOTES" <<EOF
 
 > **Year 3 → Year 5 (primary) is in beta.** The Year 7 → Year 9 (secondary) analysis is well-established; primary cohort tracking is new in this release and not yet validated against a wide range of real Year 3/5 files. **Treat primary figures as provisional and check them against your source data.** Primary leaders: please test it and send feedback to **dave.armstrong@education.vic.gov.au** — what works, what doesn't, anything that looks off.
 
-### Download
-- **macOS:** the \`.dmg\` file below
-- **Windows:** the \`...-setup.exe\` file below
+### Which file do I download?
+👉 **Easiest:** use the **[download page]($PAGES_URL)** — one clear button for your computer.
+
+Or take just **one** file from the list below:
+- **Mac:** the \`.dmg\`
+- **Windows:** the \`...-setup.exe\`
+
+Everything else here (\`.sig\`, \`.app.tar.gz\`, \`latest.json\`, \`.msi\`) is signatures and update data — **you can safely ignore it.**
 
 ### First time you open it (please read)
-These builds aren't yet code-signed, so your computer shows a one-time warning.
-- **macOS:** right-click (or Control-click) the app -> **Open** -> **Open** again.
+These builds aren't paid code-signed, so your computer shows a one-time warning. It's expected and safe.
+- **Mac:** open the \`.dmg\`, drag the app into **Applications**, then right-click it -> **Open** -> **Open**. If it's still blocked, go to **System Settings -> Privacy & Security** and click **Open Anyway**.
 - **Windows:** if you see "Windows protected your PC", click **More info** -> **Run anyway**.
 
 You only need to do this once. The app is local-only -- no student data ever leaves your computer.
@@ -96,7 +101,8 @@ date = datetime.date.today().strftime("%d %B %Y")
 
 mac_btn = f'<a class="btn" href="{dmg_url}">Download (.dmg)</a>' if dmg_url else '<span class="os">unavailable</span>'
 win_btn = f'<a class="btn" href="{exe_url}">Download (.exe)</a>' if exe_url else '<span class="os">unavailable</span>'
-msi_btn = f'<br/><a class="btn secondary" href="{msi_url}">.msi (for IT-managed PCs)</a>' if msi_url else ''
+msi_li = f'<li><a href="{msi_url}">Windows .msi installer</a> — for IT-managed / silent installs.</li>' if msi_url else ''
+releases_url = base.replace("/releases/download/", "/releases/tag/")
 
 index = f"""<!doctype html>
 <html lang="en-AU">
@@ -133,6 +139,11 @@ index = f"""<!doctype html>
   .pill {{ display:inline-block; background:var(--sage); color:#fff; font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; }}
   footer {{ text-align:center; color:#888; font-size:13px; padding:40px 24px 60px; }}
   a {{ color:var(--coral-dark); }}
+  details.more {{ max-width:560px; margin:0 auto 28px; }}
+  details.more summary {{ cursor:pointer; color:var(--coral-dark); font-weight:600; text-align:center; font-size:14px; list-style:none; }}
+  details.more summary::-webkit-details-marker {{ display:none; }}
+  details.more ul {{ margin:12px auto 0; padding-left:18px; font-size:14px; color:#666; max-width:480px; }}
+  details.more li {{ margin:6px 0; }}
 </style>
 </head>
 <body>
@@ -153,24 +164,38 @@ index = f"""<!doctype html>
       <span class="yourtag" id="win-tag"></span>
       <h2>Download for Windows</h2>
       <div class="os">Windows 10 &amp; 11</div>
-      {win_btn}{msi_btn}
+      {win_btn}
     </div>
   </div>
-  <p style="text-align:center;color:#888;font-size:13px;margin:0 0 28px">Version {version} · released {date}</p>
+  <p style="text-align:center;color:#888;font-size:13px;margin:0 0 6px">Version {version} · released {date}</p>
+  <details class="more">
+    <summary>Other download options ▾</summary>
+    <ul>
+      {msi_li}
+      <li><a href="{releases_url}">All files for this version on GitHub</a> — includes signatures and update data that most people can ignore.</li>
+    </ul>
+  </details>
+
+  <div class="card warn">
+    <h3>Opening it the first time — one quick step</h3>
+    <p>These are free builds that aren't paid code-signed, so your computer shows a one-time warning. It's expected and safe — here's how to get past it (you only do this once):</p>
+    <p style="margin:14px 0 4px"><strong>On a Mac</strong></p>
+    <ol>
+      <li>Open the downloaded <strong>.dmg</strong> and drag <strong>NAPLAN Cohort Tracker</strong> into your <strong>Applications</strong> folder.</li>
+      <li>In <strong>Applications</strong>, <strong>right-click</strong> (or Control-click) the app → <strong>Open</strong> → <strong>Open</strong>.</li>
+      <li>Still blocked? Open <strong>System Settings → Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong>.</li>
+    </ol>
+    <p style="margin:14px 0 4px"><strong>On Windows</strong></p>
+    <ol>
+      <li>Run the downloaded <strong>setup .exe</strong>.</li>
+      <li>If you see a blue “<strong>Windows protected your PC</strong>” box, click <strong>More info</strong> → <strong>Run anyway</strong>.</li>
+    </ol>
+  </div>
 
   <div class="card warn">
     <h3><span class="pill">Beta</span> &nbsp;Year 3 → Year 5 (primary)</h3>
     <p>The <strong>Year 7 → Year 9</strong> (secondary) analysis is well-established. <strong>Year 3 → Year 5</strong> primary cohort tracking is <strong>brand new in this release</strong> and hasn't yet been checked against a wide range of real Year 3/5 files — please <strong>treat primary figures as provisional and verify them against your source data</strong>.</p>
     <p>If you lead a primary school, I'd really value your help testing it — tell me what works and what doesn't: <a href="mailto:dave.armstrong@education.vic.gov.au">dave.armstrong@education.vic.gov.au</a>.</p>
-  </div>
-
-  <div class="card warn">
-    <h3>The first time you open it</h3>
-    <p>These are free, unsigned builds, so your computer shows a one-time safety prompt. It's expected — here's how to get past it (you only do this once):</p>
-    <ol>
-      <li><strong>On a Mac:</strong> right-click (or Control-click) the app icon, choose <strong>Open</strong>, then click <strong>Open</strong> again.</li>
-      <li><strong>On Windows:</strong> if you see a blue “Windows protected your PC” box, click <strong>More info</strong>, then <strong>Run anyway</strong>.</li>
-    </ol>
   </div>
 
   <div class="card">
