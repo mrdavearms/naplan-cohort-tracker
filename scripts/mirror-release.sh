@@ -49,6 +49,8 @@ NOTES="$WORK/NOTES.md"
 cat > "$NOTES" <<EOF
 **NAPLAN Cohort Tracker $VERSION** — on-device NAPLAN cohort analysis.
 
+> **Year 3 → Year 5 (primary) is in beta.** The Year 7 → Year 9 (secondary) analysis is well-established; primary cohort tracking is new in this release and not yet validated against a wide range of real Year 3/5 files. **Treat primary figures as provisional and check them against your source data.** Primary leaders: please test it and send feedback to **dave.armstrong@education.vic.gov.au** — what works, what doesn't, anything that looks off.
+
 ### Download
 - **macOS:** the \`.dmg\` file below
 - **Windows:** the \`...-setup.exe\` file below
@@ -157,6 +159,12 @@ index = f"""<!doctype html>
   <p style="text-align:center;color:#888;font-size:13px;margin:0 0 28px">Version {version} · released {date}</p>
 
   <div class="card warn">
+    <h3><span class="pill">Beta</span> &nbsp;Year 3 → Year 5 (primary)</h3>
+    <p>The <strong>Year 7 → Year 9</strong> (secondary) analysis is well-established. <strong>Year 3 → Year 5</strong> primary cohort tracking is <strong>brand new in this release</strong> and hasn't yet been checked against a wide range of real Year 3/5 files — please <strong>treat primary figures as provisional and verify them against your source data</strong>.</p>
+    <p>If you lead a primary school, I'd really value your help testing it — tell me what works and what doesn't: <a href="mailto:dave.armstrong@education.vic.gov.au">dave.armstrong@education.vic.gov.au</a>.</p>
+  </div>
+
+  <div class="card warn">
     <h3>The first time you open it</h3>
     <p>These are free, unsigned builds, so your computer shows a one-time safety prompt. It's expected — here's how to get past it (you only do this once):</p>
     <ol>
@@ -202,6 +210,8 @@ No spreadsheets, no logins, and no student data ever leaves your machine.
 |---|---|
 | **Mac** (Apple Silicon & Intel) | **[Download the .dmg]({dmg_url})** |
 | **Windows** (10 & 11) | **[Download the .exe]({exe_url})** |
+
+> **Year 3 → Year 5 (primary) is in beta.** Year 7 → Year 9 (secondary) is well-established; primary cohort tracking is new in this release and not yet validated against a wide range of real Year 3/5 files. Treat primary figures as provisional and check them against your source data. Primary leaders — please test it and email feedback to **dave.armstrong@education.vic.gov.au**.
 
 ### The first time you open it — please read
 
