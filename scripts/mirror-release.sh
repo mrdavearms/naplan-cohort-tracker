@@ -137,7 +137,7 @@ index = f"""<!doctype html>
 <header>
   <div class="logo">NCT</div>
   <h1>NAPLAN Cohort Tracker</h1>
-  <p class="tagline">See how your students grew from Year&nbsp;7 to Year&nbsp;9 — clearly, on your own computer. No spreadsheets, no logins, nothing leaves your machine.</p>
+  <p class="tagline">See how the same students grew over two years — Year&nbsp;3 to Year&nbsp;5, or Year&nbsp;7 to Year&nbsp;9 — clearly, on your own computer. No spreadsheets, no logins, nothing leaves your machine.</p>
 </header>
 <div class="wrap">
   <div class="downloads">
@@ -167,7 +167,7 @@ index = f"""<!doctype html>
 
   <div class="card">
     <h3>What it does</h3>
-    <p>Point it at a folder of your NAPLAN SSSR files and it shows participation, proficiency, equity and skill gaps — and tracks the <strong>same students from Year 7 to Year 9</strong>, the closest thing to a true measure of your school's contribution. It builds tidy PDF reports for your leadership and faculty conversations.</p>
+    <p>Point it at a folder of your NAPLAN SSSR files and it shows participation, proficiency, equity and skill gaps — and tracks the <strong>same students across two years (Year 3 to Year 5, or Year 7 to Year 9)</strong>, the closest thing to a true measure of your school's contribution. It builds tidy PDF reports for your leadership and faculty conversations.</p>
     <p><span class="pill">Private by design</span> &nbsp;Everything runs on your computer. No student names appear anywhere, and no data is ever uploaded.</p>
   </div>
 
@@ -191,8 +191,8 @@ index = f"""<!doctype html>
 readme = f"""# NAPLAN Cohort Tracker — download
 
 **On-device NAPLAN cohort analysis for schools.** See how the *same students* grew
-from Year 7 to Year 9 — clearly, on your own computer. No spreadsheets, no logins,
-and no student data ever leaves your machine.
+over two years — Year 3 to Year 5, or Year 7 to Year 9 — clearly, on your own computer.
+No spreadsheets, no logins, and no student data ever leaves your machine.
 
 ## Download the app — version {version}
 
@@ -215,8 +215,9 @@ You only need to do this once.
 ## What it does
 
 Point it at a folder of your NAPLAN SSSR files. It shows participation, proficiency,
-equity and skill gaps, and tracks the **Year 7 -> Year 9 matched cohort** -- the closest
-thing to a true measure of your school's contribution -- then builds tidy PDF reports.
+equity and skill gaps, and tracks the **matched cohort across two years (Year 3 -> Year 5,
+or Year 7 -> Year 9)** -- the closest thing to a true measure of your school's contribution --
+then builds tidy PDF reports.
 
 **Private by design:** everything runs on your computer; no student names appear anywhere
 and nothing is uploaded.
