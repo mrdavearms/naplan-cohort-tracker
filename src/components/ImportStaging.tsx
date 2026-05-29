@@ -32,6 +32,7 @@ import {
 import { filesFromFileList, isTauri } from "../lib/dataSource";
 import { loadFilesViaTauri, loadFolderViaTauri } from "../lib/tauriFs";
 import { PrivacyNote } from "./ui";
+import { BetaNotice } from "./Beta";
 import { DISCLAIMER } from "../appMeta";
 
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
@@ -194,8 +195,10 @@ export function ImportStaging() {
   const error = localErr ?? (state.status === "error" ? state.error : null);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-alabaster bg-white/60">
-      <div className="dot-grid pointer-events-none absolute inset-0 opacity-[0.08]" />
+    <div className="space-y-6">
+      <BetaNotice />
+      <div className="relative overflow-hidden rounded-2xl border border-alabaster bg-white/60">
+        <div className="dot-grid pointer-events-none absolute inset-0 opacity-[0.08]" />
       <div className="relative px-8 py-10">
         <div className="text-center">
           <h1 className="font-display text-4xl font-extrabold leading-[1.2] tracking-tight">
@@ -422,6 +425,7 @@ export function ImportStaging() {
         <PrivacyNote>
           Local-only · no network calls · no student names in any chart, table, or export.
         </PrivacyNote>
+        </div>
       </div>
     </div>
   );

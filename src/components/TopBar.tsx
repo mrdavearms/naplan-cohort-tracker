@@ -12,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useApp } from "../state/AppState";
+import { BetaPill } from "./Beta";
 
 export function TopBar() {
   const { state, setPrimaryYear, setView } = useApp();
@@ -40,18 +41,21 @@ export function TopBar() {
 
   return (
     <header className="flex shrink-0 items-center justify-between gap-4 border-b border-alabaster bg-white/40 px-6 py-2.5 backdrop-blur-sm">
-      <button
-        type="button"
-        onClick={() => setView(loaded ? "home" : "import")}
-        className="flex items-center gap-2.5 text-left"
-      >
-        <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-coral bg-graphite font-serif text-xs font-bold text-linen">
-          NCT
-        </span>
-        <span className="font-display text-base font-extrabold leading-none text-graphite">
-          NAPLAN Cohort Tracker
-        </span>
-      </button>
+      <div className="flex items-center gap-2.5">
+        <button
+          type="button"
+          onClick={() => setView(loaded ? "home" : "import")}
+          className="flex items-center gap-2.5 text-left"
+        >
+          <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-coral bg-graphite font-serif text-xs font-bold text-linen">
+            NCT
+          </span>
+          <span className="font-display text-base font-extrabold leading-none text-graphite">
+            NAPLAN Cohort Tracker
+          </span>
+        </button>
+        <BetaPill />
+      </div>
 
       <div className="flex items-center gap-2">
         {state.status === "loaded" && (

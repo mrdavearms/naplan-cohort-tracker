@@ -13,6 +13,7 @@ import { SectionRouter } from "./views/SectionRouter";
 import { ImportStaging } from "./components/ImportStaging";
 import { AboutView } from "./views/AboutView";
 import { UpdateNotice } from "./components/UpdateNotice";
+import { BetaStrip } from "./components/Beta";
 
 function ActiveView() {
   const { state } = useApp();
@@ -70,6 +71,7 @@ export function App() {
       <UpdateNotice />
       <div className="flex h-screen flex-col overflow-hidden">
         <TopBar />
+        <BetaStrip />
         {body}
       </div>
     </>
