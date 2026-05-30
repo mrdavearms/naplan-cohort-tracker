@@ -8,6 +8,8 @@ NAPLAN Cohort Tracker is a cross-platform desktop app (**Tauri 2 + React 19 + Ty
 
 > **Lineage / rename:** this is the app formerly called **NAPLAN Throughline**. On 2026-05-26 the repo, local folder, product name and bundle id were all renamed to **NAPLAN Cohort Tracker** (git `b628dc6`) and the version reset to **1.0.0** (`962b849`). GitHub redirects the old `naplan-throughline` / `naplan-throughline-releases` URLs to the new names — same project and history, not a fork. Any `naplan-throughline` string you encounter now lives only in a local `src-tauri/target/` build cache; `cargo clean` clears it (otherwise it surfaces as a confusing `cargo check` failure).
 
+> **Release status:** **v1.0.0 shipped publicly on 2026-05-27** (macOS + Windows installers on the public auto-update feed; builds unsigned, updater manifest signed). The app is live — treat further releases as *updates to a shipped app with users*, not a first launch. Next release = bump the three version fields → tag `vX.Y.Z` → `scripts/mirror-release.sh`.
+
 That legacy repo is **read-only** and serves two roles:
 
 - **Specification** — its analytical logic is exact. Port behaviour; don't reinvent it.
@@ -26,7 +28,7 @@ Unlike the legacy app (single school, hard-coded to one school), NAPLAN Cohort T
 2. **School identity is data, never code.** No real school name hard-coded anywhere in code. A Settings screen writes school identity to local app-data. This is the multi-school enabler.
 3. **A visible cohort ID match-rate banner** ("matched 71 of 95 students") so the most common "looks broken" case — Local Student IDs that don't reconcile across years — is self-diagnosing, not silent. Labels follow the loaded phase (Year 3→5 or 7→9).
 
-> **Phase is data, inferred from the year level — never a global setting.** A combined P–12 school shows primary framing on its Year 3/5 views and secondary framing on its Year 7/9 views at once, so the framing/wording (incl. the attribution caveats below) lives in `core/src/phase.ts` and travels with the level. Section 10 offers a Primary/Secondary toggle when both cohorts are present; single-phase schools see no toggle.
+> **Phase is data, inferred from the year level — never a global setting.** A combined P–12 school shows primary framing on its Year 3/5 views and secondary framing on its Year 7/9 views at once, so the framing/wording (incl. the attribution caveats below) lives in `core/src/phase.ts` and travels with the level. Section 10 offers a phase toggle (Primary / Primary→Secondary transition / Secondary) for whichever pairs are trackable, keyed on `CohortPhase.phase` (`CohortKind`, each value unique so it doubles as the selector key); single-phase schools see no toggle.
 
 **Build the `core/` library and prove it against the oracle *before* building the Tauri shell. Do not scaffold the shell first.**
 
@@ -35,7 +37,9 @@ Unlike the legacy app (single school, hard-coded to one school), NAPLAN Cohort T
 - **Store key:** `(yearOfTest, yearLevel, domain)` → one loaded entry. Literal map key: `` `${yearOfTest}|${yearLevel}|${domain}` `` (e.g. `2026|7|Reading`).
 - **Proficiency levels (order matters — drives the transition matrix):**
   `["Needs additional support", "Developing", "Strong", "Exceeding"]`
-- **Valid year levels:** 3, 5, 7 and 9. The within-school growth pairs are **3→5 (primary)** and **7→9 (secondary)** — see `core/src/phase.ts` (`phaseFor`, `COHORT_PHASES`). 5→7 crosses the primary/secondary boundary, so no single school tracks it.
+- **Valid year levels:** 3, 5, 7 and 9. The within-school growth pairs are **3→5 (primary)**, **7→9 (secondary)**, and **5→7 (transition — P–12 only)** — see `core/src/phase.ts` (`phaseFor`, `COHORT_PHASES`). 5→7 crosses the primary/secondary boundary, so ONLY a combined P–12 (same students stay enrolled Year 5→7) can track it; a standalone primary/secondary never has both files, so it never lights up. `cohortAttributionNote` gives 5→7 its own "continuous teaching, NOT feeder" framing.
+- **`primaryYear` = the cohort's EXIT / latest calendar year (the anchor) — NOT the primary phase.** `cohortYears(primaryYear) = [primaryYear−2, primaryYear]`; every section derives backwards from it. The user-facing control is labelled **"Latest year"** (renamed from the misleading "Primary year"). `cohortReadiness(store)` scans all years and flags half-loaded cohorts (the self-diagnosing "add the missing file" card on Home).
+- **Adding/altering a cohort pair = one entry in `COHORT_PHASES`.** `trackablePhases`, `cohortReadiness` and the import-readiness check all iterate it, and the interpret/stats functions are year-level-agnostic (they read `earlierLevel`/`laterLevel`), so a new pair propagates automatically. The only level-hardcoded spots are `phaseFor`/`nextStepLabel`/`cohortNextStep`.
 - **Domains:** Reading, Numeracy, Spelling, Grammar and Punctuation. (Writing is NOT in the SSSR export — out of scope. Gender is also not in the export — no gender analysis.)
 - **Core types to port:** `LoadedFile`, `PairedCohort` (paired / leavers / joiners), `McNemarResult`, `YearFolder`.
 
@@ -87,7 +91,10 @@ teaches the children from Foundation, so:
 - **Year 5 reflects the primary school's contribution.**
 - **True primary value-add = tracking one cohort from Y3 to Y5.**
 
-Either way, value-add = same students two years apart (requires the entry-year file
+A third case — **Year 5 → 7 (transition, P–12 only)** — frames Year 5 as the entry
+baseline and Year 7 as the school's *continuous* teaching across the move into
+secondary (NOT feeder intake, since the cohort never left). Either way, value-add =
+same students two years apart (requires the entry-year file
 from two years before the exit-year file). This is Section 10 — the headline measure.
 Keep entry/exit years separated and clearly labelled. Frame NAPLAN as **diagnostic
 evidence** that informs improvement planning, not as a target-measurement instrument.
