@@ -1,7 +1,41 @@
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+
+// Build-time stamp (shown on the About screen). Baked in here so it is present
+// synchronously on every screen and in the browser dev preview, not only via the
+// native Tauri command. Version comes from package.json (kept in sync with
+// tauri.conf.json + Cargo.toml at release); commit + time are captured at build.
+const pkgVersion = (
+  JSON.parse(readFileSync(path.resolve(__dirname, "package.json"), "utf8")) as { version: string }
+).version;
+
+function gitShortHash(): string {
+  try {
+    // Fixed args, no shell — execFileSync avoids any command-injection surface.
+    return execFileSync("git", ["rev-parse", "--short", "HEAD"], {
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .toString()
+      .trim();
+  } catch {
+    return "unknown";
+  }
+}
+
+const buildTime = new Intl.DateTimeFormat("en-AU", {
+  timeZone: "Australia/Melbourne",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZoneName: "short",
+}).format(new Date());
 
 // The React app lives at the repo root (src/). `core/` stays a workspace
 // library, consumed as source via the alias below so Vite/esbuild transpiles
@@ -12,6 +46,11 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   clearScreen: false,
+  define: {
+    __APP_VERSION__: JSON.stringify(pkgVersion),
+    __GIT_COMMIT__: JSON.stringify(gitShortHash()),
+    __BUILD_TIME__: JSON.stringify(buildTime),
+  },
   resolve: {
     alias: {
       "@naplan-cohort-tracker/core": path.resolve(__dirname, "core/src/index.ts"),

@@ -1,28 +1,26 @@
 /**
  * About — what the app does, the files it needs, who made it, how to get help,
- * and the disclaimer. Static content (shares appMeta with the import screen);
- * the version is read from the native shell when running under Tauri.
+ * and the disclaimer. Static content (shares appMeta with the import screen).
+ * The version/build stamp is baked in at build time (see src/buildInfo.ts).
  */
-import { useEffect, useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { Card, SectionHeading } from "../components/ui";
-import { isTauri } from "../lib/dataSource";
-import { appInfo } from "../lib/tauriFs";
+import { BUILD_INFO, BUILD_STAMP } from "../buildInfo";
 import { APP_NAME, CONTACT_EMAIL, DEVELOPER, DISCLAIMER, GITHUB_URL } from "../appMeta";
 
 export function AboutView() {
-  const [version, setVersion] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isTauri()) return; // appInfo() is a native command; skip in browser dev
-    appInfo()
-      .then((i) => setVersion(i.version))
-      .catch(() => setVersion(null));
-  }, []);
-
   return (
     <div className="space-y-6">
-      <SectionHeading title={`About ${APP_NAME}`} blurb={version ? `Version ${version}` : undefined} />
+      <SectionHeading title={`About ${APP_NAME}`} blurb={`Version ${BUILD_INFO.version}`} />
+
+      <Card>
+        <h2 className="text-lg font-semibold text-graphite">Version</h2>
+        <p className="mt-1 select-all font-mono text-base text-graphite">{BUILD_STAMP}</p>
+        <p className="mt-1 text-xs text-graphite/55">
+          Version {BUILD_INFO.version}, build {BUILD_INFO.commit}, built {BUILD_INFO.builtAt}. Quote
+          this when reporting a problem.
+        </p>
+      </Card>
 
       <Card>
         <h2 className="text-lg font-semibold text-graphite">What this app does</h2>

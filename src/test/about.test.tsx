@@ -18,4 +18,11 @@ describe("AboutView", () => {
     expect(screen.getByRole("link", { name: GITHUB_URL })).toHaveAttribute("href", GITHUB_URL);
     expect(screen.getByText(/checked carefully by an experienced staff member/i)).toBeInTheDocument();
   });
+
+  it("shows a version/build stamp", () => {
+    renderWithApp(<AboutView />, { store: emptyStore, view: "about" });
+    expect(screen.getByRole("heading", { name: "Version" })).toBeInTheDocument();
+    // Stamp is "v<version> · <commit> · <built>" — fields fall back in tests.
+    expect(screen.getByText(/^v.+·.+·.+/)).toBeInTheDocument();
+  });
 });
