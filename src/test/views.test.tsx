@@ -59,6 +59,19 @@ describe("shell views", () => {
     expect(screen.getAllByText(/datasets/i).length).toBeGreaterThan(0);
   });
 
+  it("the cohort-setup card confirms a complete Year 7 → 9 cohort", () => {
+    renderWithApp(<HomeView />, { store });
+    expect(screen.getByText(/Cohort tracking setup/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ready to track/)).toBeInTheDocument();
+  });
+
+  it("the original bug: only Year 7 (2024) loaded → card says add Year 9 (2026)", () => {
+    const half: Store = new Map([...store].filter(([, e]) => e.yearOfTest === 2024));
+    renderWithApp(<HomeView />, { store: half, state: { primaryYear: 2024 } });
+    expect(screen.getByText(/add the/)).toBeInTheDocument();
+    expect(screen.getByText(/Year 9 \(2026\)/)).toBeInTheDocument();
+  });
+
   it("Settings renders the school-identity form (neutral by default)", () => {
     renderWithApp(<SettingsView />, { store, view: "settings" });
     expect(screen.getByRole("heading", { name: /School identity/i })).toBeInTheDocument();

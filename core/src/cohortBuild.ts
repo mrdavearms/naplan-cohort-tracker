@@ -10,7 +10,7 @@ import { buildPairedCohort } from "./cohort";
 import { VALID_DOMAINS } from "./constants";
 import { COHORT_PHASES, type CohortPhase } from "./phase";
 import { bandMovement, cohortHeadline, type BandMovement } from "./sections/cohortTracking";
-import { getEntry, type Store } from "./store";
+import { getEntry, storeEntries, type Store } from "./store";
 import type { PairedCohort } from "./types";
 
 /** (earlierYear, laterYear) — same students two years apart. */
@@ -64,6 +64,62 @@ export function buildCohortPairings(
     }
   }
   return out;
+}
+
+export interface CohortReadiness {
+  phase: CohortPhase;
+  /** Calendar year the entry (earlier) level sat — the exit year minus 2. */
+  earlierYear: number;
+  /** Calendar year the exit (later) level sat. */
+  laterYear: number;
+  hasEarlier: boolean;
+  hasLater: boolean;
+  complete: boolean;
+}
+
+/**
+ * What two-year cohorts the loaded data can track — and, crucially, which are
+ * only HALF present, so the UI can say exactly which file to add (the original
+ * "stuck and I don't know why" case becomes self-diagnosing). Scans every
+ * calendar year in the store, not just the selected year.
+ *
+ * The 5 → 7 transition is only considered for a P–12 (a primary-phase AND a
+ * secondary-phase level both present) and only surfaced when COMPLETE, so a
+ * single-phase school is never nagged about a Year 5 or Year 7 file it will
+ * never have.
+ */
+export function cohortReadiness(store: Store): CohortReadiness[] {
+  const entries = storeEntries(store);
+  const present = new Set(entries.map((e) => `${e.yearLevel}|${e.yearOfTest}`));
+  const has = (level: number, year: number): boolean => present.has(`${level}|${year}`);
+  const levels = new Set(entries.map((e) => e.yearLevel));
+  const isP12 = [...levels].some((l) => l <= 5) && [...levels].some((l) => l >= 7);
+
+  const out: CohortReadiness[] = [];
+  for (const phase of COHORT_PHASES) {
+    const transition = phase.phase === "transition";
+    if (transition && !isP12) continue;
+
+    // Candidate exit years: any year an entry- or exit-level file is present for.
+    const exitYears = new Set<number>();
+    for (const e of entries) {
+      if (e.yearLevel === phase.later) exitYears.add(e.yearOfTest);
+      if (e.yearLevel === phase.earlier) exitYears.add(e.yearOfTest + 2);
+    }
+
+    for (const laterYear of exitYears) {
+      const hasEarlier = has(phase.earlier, laterYear - 2);
+      const hasLater = has(phase.later, laterYear);
+      const complete = hasEarlier && hasLater;
+      // Only surface the transition when fully present; for primary/secondary,
+      // a single present half is the actionable "add the other file" case.
+      if (transition && !complete) continue;
+      if (!hasEarlier && !hasLater) continue;
+      out.push({ phase, earlierYear: laterYear - 2, laterYear, hasEarlier, hasLater, complete });
+    }
+  }
+  // Most recent exit year first; within a year, school order (primary → secondary).
+  return out.sort((a, b) => b.laterYear - a.laterYear || a.phase.earlier - b.phase.earlier);
 }
 
 export interface CohortMatchRate {

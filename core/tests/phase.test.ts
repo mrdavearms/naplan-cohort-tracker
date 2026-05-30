@@ -11,6 +11,7 @@ import {
   buildCohortPairings,
   cohortAttributionNote,
   cohortNextStep,
+  cohortReadiness,
   cohortValueAddLabel,
   COHORT_PHASES,
   detectDomainAndYear,
@@ -274,5 +275,53 @@ describe("P–12 Year 5 → 7 transition cohort", () => {
     expect(pc.earlierLevel).toBe(5);
     expect(pc.laterLevel).toBe(7);
     expect(pc.paired.map((s) => s.localStudentId).sort()).toEqual(["T1", "T2", "T3"]);
+  });
+});
+
+describe("cohortReadiness — self-diagnosing missing files", () => {
+  const mk = (yr: number, lvl: number) => entry(yr, lvl, [row("X", lvl, "Strong")]);
+  const store = (...es: [number, number][]): Store =>
+    new Map(es.map(([yr, lvl]) => [storeKey(yr, lvl, "Reading"), mk(yr, lvl)]));
+
+  it("flags a complete Year 7 → 9 cohort as ready", () => {
+    const r = cohortReadiness(store([2024, 7], [2026, 9]));
+    expect(r).toHaveLength(1);
+    expect(r[0]).toMatchObject({ earlierYear: 2024, laterYear: 2026, complete: true });
+    expect(r[0]!.phase.phase).toBe("secondary");
+  });
+
+  it("the original bug: only Year 7 (2024) loaded → flags the missing Year 9 (2026)", () => {
+    const r = cohortReadiness(store([2024, 7]));
+    expect(r).toHaveLength(1);
+    expect(r[0]).toMatchObject({
+      earlierYear: 2024,
+      laterYear: 2026,
+      hasEarlier: true,
+      hasLater: false,
+      complete: false,
+    });
+  });
+
+  it("only Year 9 (2026) loaded → flags the missing Year 7 (2024)", () => {
+    const r = cohortReadiness(store([2026, 9]));
+    expect(r).toHaveLength(1);
+    expect(r[0]).toMatchObject({ hasEarlier: false, hasLater: true, complete: false });
+  });
+
+  it("never nags a single-phase secondary school about a Year 5 → 7 transition", () => {
+    const r = cohortReadiness(store([2024, 7], [2026, 9]));
+    expect(r.some((c) => c.phase.phase === "transition")).toBe(false);
+  });
+
+  it("surfaces a P–12 Year 5 → 7 transition only when complete", () => {
+    // P–12 evidence (primary + secondary levels) with a real 5→7 pair present.
+    const r = cohortReadiness(store([2024, 5], [2026, 7], [2024, 3], [2026, 9]));
+    const transition = r.find((c) => c.phase.phase === "transition");
+    expect(transition).toMatchObject({ earlierYear: 2024, laterYear: 2026, complete: true });
+  });
+
+  it("does not invent a transition for the standard P–12 shape (Y3/5/7/9 same years)", () => {
+    const r = cohortReadiness(store([2024, 3], [2026, 5], [2024, 7], [2026, 9]));
+    expect(r.map((c) => c.phase.phase).sort()).toEqual(["primary", "secondary"]);
   });
 });
