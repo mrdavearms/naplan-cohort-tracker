@@ -62,13 +62,16 @@ describe("shell views", () => {
   it("the cohort-setup card confirms a complete Year 7 → 9 cohort", () => {
     renderWithApp(<HomeView />, { store });
     expect(screen.getByText(/Cohort tracking setup/i)).toBeInTheDocument();
-    expect(screen.getByText(/Ready to track/)).toBeInTheDocument();
+    expect(screen.getByText("Ready to analyse")).toBeInTheDocument();
+    expect(screen.getByText(/Year 7 \(2024\) → Year 9 \(2026\)/)).toBeInTheDocument();
   });
 
   it("the original bug: only Year 7 (2024) loaded → card says add Year 9 (2026)", () => {
     const half: Store = new Map([...store].filter(([, e]) => e.yearOfTest === 2024));
     renderWithApp(<HomeView />, { store: half, state: { primaryYear: 2024 } });
-    expect(screen.getByText(/add the/)).toBeInTheDocument();
+    // No complete cohort → the incomplete item is the primary prompt, naming the
+    // missing Year 9 (2026) file.
+    expect(screen.getByText(/To start tracking a cohort/)).toBeInTheDocument();
     expect(screen.getByText(/Year 9 \(2026\)/)).toBeInTheDocument();
   });
 
