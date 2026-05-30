@@ -13,7 +13,7 @@
  */
 import { NAS, PROFICIENCY_LEVELS } from "../constants";
 import { mcnemarPaired, transitionMatrix } from "../cohort";
-import { nextStepLabel, phaseFor, shortLevel } from "../phase";
+import { cohortNextStep, shortLevel } from "../phase";
 import { wilsonCi } from "../stats";
 import type { McNemarResult, PairedCohort, StudentResultRow } from "../types";
 import type { NarrativeContext } from "./narrative";
@@ -46,7 +46,7 @@ export function interpretMcnemar(
 ): string[] {
   const eL = shortLevel(earlierLevel);
   const lL = shortLevel(laterLevel);
-  const nextStep = nextStepLabel(phaseFor(laterLevel));
+  const nextStep = cohortNextStep(earlierLevel, laterLevel);
   const bullets: string[] = [];
   const movedOut = r.movedOutOfNas;
   const movedIn = r.movedIntoNas;

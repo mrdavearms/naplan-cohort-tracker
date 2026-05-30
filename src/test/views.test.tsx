@@ -87,6 +87,11 @@ describe("Section 10 per-domain additions", () => {
     expect(screen.getAllByText(/band movement/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/students to follow up/i).length).toBeGreaterThan(0);
   });
+
+  it("shows the role-aware attribution caveat (Year 7→9 → feeder framing)", () => {
+    renderWithApp(<S10CohortTracking />, { store });
+    expect(screen.getByText(/feeder-cohort intake/)).toBeInTheDocument();
+  });
 });
 
 describe("primary school (Year 3 → 5) rendering", () => {

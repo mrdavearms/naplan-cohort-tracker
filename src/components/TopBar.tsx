@@ -1,8 +1,9 @@
 /**
  * Global top bar — present in EVERY state (pre-load and loaded). Carries the
  * brand (left, returns to the on-ramp/home) and the always-available Settings +
- * About; once data is loaded it also shows the source, the primary-year
- * selector (the year whose Year 9 cohort anchors the analysis) and "Edit files".
+ * About; once data is loaded it also shows the source, the latest-year
+ * selector (the calendar year the analysis anchors on — its cohort tracking
+ * pairs it back to two years earlier) and "Edit files".
  */
 import { availableYears } from "@naplan-cohort-tracker/core";
 import {
@@ -65,11 +66,15 @@ export function TopBar() {
                 Source: {state.sourceLabel}
               </span>
             )}
-            <label className="flex items-center gap-2 text-sm text-graphite/70">
-              Primary year
+            <label
+              className="flex items-center gap-2 text-sm text-graphite/70"
+              title="The most recent NAPLAN calendar year to analyse. Year-level sections show this year; cohort tracking pairs it back to the same students two years earlier."
+            >
+              Latest year
               <select
                 value={state.primaryYear ?? ""}
                 onChange={(e) => setPrimaryYear(Number(e.target.value))}
+                aria-label="Latest NAPLAN year to analyse"
                 className="rounded-lg border border-alabaster bg-white px-3 py-1.5 text-sm text-graphite shadow-sm focus:border-coral focus:ring-coral"
               >
                 {availableYears(state.store).map((y) => (

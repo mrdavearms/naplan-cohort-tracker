@@ -14,6 +14,7 @@ import {
   buildCohortNarrative,
   buildCohortPairings,
   classGroupTracking,
+  cohortAttributionNote,
   cohortHeadline,
   cohortYears,
   inferCohortLevels,
@@ -35,6 +36,7 @@ import {
   transitionHeatmapFigure,
   transitionSankeyFigure,
   wilsonCiDotPlotFigure,
+  type CohortKind,
   type CohortPhase,
   type NarrativeContext,
   type PairedCohort,
@@ -78,7 +80,7 @@ export function S10CohortTracking() {
   // A combined P–12 school can have BOTH cohorts (3→5 and 7→9). Let the user pick
   // which to view; a single-phase school just gets its one phase (no toggle).
   const phases = useMemo(() => trackablePhases(store, primaryYear), [store, primaryYear]);
-  const [selectedPhase, setSelectedPhase] = useState<"primary" | "secondary" | null>(null);
+  const [selectedPhase, setSelectedPhase] = useState<CohortKind | null>(null);
   const activePhase: CohortPhase | undefined =
     phases.find((p) => p.phase === selectedPhase) ?? phases[phases.length - 1];
 
@@ -137,6 +139,10 @@ export function S10CohortTracking() {
         blurb={`The same students from ${earlierLabel} (${y7Year}) to ${laterLabel} (${y9Year}) — the school's value-add measure.`}
       />
 
+      <p className="rounded-xl border border-alabaster bg-white/60 p-3 text-xs text-graphite/70">
+        {cohortAttributionNote(earlierLevel, laterLevel, y7Year, y9Year)}
+      </p>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         {phases.length > 1 ? (
           <div className="inline-flex rounded-xl border border-alabaster bg-white/60 p-1 text-sm">
@@ -150,7 +156,12 @@ export function S10CohortTracking() {
                   (p.phase === activePhase?.phase ? "bg-coral text-white" : "text-graphite/70 hover:text-graphite")
                 }
               >
-                {p.phase === "primary" ? "Primary" : "Secondary"} (Year {p.earlier} → {p.later})
+                {p.phase === "primary"
+                  ? "Primary"
+                  : p.phase === "transition"
+                    ? "Primary→Secondary"
+                    : "Secondary"}{" "}
+                (Year {p.earlier} → {p.later})
               </button>
             ))}
           </div>

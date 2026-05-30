@@ -9,6 +9,9 @@ import { describe, expect, it } from "vitest";
 import {
   attributionNote,
   buildCohortPairings,
+  cohortAttributionNote,
+  cohortNextStep,
+  cohortValueAddLabel,
   COHORT_PHASES,
   detectDomainAndYear,
   inferCohortLevels,
@@ -64,9 +67,10 @@ describe("phase classification + wording", () => {
     expect(phaseFor(9)).toBe("secondary");
   });
 
-  it("defines the two within-school cohort pairs", () => {
+  it("defines the within-school cohort pairs (incl. the P–12 Year 5→7 transition)", () => {
     expect(COHORT_PHASES).toEqual([
       { phase: "primary", earlier: 3, later: 5 },
+      { phase: "transition", earlier: 5, later: 7 },
       { phase: "secondary", earlier: 7, later: 9 },
     ]);
     expect(shortLevel(3)).toBe("Y3");
@@ -85,6 +89,28 @@ describe("phase classification + wording", () => {
   it("gives the right next-step for each phase", () => {
     expect(nextStepLabel("primary")).toContain("Year 6");
     expect(nextStepLabel("secondary")).toBe("Year 10");
+  });
+
+  it("cohortNextStep is Year 9 for a 5→7 transition, not Year 10", () => {
+    expect(cohortNextStep(5, 7)).toBe("Year 9");
+    expect(cohortNextStep(7, 9)).toBe("Year 10");
+    expect(cohortNextStep(3, 5)).toContain("Year 6");
+  });
+
+  it("value-add label frames 5→7 as the primary–secondary transition", () => {
+    expect(cohortValueAddLabel(5, 7)).toContain("transition");
+    expect(cohortValueAddLabel(3, 5)).toContain("primary school's");
+    expect(cohortValueAddLabel(7, 9)).toContain("secondary school's");
+  });
+
+  it("cohort attribution is role-aware: 5→7 is continuous P–12 teaching, NOT feeder", () => {
+    const t = cohortAttributionNote(5, 7, 2024, 2026);
+    expect(t).toContain("P–12");
+    expect(t).toContain("NOT feeder");
+    expect(t).toContain("2024");
+    expect(t).toContain("2026");
+    expect(cohortAttributionNote(7, 9, 2024, 2026)).toContain("feeder-cohort intake");
+    expect(cohortAttributionNote(3, 5, 2024, 2026)).toContain("baseline");
   });
 
   it("infers cohort levels from the data, preferring the senior phase", () => {
@@ -208,5 +234,45 @@ describe("combined P–12 school — both cohorts (Stage 2)", () => {
   it("defaults to the senior (secondary) phase when none is specified", () => {
     const pc = buildCohortPairings(combinedStore(), 2026).get("Reading")!;
     expect(pc.earlierLevel).toBe(7);
+  });
+});
+
+describe("P–12 Year 5 → 7 transition cohort", () => {
+  // The 5→7 pair needs the SAME students: Year 5 two years before Year 7.
+  function transitionStore(): Store {
+    const mk = (yr: number, lvl: number, ids: string[]) =>
+      entry(yr, lvl, ids.map((id) => row(id, lvl, "Strong")));
+    return new Map<string, LoadedFile>([
+      [storeKey(2024, 5, "Reading"), mk(2024, 5, ["T1", "T2", "T3"])],
+      [storeKey(2026, 7, "Reading"), mk(2026, 7, ["T1", "T2", "T3"])],
+    ]);
+  }
+
+  it("detects the transition phase as trackable for a P–12 with Year 5 (2024) + Year 7 (2026)", () => {
+    expect(trackablePhases(transitionStore(), 2026)).toEqual([
+      { phase: "transition", earlier: 5, later: 7 },
+    ]);
+  });
+
+  it("a normal secondary school (Year 7 + 9 only) never lights up the 5→7 pair", () => {
+    const secondaryOnly = new Map<string, LoadedFile>([
+      [storeKey(2024, 7, "Reading"), entry(2024, 7, [row("S1", 7, "Strong")])],
+      [storeKey(2026, 9, "Reading"), entry(2026, 9, [row("S1", 9, "Strong")])],
+    ]);
+    expect(trackablePhases(secondaryOnly, 2026)).toEqual([
+      { phase: "secondary", earlier: 7, later: 9 },
+    ]);
+  });
+
+  it("pairs the Year 5 → 7 cohort, recording the levels", () => {
+    const pairings = buildCohortPairings(transitionStore(), 2026, {
+      phase: "transition",
+      earlier: 5,
+      later: 7,
+    });
+    const pc = pairings.get("Reading")!;
+    expect(pc.earlierLevel).toBe(5);
+    expect(pc.laterLevel).toBe(7);
+    expect(pc.paired.map((s) => s.localStudentId).sort()).toEqual(["T1", "T2", "T3"]);
   });
 });

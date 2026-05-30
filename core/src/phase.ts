@@ -3,8 +3,11 @@
  * truth for "what does a result at this year level mean?".
  *
  * NAPLAN is sat in Years 3, 5, 7 and 9. The within-school growth pairs are
- * Year 3 → 5 (primary) and Year 7 → 9 (secondary); Year 5 → 7 crosses the
- * primary/secondary boundary (different schools), so no single school tracks it.
+ * Year 3 → 5 (primary) and Year 7 → 9 (secondary). Year 5 → 7 crosses the
+ * primary/secondary boundary, so ONLY a combined P–12 school can track it — the
+ * same students stay enrolled from upper primary into early secondary. A
+ * standalone primary (no Year 7) or secondary (no Year 5) never has both files,
+ * so the pair simply never lights up for them.
  *
  * Phase is DATA, inferred from the year level being viewed — never a global
  * setting. A combined (P–12) school shows primary framing on its Year 3/5 views
@@ -20,16 +23,26 @@
 
 export type Phase = "primary" | "secondary";
 
+/**
+ * The kind of a cohort PAIR. Distinct from `Phase` (which classifies a single
+ * year level): a 5 → 7 pair is a primary→secondary "transition", trackable only
+ * within a combined P–12 school. Each value is unique across COHORT_PHASES, so
+ * it doubles as the selector key.
+ */
+export type CohortKind = "primary" | "transition" | "secondary";
+
 /** One within-school cohort pair, entry (earlier) → exit (later) level. */
 export interface CohortPhase {
-  phase: Phase;
+  phase: CohortKind;
   earlier: number;
   later: number;
 }
 
-/** The two trackable within-school cohort pairs, in school order. */
+/** The trackable within-school cohort pairs, in school order. Year 5 → 7 sits
+ *  between primary and secondary and only ever applies to a combined P–12. */
 export const COHORT_PHASES: readonly CohortPhase[] = [
   { phase: "primary", earlier: 3, later: 5 },
+  { phase: "transition", earlier: 5, later: 7 },
   { phase: "secondary", earlier: 7, later: 9 },
 ] as const;
 
@@ -108,6 +121,9 @@ export function yearOnYearContext(level: number): string {
 
 /** Label for the school value-add measure across a cohort pair. */
 export function cohortValueAddLabel(earlier: number, later: number): string {
+  if (earlier === 5 && later === 7) {
+    return "the school's value-add across the primary–secondary transition (Year 5 → Year 7)";
+  }
   const who = phaseFor(later) === "primary" ? "the primary school's" : "the secondary school's";
   return `${who} value-add (Year ${earlier} → Year ${later})`;
 }
@@ -115,4 +131,53 @@ export function cohortValueAddLabel(earlier: number, later: number): string {
 /** The next schooling step after the later year of a phase — for follow-up wording. */
 export function nextStepLabel(phase: Phase): string {
   return phase === "primary" ? "Year 6 and the move into secondary" : "Year 10";
+}
+
+/**
+ * The next schooling step after a COHORT'S exit level — for follow-up wording.
+ * A 5 → 7 transition cohort's next NAPLAN is Year 9 (still within the P–12),
+ * not Year 10; everything else follows the exit level's phase.
+ */
+export function cohortNextStep(earlierLevel: number, laterLevel: number): string {
+  if (earlierLevel === 5 && laterLevel === 7) return "Year 9";
+  return nextStepLabel(phaseFor(laterLevel));
+}
+
+/**
+ * The attribution caveat for a paired COHORT (Section 10), keyed on the
+ * transition — NOT just the level, because the same level means different things
+ * in different pairs (Year 7 is "feeder intake" as the entry of 7 → 9, but
+ * "continuous teaching" as the exit of a P–12's 5 → 7). `earlierYear`/`laterYear`
+ * are the calendar years the entry/exit groups sat NAPLAN.
+ */
+export function cohortAttributionNote(
+  earlierLevel: number,
+  laterLevel: number,
+  earlierYear: number,
+  laterYear: number,
+): string {
+  if (earlierLevel === 3 && laterLevel === 5) {
+    return (
+      `Year 3 (${earlierYear}) is an early baseline that largely reflects this school's own ` +
+      `early-years teaching; Year 5 (${laterYear}) reflects the primary school's contribution. ` +
+      `True value-add is these same students tracked Year 3 → Year 5. NAPLAN is sat in Term 1, ` +
+      `so it is diagnostic evidence to inform planning, not a target-measurement instrument.`
+    );
+  }
+  if (earlierLevel === 5 && laterLevel === 7) {
+    return (
+      `In a combined P–12 school the cohort stays enrolled throughout: Year 5 (${earlierYear}) is ` +
+      `the entry baseline at the end of upper primary, and Year 7 (${laterYear}) reflects the ` +
+      `school's continuous teaching across the move into secondary — NOT feeder intake (the ` +
+      `Year 7 framing that applies to a standalone secondary). True value-add is these same ` +
+      `students tracked Year 5 → Year 7.`
+    );
+  }
+  // 7 → 9 (and any other secondary pair)
+  return (
+    `Year 7 (${earlierYear}) NAPLAN is sat in Term 1 — it reflects students' primary-school ` +
+    `learning (feeder-cohort intake), not this school's teaching; Year 9 (${laterYear}) reflects ` +
+    `the secondary school's contribution (the cohort has had ~2 years here). True value-add is ` +
+    `these same students tracked Year 7 → Year 9.`
+  );
 }

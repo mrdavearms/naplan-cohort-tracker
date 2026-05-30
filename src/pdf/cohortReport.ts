@@ -11,6 +11,7 @@ import {
   buildCohortNarrative,
   buildCohortPairings,
   cohortHeadline,
+  cohortAttributionNote,
   cohortMatchRate,
   cohortYears,
   inferCohortLevels,
@@ -187,6 +188,7 @@ async function phaseSection(
     text: `The same ${mr.matched} students tracked from ${earlierLabel} (${y7Year}) to ${laterLabel} (${y9Year}), matched on Local Student ID (${pct1(mr.matchRatePct)} of the ${mr.laterCohortTotal} ${laterLabel} students). ${mr.leavers} left after ${earlierLabel}; ${mr.joiners} joined after ${earlierLabel}.`,
     style: "lead",
   });
+  out.push({ text: cohortAttributionNote(phase.earlier, phase.later, y7Year, y9Year), style: "caption" });
 
   // Headline table
   out.push({ text: "Paired-cohort headline", style: "h2" });

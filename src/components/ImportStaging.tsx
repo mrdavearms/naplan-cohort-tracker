@@ -66,8 +66,8 @@ function readiness(staged: StagedSource[]): string | null {
   return (
     `So far you've added ${labels.join(", ")}. To track the same cohort across two years, also ` +
     `add an entry-year file two years before its exit-year file — Year 3 with Year 5 ` +
-    `(for example Year 3 2024 with Year 5 2026), or Year 7 with Year 9. You can still load now ` +
-    `for single-year analysis (Sections 1–9).`
+    `(for example Year 3 2024 with Year 5 2026), Year 7 with Year 9, or — in a combined P–12 ` +
+    `school — Year 5 with Year 7. You can still load now for single-year analysis (Sections 1–9).`
   );
 }
 
