@@ -167,6 +167,9 @@ index = f"""<!doctype html>
       {win_btn}
     </div>
   </div>
+  <div class="card warn" style="border-left-width:6px;text-align:center">
+    <p style="margin:0;font-size:16px"><strong>Staff — please read this first.</strong> The first time anyone opens the app, Mac and Windows show a <strong>security warning</strong>, because it is a free, independent tool (not paid app-store signed). <strong>This is normal and safe — it does NOT mean the app is broken.</strong> You click through it once using the steps below; after that it opens like any other app.</p>
+  </div>
   <p style="text-align:center;color:#888;font-size:13px;margin:0 0 6px">Version {version} · released {date}</p>
   <details class="more">
     <summary>Other download options ▾</summary>
@@ -177,8 +180,8 @@ index = f"""<!doctype html>
   </details>
 
   <div class="card warn">
-    <h3>Opening it the first time — one quick step</h3>
-    <p>This app is free and isn't paid Apple/Microsoft code-signed, so the very first time you open it your computer asks you to confirm. <strong>This is normal and expected</strong> — you only do it once, then it opens like any other app.</p>
+    <h3>Opening it the first time — the security warning is normal</h3>
+    <p>Because the app is free and not paid Apple/Microsoft code-signed, the first time you open it your computer asks you to confirm. <strong>This is expected and does not mean anything is wrong</strong> — you only do it once, then it opens like any other app. (If your browser warns the download is “not commonly downloaded” or tries to discard it, choose <strong>Keep</strong>.)</p>
     <p style="margin:16px 0 4px"><strong>On a Mac</strong></p>
     <ol>
       <li>Open the downloaded <strong>.dmg</strong> and drag <strong>NAPLAN Cohort Tracker</strong> into your <strong>Applications</strong> folder.</li>
@@ -240,12 +243,12 @@ No spreadsheets, no logins, and no student data ever leaves your machine.
 
 > **Early release — may not work properly.** This is an early release and is still being tested, so some figures or screens may not work as expected. Please check anything important against your source spreadsheets before you rely on it. (The Year 3 → Year 5 primary analysis is the newest and least-validated part, so treat primary figures as especially provisional.) Feedback is very welcome — **dave.armstrong@education.vic.gov.au**.
 
-### The first time you open it — please read
+### The first time you open it — please read (the security warning is normal)
 
-This app is free and isn't paid Apple/Microsoft code-signed, so the first time you open it your computer asks you to confirm. **This is normal** — you only do it once.
+The first time anyone opens the app, Mac and Windows show a security warning, because it is a free, independent tool (not paid app-store signed). **This is normal and safe — it does NOT mean the app is broken.** You click through it once. (If your browser says the download is "not commonly downloaded" or tries to discard it, choose **Keep**.)
 
 - **Mac:** drag the app into **Applications**, then double-click it. macOS will say it "could not verify" the app (expected) — click **Done**. Then go to **System Settings -> Privacy & Security**, scroll down, and click **Open Anyway** next to the NAPLAN Cohort Tracker message; confirm with your fingerprint or Mac password. (On older Macs you can instead right-click the app -> **Open** -> **Open**.)
-- **Windows:** if you see "Windows protected your PC", click **More info** -> **Run anyway**.
+- **Windows:** run the **setup .exe**; if you see "Windows protected your PC", click **More info** -> **Run anyway**.
 
 You only need to do this once; after that it opens normally.
 

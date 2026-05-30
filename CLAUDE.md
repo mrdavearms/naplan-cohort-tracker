@@ -198,8 +198,9 @@ the other Antigravity apps:
 - Releases are still cut from `main` via a version tag (`vX.Y.Z`) which triggers
   `release.yml`, then `scripts/mirror-release.sh vX.Y.Z` publishes to the public
   auto-update feed.
-- `release.yml` makes a **draft** release in this (private) repo. The in-app updater
-  reads the **public** `naplan-cohort-tracker-releases` feed, so it sees nothing new
+- `release.yml` makes a **draft** release in this code repo (public since 2026-05-31,
+  which is what makes Actions free — macOS/Windows builds no longer burn minutes). The
+  in-app updater reads the **public** `naplan-cohort-tracker-releases` feed, so it sees nothing new
   until `scripts/mirror-release.sh vX.Y.Z` runs (mirrors assets + regenerates the
   Pages download page; runs locally via `gh`, no Actions minutes). After mirroring,
   `/releases/latest/download/latest.json` is CDN-cached and can lag a few minutes —
@@ -209,6 +210,27 @@ the other Antigravity apps:
   `package.json`. The `app_info` command reports `tauri.conf.json`'s version via
   `package_info()`. After editing the three, run `cd src-tauri && cargo check` to
   sync `Cargo.lock`'s `app` version too (the 4th place the version lives).
+
+## Download-page first-run instructions — NON-NEGOTIABLE
+
+The builds are **unsigned**, so on first launch macOS (Gatekeeper) and Windows
+(SmartScreen) show a scary-looking security warning. Teachers read that as "the app
+is broken" and give up — it is the #1 support issue. The teacher-facing download page
+MUST therefore always carry **prominent, always-visible, version-independent** first-run
+instructions that (a) state the warning is normal and does NOT mean the app is broken,
+and (b) give exact click-through steps for current macOS and Windows.
+
+- **Source of truth:** the HTML + README generated in `scripts/mirror-release.sh` — the
+  "Staff — please read this first" primer (directly under the download buttons) and the
+  "Opening it the first time" card. The wording lives in the script so it regenerates on
+  every release and survives version bumps; never move it into a one-off release note.
+- **macOS Sequoia (15+) removed the old right-click→Open shortcut for unsigned apps:**
+  lead with **System Settings → Privacy & Security → Open Anyway**; keep right-click→Open
+  only as the "older Macs" fallback. Also tell users to choose **Keep** if the browser
+  flags the download as "not commonly downloaded".
+- **Never remove, collapse, or bury these.** If the page is restyled, the first-run block
+  stays prominent and above the fold. The real fix (signing/notarization) is out of scope,
+  so until then clear instructions are the only lever.
 
 ## Out of scope for v1
 
