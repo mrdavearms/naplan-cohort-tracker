@@ -213,7 +213,8 @@ export function ImportStaging() {
             a preliminary Student and School Summary Report (SSSR), usually during Term 2. Point
             NAPLAN&nbsp;Cohort&nbsp;Tracker at those files and it surfaces participation, proficiency,
             equity and skill gaps — and, as the headline, tracks the same students across two
-            years (Year 3 to Year 5, or Year 7 to Year 9). Nothing leaves your machine.
+            years (Year 3 to Year 5, Year 7 to Year 9, or Year 5 to Year 7 in a combined P–12
+            school). Nothing leaves your machine.
           </p>
         </div>
 

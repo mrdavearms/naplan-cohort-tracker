@@ -32,7 +32,8 @@ export function AboutView() {
           Test Report, Student Reports and proficiency-standard information. This app reads those
           files and surfaces participation, proficiency, equity and skill gaps — and, as the
           headline, tracks the same students across two years (Year 3 to Year 5 for a primary
-          school, or Year 7 to Year 9 for a secondary school — your school’s value-add).
+          school, Year 7 to Year 9 for a secondary school, or Year 5 to Year 7 in a combined
+          P–12 school — your school’s value-add).
           Everything runs on your device; no student data leaves the machine.
         </p>
       </Card>

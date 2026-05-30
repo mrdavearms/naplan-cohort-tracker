@@ -178,14 +178,16 @@ index = f"""<!doctype html>
 
   <div class="card warn">
     <h3>Opening it the first time — one quick step</h3>
-    <p>These are free builds that aren't paid code-signed, so your computer shows a one-time warning. It's expected and safe — here's how to get past it (you only do this once):</p>
-    <p style="margin:14px 0 4px"><strong>On a Mac</strong></p>
+    <p>This app is free and isn't paid Apple/Microsoft code-signed, so the very first time you open it your computer asks you to confirm. <strong>This is normal and expected</strong> — you only do it once, then it opens like any other app.</p>
+    <p style="margin:16px 0 4px"><strong>On a Mac</strong></p>
     <ol>
       <li>Open the downloaded <strong>.dmg</strong> and drag <strong>NAPLAN Cohort Tracker</strong> into your <strong>Applications</strong> folder.</li>
-      <li>In <strong>Applications</strong>, <strong>right-click</strong> (or Control-click) the app → <strong>Open</strong> → <strong>Open</strong>.</li>
-      <li>Still blocked? Open <strong>System Settings → Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong>.</li>
+      <li>Open your <strong>Applications</strong> folder and <strong>double-click</strong> the app. macOS will say it “<strong>could not verify</strong>” the app — that's expected. Click <strong>Done</strong> (do <em>not</em> click Move to Trash).</li>
+      <li>Go to <strong>System Settings → Privacy &amp; Security</strong>, scroll down to the <strong>Security</strong> section, and next to “NAPLAN Cohort Tracker was blocked” click <strong>Open Anyway</strong>. Confirm with your fingerprint or Mac password.</li>
+      <li>On older Macs you can instead skip steps 2–3 and just <strong>right-click</strong> (or Control-click) the app → <strong>Open</strong> → <strong>Open</strong>.</li>
     </ol>
-    <p style="margin:14px 0 4px"><strong>On Windows</strong></p>
+    <p style="margin:6px 0 0;color:#666;font-size:14px">After this first time, open it normally from Applications, the Dock or Launchpad.</p>
+    <p style="margin:16px 0 4px"><strong>On Windows</strong></p>
     <ol>
       <li>Run the downloaded <strong>setup .exe</strong>.</li>
       <li>If you see a blue “<strong>Windows protected your PC</strong>” box, click <strong>More info</strong> → <strong>Run anyway</strong>.</li>
@@ -194,13 +196,13 @@ index = f"""<!doctype html>
 
   <div class="card warn">
     <h3><span class="pill">Early release</span> &nbsp;May not work properly</h3>
-    <p>This is an <strong>early release</strong> and is still being tested, so some figures or screens may not work as expected — please <strong>check anything important against your source spreadsheets before you rely on it</strong>. <span style="white-space:nowrap">Year&nbsp;3 → Year&nbsp;5</span> (primary) cohort tracking is the <strong>newest part</strong> and the least validated, so treat primary figures as especially provisional.</p>
+    <p>This is an <strong>early release</strong> and is still being tested, so some figures or screens may not work as expected — please <strong>check anything important against your source spreadsheets before you rely on it</strong>. The <span style="white-space:nowrap">Year&nbsp;3 → Year&nbsp;5</span> (primary) and new <span style="white-space:nowrap">Year&nbsp;5 → Year&nbsp;7</span> (P–12) cohort tracking are the <strong>newest parts</strong> and the least validated, so treat those figures as especially provisional.</p>
     <p>Your feedback is genuinely welcome — tell me what works, what doesn't, and anything that looks off: <a href="mailto:dave.armstrong@education.vic.gov.au">dave.armstrong@education.vic.gov.au</a>.</p>
   </div>
 
   <div class="card">
     <h3>What it does</h3>
-    <p>Point it at a folder of your NAPLAN SSSR files and it shows participation, proficiency, equity and skill gaps — and tracks the <strong>same students across two years (Year 3 to Year 5, or Year 7 to Year 9)</strong>, the closest thing to a true measure of your school's contribution. It builds tidy PDF reports for your leadership and faculty conversations.</p>
+    <p>Point it at a folder of your NAPLAN SSSR files and it shows participation, proficiency, equity and skill gaps — and tracks the <strong>same students across two years (Year 3 to Year 5, Year 7 to Year 9, or Year 5 to Year 7 in a combined P–12 school)</strong>, the closest thing to a true measure of your school's contribution. It builds tidy PDF reports for your leadership and faculty conversations.</p>
     <p><span class="pill">Private by design</span> &nbsp;Everything runs on your computer. No student names appear anywhere, and no data is ever uploaded.</p>
   </div>
 
@@ -240,19 +242,19 @@ No spreadsheets, no logins, and no student data ever leaves your machine.
 
 ### The first time you open it — please read
 
-These are free, unsigned builds, so your computer shows a **one-time** safety prompt. It's expected:
+This app is free and isn't paid Apple/Microsoft code-signed, so the first time you open it your computer asks you to confirm. **This is normal** — you only do it once.
 
-- **Mac:** right-click (or Control-click) the app -> **Open** -> **Open** again.
+- **Mac:** drag the app into **Applications**, then double-click it. macOS will say it "could not verify" the app (expected) — click **Done**. Then go to **System Settings -> Privacy & Security**, scroll down, and click **Open Anyway** next to the NAPLAN Cohort Tracker message; confirm with your fingerprint or Mac password. (On older Macs you can instead right-click the app -> **Open** -> **Open**.)
 - **Windows:** if you see "Windows protected your PC", click **More info** -> **Run anyway**.
 
-You only need to do this once.
+You only need to do this once; after that it opens normally.
 
 ## What it does
 
 Point it at a folder of your NAPLAN SSSR files. It shows participation, proficiency,
 equity and skill gaps, and tracks the **matched cohort across two years (Year 3 -> Year 5,
-or Year 7 -> Year 9)** -- the closest thing to a true measure of your school's contribution --
-then builds tidy PDF reports.
+Year 7 -> Year 9, or Year 5 -> Year 7 in a combined P-12 school)** -- the closest thing to a
+true measure of your school's contribution -- then builds tidy PDF reports.
 
 **Private by design:** everything runs on your computer; no student names appear anywhere
 and nothing is uploaded.
