@@ -48,7 +48,7 @@ and shipped in v0.1.2:
 | 0–3 (analysis core) | Complete, oracle-validated (pre-session). |
 | 4 — Tauri + React shell | **Done.** Frontend, all 10 section views, Settings, match-rate banner, native folder picker, logging, updater wired. |
 | 5 — PDF reports | **Done.** Overview (S1–9) + cohort (S10) PDFs via pdfmake + Plotly PNG. |
-| 6 — Packaging + updater | **Done + live.** GitHub Actions builds macOS `.dmg` + Windows `.exe`/`.msi` (signed) + `latest.json`. Published to the private repo AND mirrored to the public feed repo `naplan-cohort-tracker-releases`; auto-update endpoint verified live (HTTP 200, signed). Branded "NCT" icon added. |
+| 6 — Packaging + updater | **Done + live.** GitHub Actions builds macOS `.dmg` + Windows `.exe`/`.msi` (signed) + `latest.json`. Published to the code repo AND mirrored to the public feed repo `naplan-cohort-tracker-releases`; auto-update endpoint verified live (HTTP 200, signed). Branded "NCT" icon added. |
 | 7 — Polish | **Done.** User guide, README, error/empty/loading states. |
 | Testing | **118 tests** — analysis core (oracle-validated) + UI view rendering + PDF generation, green on macOS + Windows CI. |
 | Real-data parity | **Verified.** The full TS pipeline matches the legacy Python oracle **exactly** on the real OneDrive data (2026): per-domain paired/leavers/joiners, Y7/Y9 NAS%, McNemar p (0.2188 / 0.5811 / 1.0000 / 0.5488), and the Reading transition matrix all identical. (Checked with a throwaway script — never committed, no student data in the repo.) |
@@ -95,7 +95,8 @@ and shipped in v0.1.2:
   Share that URL with school staff — they never see code.
 - **Auto-update is LIVE and proven end-to-end.** Installers + `latest.json` are
   mirrored to the public feed repo **`mrdavearms/naplan-cohort-tracker-releases`**
-  (binaries only — source stays private, per Option B). The app's baked-in
+  (binaries only — the code repo itself is also public as of 2026-05-31, which is
+  what makes the macOS/Windows release builds free). The app's baked-in
   endpoint serves the latest version, signed; installers download unauthenticated.
 - **Signing secrets** (`TAURI_SIGNING_PRIVATE_KEY` + `…_PASSWORD`) are set in the
   source repo; the private key is at `~/.naplan-cohort-tracker-updater.key`.
