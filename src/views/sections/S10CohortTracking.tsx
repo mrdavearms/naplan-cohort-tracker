@@ -335,9 +335,11 @@ function DomainDrilldown({
         <p className="mb-3 text-xs text-graphite/60">
           Where the matched cohort moved between proficiency bands, {earlierLabel} → {laterLabel}.
         </p>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Chart figure={transitionSankeyFigure(pc, y7Year, y9Year)} height={420} />
-          <Chart figure={transitionHeatmapFigure(pc, y7Year, y9Year)} height={420} />
+        {/* One visualisation wide — never side by side. A crushed Sankey
+            collapses its margins and the year headers overlap (see CLAUDE.md). */}
+        <div className="space-y-4">
+          <Chart figure={transitionSankeyFigure(pc, y7Year, y9Year)} height={460} />
+          <Chart figure={transitionHeatmapFigure(pc, y7Year, y9Year)} height={460} />
         </div>
         <div className="mt-3">
           <Bullets items={interpretTransition(pc)} />

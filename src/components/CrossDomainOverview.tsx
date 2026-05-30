@@ -68,16 +68,17 @@ export function CrossDomainOverview({ pairings }: { pairings: Map<string, Paired
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {/* One visualisation wide — never side by side (keeps charts legible at any window size). */}
+      <div className="space-y-4">
         <div>
           <h3 className="mb-1 text-sm font-medium text-graphite/70">
             {metric === "nas" ? "NAS %" : "Strong + Exceeding %"}: {earlierLabel} → {laterLabel}
           </h3>
-          <Chart figure={dumbbellFigure(dumbbellRows, { axisTitle: metric === "nas" ? "NAS %" : "Meeting+ %", earlierLabel, laterLabel })} height={200} />
+          <Chart figure={dumbbellFigure(dumbbellRows, { axisTitle: metric === "nas" ? "NAS %" : "Meeting+ %", earlierLabel, laterLabel })} height={220} />
         </div>
         <div>
           <h3 className="mb-1 text-sm font-medium text-graphite/70">Net change in NAS (pp)</h3>
-          <Chart figure={divergingDeltaFigure(rows.map((r) => ({ domain: r.domain, deltaNasPp: r.deltaNasPp })))} height={200} />
+          <Chart figure={divergingDeltaFigure(rows.map((r) => ({ domain: r.domain, deltaNasPp: r.deltaNasPp })))} height={220} />
         </div>
       </div>
 

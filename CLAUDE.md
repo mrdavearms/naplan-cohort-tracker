@@ -137,6 +137,15 @@ Tests are two Vitest projects: **core** (`core/tests/**`, node env, parses real 
 
 ## UI shell gotchas
 
+- **One visualisation wide — NEVER side by side (screen AND PDF).** Charts must each
+  get the full content width; a two-column chart grid crushes them. The Sankey is the
+  canary: its fixed 200px side margins (for the node labels) mean a narrow render
+  collapses the plot area and the blue `Y7 2024`/`Y9 2026` headers overlap into
+  "Y7 20242026". On screen this is enforced by stacking (no `lg:grid-cols-2` around
+  `<Chart>`); the 960px window min-width then guarantees a wide-enough plot area. In the
+  **PDF**, render the Sankey on a wide internal canvas (`figureToPng(..., 820, 440)`) and
+  let pdfmake scale it to the page — never render it narrow. Don't reintroduce side-by-side
+  charts in `CrossDomainOverview`, `S10CohortTracking`, or `cohortReport.ts`.
 - **Pre-load renders no chrome.** When `status !== "loaded"`, `App.tsx` shows a centred
   view with **no sidebar/top bar**; screens reachable before data loads (Import, About,
   Settings) need their own nav. A new screen = add to `ViewId`, the `ActiveView` switch,

@@ -65,8 +65,11 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
     return out;
   }
 
-  const sankey = await figureToPng(transitionSankeyFigure(pc, y7Year, y9Year), 520, 360);
-  const heat = await figureToPng(transitionHeatmapFigure(pc, y7Year, y9Year), 520, 360);
+  // Render the Sankey on a wide internal canvas (820px) so its fixed 200px
+  // side margins still leave a generous plot area and the Y7/Y9 year headers
+  // can't collide; pdfmake scales it down to the page width (see CLAUDE.md).
+  const sankey = await figureToPng(transitionSankeyFigure(pc, y7Year, y9Year), 820, 440);
+  const heat = await figureToPng(transitionHeatmapFigure(pc, y7Year, y9Year), 560, 380);
   out.push({ image: sankey, width: 500, margin: [0, 2, 0, 6] });
   out.push({ image: heat, width: 500, margin: [0, 2, 0, 6] });
   out.push(bulletList(interpretTransition(pc)));
@@ -212,17 +215,21 @@ async function phaseSection(
     y9Value: r.y9NasPct,
     direction: r.deltaNasPp < 0 ? "improved" : r.deltaNasPp > 0 ? "worsened" : "flat",
   }));
-  const dumbbellPng = await figureToPng(dumbbellFigure(dumbbellRows, { axisTitle: "NAS %", earlierLabel, laterLabel }), 360, 220);
+  // Full-width, stacked — one visualisation wide, never side by side.
+  const dumbbellPng = await figureToPng(dumbbellFigure(dumbbellRows, { axisTitle: "NAS %", earlierLabel, laterLabel }), 720, 300);
   const deltaPng = await figureToPng(
     divergingDeltaFigure(summary.map((r) => ({ domain: r.domain, deltaNasPp: r.deltaNasPp }))),
-    360,
-    220,
+    720,
+    300,
   );
   const movementRows: MovementBarRow[] = summary.map((r) => ({ label: `${r.domain} (n=${r.pairedN})`, movement: r.movement }));
-  const movementPng = await figureToPng(movementStackedFigure(movementRows), 520, 220);
+  const movementPng = await figureToPng(movementStackedFigure(movementRows), 720, 300);
 
   out.push({ text: `Across all domains (${earlierLabel} → ${laterLabel})`, style: "h2" });
-  out.push({ columns: [{ image: dumbbellPng, width: 250 }, { image: deltaPng, width: 250 }], columnGap: 10, margin: [0, 2, 0, 6] });
+  out.push({ text: `NAS % — ${earlierLabel} → ${laterLabel}`, style: "h3" });
+  out.push({ image: dumbbellPng, width: 500, margin: [0, 2, 0, 6] });
+  out.push({ text: "Net change in NAS (pp)", style: "h3" });
+  out.push({ image: deltaPng, width: 500, margin: [0, 2, 0, 6] });
   out.push({ text: "Band movement — moved down · stayed · moved up", style: "h3" });
   out.push({ image: movementPng, width: 500, margin: [0, 2, 0, 8] });
 
