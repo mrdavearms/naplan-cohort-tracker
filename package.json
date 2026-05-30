@@ -1,6 +1,6 @@
 {
   "name": "naplan-cohort-tracker",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "Cross-platform desktop app for NAPLAN cohort analysis (Tauri + React + TypeScript).",
