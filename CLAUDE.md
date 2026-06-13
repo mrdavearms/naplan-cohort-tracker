@@ -133,6 +133,8 @@ Tests are two Vitest projects: **core** (`core/tests/**`, node env, parses real 
 
 **Test stores:** `src/test/fixtures.ts` builds a `Store` from the committed `.xlsx` in `core/tests/fixtures/` — `buildSyntheticStore` (Y7/9), `buildPrimaryStore` (Y3/5), `buildCombinedStore` (all four). The `.xlsx` are committed binaries (no generator for the originals); regenerate the Y3/5 pair with `node scripts/make-primary-fixtures.mjs` (clones the Y7/9 fixtures, swaps the year-level cells).
 
+**Two test styles, don't mix them up:** *core* section tests build small `PairedCohort` literals inline with hand-computed expectations (template: `core/tests/cohortMovement.test.ts`) — they do NOT parse the `.xlsx`. The committed `.xlsx` are for the *UI/jsdom* tests via `renderWithApp` + `fixtures.ts`. The synthetic Reading cohort is **5 paired / 2 leavers / 2 joiners / 1 declined / 1 stalled / 3 improved** — the numbers S10 jsdom assertions key on.
+
 **Adding a Tauri plugin = 4 coordinated edits:** npm dep · `src-tauri/Cargo.toml` dep · `.plugin(...)` in `src-tauri/src/lib.rs` · a permission in `src-tauri/capabilities/default.json`. A missing capability fails at **runtime**, not build (e.g. `tauri-plugin-process` + `process:default` for app relaunch after an update).
 
 ## UI shell gotchas
@@ -213,12 +215,19 @@ the other Antigravity apps:
   until `scripts/mirror-release.sh vX.Y.Z` runs (mirrors assets + regenerates the
   Pages download page; runs locally via `gh`, no Actions minutes). After mirroring,
   `/releases/latest/download/latest.json` is CDN-cached and can lag a few minutes —
-  verify with a cache-busted curl before assuming it failed.
+  verify with a cache-busted curl before assuming it failed. The teacher-facing
+  **"What's new in {version}"** copy is hardcoded in THREE spots in
+  `mirror-release.sh` (the HTML page, the README, and the release NOTES) — update all
+  three per release. Before mirroring, dry-run the embedded Python page-generator with
+  fake args (it's an f-string; a stray `{}` only fails at run time). Pages itself lags:
+  verify the regenerated page via `raw.githubusercontent.com/<pub-repo>/main/index.html`
+  (immediate), not the Pages URL.
 - **Three version fields must match when releasing:** `src-tauri/tauri.conf.json`
   (authoritative — drives the bundle + auto-updater), `src-tauri/Cargo.toml`, and
   `package.json`. The `app_info` command reports `tauri.conf.json`'s version via
   `package_info()`. After editing the three, run `cd src-tauri && cargo check` to
-  sync `Cargo.lock`'s `app` version too (the 4th place the version lives).
+  sync `Cargo.lock`'s `app` version too (the 4th place the version lives). Update
+  `CHANGELOG.md` (repo root, canonical feature log) each release alongside the bump.
 
 ## Download-page first-run instructions — NON-NEGOTIABLE
 
