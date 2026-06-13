@@ -16,7 +16,7 @@ import { mcnemarPaired, transitionMatrix } from "../cohort";
 import { cohortNextStep, shortLevel } from "../phase";
 import { wilsonCi } from "../stats";
 import type { McNemarResult, PairedCohort, StudentResultRow } from "../types";
-import { attritionComposition } from "./cohortTracking";
+import { attritionComposition, detectabilityFloor } from "./cohortTracking";
 import type { NarrativeContext } from "./narrative";
 
 const SUPPRESSION_THRESHOLD = 5;
@@ -233,6 +233,27 @@ export function attritionCompositionSentence(pc: PairedCohort): string {
     `${eL} entry cohort (${f1(c.stayersEntryNasPct)}% of ${c.stayersN} stayers vs ${f1(c.fullCohortEntryNasPct)}% of all ` +
     `${c.fullCohortN} students who sat ${eL}). This describes who is in the tracked group — it is not a corrected ` +
     `headline: the ${c.leaversN} leavers' ${lL} outcomes are unknowable, so their effect on the cohort change cannot be recovered.`
+  );
+}
+
+/**
+ * 1-3 — the detectability note for the whole-cohort NAS headline. States the
+ * exact-McNemar best-case floor with the mandatory "at least … even in the best
+ * case" framing (offsetting movement raises the bar further).
+ */
+export function detectabilityNote(pairedN: number): string {
+  const f = detectabilityFloor(pairedN);
+  if (!f.feasible) {
+    return (
+      `With only n=${pairedN} matched students, no NAS change can reach statistical significance even in the best ` +
+      `case — at least ${f.minMovers} students would have to move one way (more than the whole cohort). ` +
+      `Read direction and counts, not a significance test.`
+    );
+  }
+  return (
+    `Detectability: with n=${pairedN} matched students, a NAS change smaller than ±${f.minDeltaPp} pp ` +
+    `(at least ${f.minMovers} students moving one way) cannot reach statistical significance even in the best case — ` +
+    `and any offsetting movement raises that bar further.`
   );
 }
 

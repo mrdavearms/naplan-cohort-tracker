@@ -273,6 +273,36 @@ export function attritionComposition(pc: PairedCohort): AttritionComposition {
   };
 }
 
+export interface DetectabilityFloor {
+  pairedN: number;
+  /** Smallest number of one-directional discordant movers whose exact-McNemar
+   *  best-case p (2·0.5^D) clears alpha — 6 at alpha = 0.05. */
+  minMovers: number;
+  /** minMovers / pairedN × 100, rounded to whole pp — the smallest NAS change
+   *  that could possibly reach significance, even with all movement one way. */
+  minDeltaPp: number;
+  /** false when pairedN < minMovers: no NAS change can reach significance. */
+  feasible: boolean;
+}
+
+/**
+ * 1-3 — the exact-McNemar detectability floor (NOT a power estimate). With all
+ * discordant movement one-directional, the exact-McNemar p is 2·0.5^D, so the
+ * smallest detectable change needs `minMovers` one-way movers (6 at p<0.05:
+ * D=6 → p≈0.031, D=5 → 0.0625). Any offsetting movement only raises the bar, so
+ * this is a best-case floor — reused by the v1.5 what-if slider (4-1).
+ */
+export function detectabilityFloor(pairedN: number, alpha = 0.05): DetectabilityFloor {
+  let minMovers = 1;
+  while (2 * Math.pow(0.5, minMovers) >= alpha) minMovers += 1;
+  return {
+    pairedN,
+    minMovers,
+    minDeltaPp: pairedN > 0 ? Math.round((minMovers / pairedN) * 100) : 0,
+    feasible: pairedN >= minMovers,
+  };
+}
+
 export interface SubCohortRow {
   subgroup: string;
   n: number;

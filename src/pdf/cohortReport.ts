@@ -15,6 +15,7 @@ import {
   cohortAttributionNote,
   cohortMatchRate,
   cohortYears,
+  detectabilityNote,
   inferCohortLevels,
   trackablePhases,
   crossDomainSummary,
@@ -80,6 +81,7 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
   out.push({ text: `NAS rate, ${earlierLabel} vs ${laterLabel} (Wilson 95% CI · McNemar)`, style: "h3" });
   out.push({ image: wilson, width: 500, margin: [0, 2, 0, 6] });
   out.push({ text: `McNemar exact p = ${fmtP(mc.pValue)}. ${mc.note}`, style: "caption" });
+  out.push({ text: detectabilityNote(pc.paired.length), style: "caption" });
   out.push(bulletList([...interpretMcnemar(mc, pc.domain, pc.paired.length, pc.earlierLevel, pc.laterLevel), ...interpretWilson(pc)]));
 
   const movePng = await figureToPng(

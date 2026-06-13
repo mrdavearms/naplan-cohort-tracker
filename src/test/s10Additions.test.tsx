@@ -30,3 +30,12 @@ describe("1-2 quantified attrition sentence", () => {
     expect(screen.getByText(/not a corrected\s+headline/)).toBeInTheDocument();
   });
 });
+
+describe("1-3 detectability note", () => {
+  it("renders the best-case detectability floor near the McNemar result", () => {
+    renderWithApp(<S10CohortTracking />, { store });
+    // n=5 synthetic cohort is below the 6-mover floor → infeasible wording.
+    expect(screen.getByText(/even in the best case/)).toBeInTheDocument();
+    expect(screen.getByText(/at least 6 students/)).toBeInTheDocument();
+  });
+});

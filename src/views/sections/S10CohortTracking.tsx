@@ -18,6 +18,7 @@ import {
   cohortAttributionNote,
   cohortHeadline,
   cohortYears,
+  detectabilityNote,
   inferCohortLevels,
   trackablePhases,
   declinedOrStalled,
@@ -382,6 +383,9 @@ function DomainDrilldown({
           </Pill>
           <span className="text-graphite/60">{mc.note}</span>
         </div>
+        <p className="mt-2 rounded-lg bg-alabaster/40 p-3 text-xs text-graphite/70">
+          {detectabilityNote(pc.paired.length)}
+        </p>
         <div className="mt-3">
           <Bullets items={interpretMcnemar(mc, pc.domain, pc.paired.length, pc.earlierLevel, pc.laterLevel)} />
           <Bullets items={interpretWilson(pc)} />
