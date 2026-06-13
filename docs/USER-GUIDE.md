@@ -39,8 +39,29 @@ No student names appear on screen or in any report — only Local Student IDs.
    - **1 Participation, 2 Proficiency, 3 Year-on-year, 4 Cross-domain,
      5 Skill gaps, 6 Equity, 7 Class groups, 8 Targeted support, 9 Narrative.**
    - **10 Cohort tracking** is the headline — the same students, Year 7 → Year 9.
-5. Use the **Primary year** selector (top right) to choose which year's Year 9
-   cohort to analyse.
+5. Use the **Latest year** selector (top right) to choose which exit-year cohort
+   to analyse (e.g. your most recent Year 9 group).
+
+### What Section 10 shows you
+
+Section 10 follows the *same students* across two years, so it's the closest
+thing to a measure of your school's own contribution. Reading it:
+
+- **Every percentage shows the number of students behind it** — so a change reads
+  as *"−8.5 pp · 6 fewer students at 'Needs additional support'"*, not just a
+  percentage that can look dramatic on a small group.
+- **A plain-English "detectability" line** tells you whether a change is even
+  large enough to be statistically meaningful for your cohort size — small
+  cohorts simply can't reach significance, and the app says so honestly rather
+  than implying a result is solid when it isn't.
+- **A "students who improved" list** (Local Student IDs, never names) sits
+  alongside the follow-up list — for recognising gains and spotting which
+  classes or supports the improvers shared.
+- **A "follow-up across domains" table** gathers the students who slipped or
+  stalled in *more than one* subject — your clearest intervention priority.
+- **Who left and who joined** the cohort is laid out plainly, including a note on
+  how the students who left shaped the headline (it describes the make-up of the
+  tracked group; it is never presented as a "corrected" result).
 
 ### A note on Year 7 vs Year 9
 

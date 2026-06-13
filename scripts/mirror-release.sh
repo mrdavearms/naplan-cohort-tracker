@@ -51,6 +51,13 @@ cat > "$NOTES" <<EOF
 
 > **Early release — may not work properly.** This is an early release and is still being tested, so some figures or screens may not work as expected. **Please check anything important against your source spreadsheets before you rely on it.** Feedback is very welcome — what works, what doesn't, anything that looks off: **dave.armstrong@education.vic.gov.au**. (The Year 3 → Year 5 primary analysis is the newest part and the least validated, so treat primary figures as especially provisional.)
 
+### What's new in $VERSION — clearer cohort tracking (Section 10)
+- **Student counts beside every percentage** — e.g. "−8.5 pp · 6 fewer at Needs additional support", so a figure on a small group is never read alone.
+- **An honest "is this meaningful?" note** — tells you when your cohort is too small for a change to be statistically significant, instead of implying false certainty.
+- **A "students who improved" list** to recognise gains, alongside the follow-up list.
+- **"Follow-up across domains"** — the students who slipped in more than one subject, gathered as your clearest intervention priority.
+- **Clearer leavers & joiners** — who left, who joined, and how that shapes the headline.
+
 ### Which file do I download?
 👉 **Easiest:** use the **[download page]($PAGES_URL)** — one clear button for your computer.
 
@@ -209,6 +216,19 @@ index = f"""<!doctype html>
     <p><span class="pill">Private by design</span> &nbsp;Everything runs on your computer. No student names appear anywhere, and no data is ever uploaded.</p>
   </div>
 
+  <!-- UPDATE PER RELEASE: teacher-facing "what's new" highlights for {version}. -->
+  <div class="card">
+    <h3>What's new in {version}</h3>
+    <p style="margin:0 0 8px">Clearer cohort tracking (Section 10) — same private, on-device tool, easier to read and act on:</p>
+    <ul style="margin:0;padding-left:20px">
+      <li><strong>Student counts beside every percentage</strong> — "−8.5 pp · 6 fewer students at Needs additional support", not just a percentage that can look dramatic on a small group.</li>
+      <li><strong>An honest "is this meaningful?" note</strong> — tells you when your cohort is too small for a change to be statistically significant, instead of implying false certainty.</li>
+      <li><strong>A "students who improved" list</strong> to recognise gains, alongside the follow-up list.</li>
+      <li><strong>Follow-up across domains</strong> — the students who slipped or stalled in more than one subject, gathered as your clearest intervention priority.</li>
+      <li><strong>Clearer leavers &amp; joiners</strong> — who left, who joined, and how that shapes the headline figure.</li>
+    </ul>
+  </div>
+
   <div class="card">
     <h3>Updating later</h3>
     <p>Once installed, the app checks for new versions itself — you'll be told when an update is ready. You can always come back to this page for the latest installer too.</p>
@@ -261,6 +281,19 @@ true measure of your school's contribution -- then builds tidy PDF reports.
 
 **Private by design:** everything runs on your computer; no student names appear anywhere
 and nothing is uploaded.
+
+## What's new in {version}
+
+Clearer cohort tracking (Section 10):
+
+- **Student counts beside every percentage** — "−8.5 pp · 6 fewer students at Needs
+  additional support", not just a percentage on a small group.
+- **An honest "is this meaningful?" note** — says when your cohort is too small for a
+  change to be statistically significant, instead of implying false certainty.
+- **A "students who improved" list** to recognise gains, alongside the follow-up list.
+- **Follow-up across domains** — the students who slipped in more than one subject,
+  your clearest intervention priority.
+- **Clearer leavers & joiners** — who left, who joined, and how that shapes the headline.
 
 ## Updates
 
