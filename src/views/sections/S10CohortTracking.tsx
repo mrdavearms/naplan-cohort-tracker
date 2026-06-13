@@ -192,9 +192,9 @@ export function S10CohortTracking() {
           <Card>
             <h2 className="mb-1 text-lg font-semibold text-graphite">Follow-up across domains</h2>
             <p className="mb-3 text-xs text-graphite/60">
-              Matched students who declined or stalled, joined across all {domains.length === 1 ? "loaded" : domains.length}{" "}
-              domain{domains.length === 1 ? "" : "s"} in this phase. Students flagged in two or more domains are the
-              clearest intervention priority. Local Student IDs only.
+              Matched students who declined or stalled, joined across{" "}
+              {domains.length === 1 ? "the one loaded domain" : `all ${domains.length} domains`} in this phase. Students
+              flagged in two or more domains are the clearest intervention priority. Local Student IDs only.
             </p>
             <table className="w-full text-sm">
               <thead>
