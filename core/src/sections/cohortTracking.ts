@@ -379,6 +379,69 @@ export function detectabilityFloor(pairedN: number, alpha = 0.05): Detectability
   };
 }
 
+export interface JoinerAnalysis {
+  domain: string;
+  joinersN: number;
+  stayersN: number;
+  /** Exit-year (later) proficiency mix, in %. */
+  joinersExitDistribution: LevelMap;
+  stayersExitDistribution: LevelMap;
+  joinersNasCount: number;
+  stayersNasCount: number;
+  joinersNasPct: number;
+  stayersNasPct: number;
+  joinersMeetingCount: number;
+  stayersMeetingCount: number;
+  joinersMeetingPct: number;
+  stayersMeetingPct: number;
+}
+
+/**
+ * 1-6 — joiners analysis: the exit-year band mix of students who joined after
+ * the entry year, vs the stayers' exit-year mix. The mirror of
+ * `attritionAnalysis` (which compares entry-year mixes). Joiners have no entry
+ * baseline, so they are described by where they stand at exit, not by growth.
+ */
+export function joinerAnalysis(pc: PairedCohort): JoinerAnalysis {
+  const stayersN = pc.paired.length;
+  const joinersN = pc.joiners.length;
+
+  const stayersDist = emptyLevelMap();
+  for (const s of pc.paired) {
+    if (s.proficiencyY9 in stayersDist) stayersDist[s.proficiencyY9 as ProficiencyLevel] += 1;
+  }
+  const joinersDist = emptyLevelMap();
+  for (const j of pc.joiners) {
+    if (j.proficiencyY9 != null && j.proficiencyY9 in joinersDist) {
+      joinersDist[j.proficiencyY9 as ProficiencyLevel] += 1;
+    }
+  }
+
+  const meeting = (d: LevelMap): number => d.Strong + d.Exceeding;
+  const toPct = (counts: LevelMap, denom: number): LevelMap => {
+    const out = emptyLevelMap();
+    const d = Math.max(denom, 1);
+    for (const lvl of PROFICIENCY_LEVELS) out[lvl] = (counts[lvl] / d) * 100;
+    return out;
+  };
+
+  return {
+    domain: pc.domain,
+    joinersN,
+    stayersN,
+    joinersExitDistribution: toPct(joinersDist, joinersN),
+    stayersExitDistribution: toPct(stayersDist, stayersN),
+    joinersNasCount: joinersDist[NAS],
+    stayersNasCount: stayersDist[NAS],
+    joinersNasPct: (joinersDist[NAS] / Math.max(joinersN, 1)) * 100,
+    stayersNasPct: (stayersDist[NAS] / Math.max(stayersN, 1)) * 100,
+    joinersMeetingCount: meeting(joinersDist),
+    stayersMeetingCount: meeting(stayersDist),
+    joinersMeetingPct: (meeting(joinersDist) / Math.max(joinersN, 1)) * 100,
+    stayersMeetingPct: (meeting(stayersDist) / Math.max(stayersN, 1)) * 100,
+  };
+}
+
 export interface SubCohortRow {
   subgroup: string;
   n: number;

@@ -33,6 +33,7 @@ import {
   interpretReadingSubdomains,
   interpretTransition,
   interpretWilson,
+  joinerAnalysis,
   LEFT_WHS,
   mcnemarPaired,
   movementStackedFigure,
@@ -360,6 +361,7 @@ function DomainDrilldown({
 }) {
   const mc = mcnemarPaired(pc.paired, pc.earlierLevel, pc.laterLevel);
   const attrition = attritionAnalysis(pc);
+  const joiners = joinerAnalysis(pc);
   const subCohorts = equitySubCohorts(pc);
   const classRows = classGroupTracking(pc);
 
@@ -480,6 +482,51 @@ function DomainDrilldown({
         <div className="mt-3">
           <Bullets items={interpretAttrition(pc)} />
         </div>
+      </Card>
+
+      {/* Joiners — exit-year standing vs stayers (mirror of attrition) */}
+      <Card>
+        <h2 className="mb-1 text-lg font-semibold text-graphite">Joiners — arrived after {earlierLabel}</h2>
+        <p className="mb-3 text-xs text-graphite/60">
+          Students who joined after {earlierLabel} have no entry baseline, so they are described by where they stand
+          at {laterLabel} — compared with the stayers' {laterLabel} standing.
+        </p>
+        {joiners.joinersN === 0 ? (
+          <p className="text-sm text-graphite/60">No students joined after {earlierLabel} in {pc.domain}.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-alabaster text-left text-xs uppercase tracking-wide text-graphite/50">
+                <th className="py-2">Group</th>
+                <th className="py-2 text-right">n</th>
+                <th className="py-2 text-right">{lShort} NAS%</th>
+                <th className="py-2 text-right">{lShort} Meeting+%</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-b border-alabaster/60">
+                <td className="py-2 font-medium">Joiners</td>
+                <td className="py-2 text-right tabular-nums">{joiners.joinersN}</td>
+                <td className="py-2 text-right tabular-nums">
+                  {joiners.joinersNasPct.toFixed(1)}% <span className="text-graphite/40">({joiners.joinersNasCount})</span>
+                </td>
+                <td className="py-2 text-right tabular-nums">
+                  {joiners.joinersMeetingPct.toFixed(1)}% <span className="text-graphite/40">({joiners.joinersMeetingCount})</span>
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2 font-medium">Stayers (matched)</td>
+                <td className="py-2 text-right tabular-nums">{joiners.stayersN}</td>
+                <td className="py-2 text-right tabular-nums">
+                  {joiners.stayersNasPct.toFixed(1)}% <span className="text-graphite/40">({joiners.stayersNasCount})</span>
+                </td>
+                <td className="py-2 text-right tabular-nums">
+                  {joiners.stayersMeetingPct.toFixed(1)}% <span className="text-graphite/40">({joiners.stayersMeetingCount})</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        )}
       </Card>
 
       {/* Equity sub-cohorts */}

@@ -57,3 +57,12 @@ describe("1-5 cross-domain follow-up intersection", () => {
     expect(screen.getAllByText(/Reading \((Declined|Stalled at NAS)\)/).length).toBeGreaterThan(0);
   });
 });
+
+describe("1-6 joiners analysis", () => {
+  it("renders the joiners-vs-stayers exit-year table", () => {
+    renderWithApp(<S10CohortTracking />, { store });
+    expect(screen.getByText(/Joiners — arrived after/)).toBeInTheDocument();
+    // synthetic Reading cohort has 2 joiners.
+    expect(screen.getByText("Joiners")).toBeInTheDocument();
+  });
+});

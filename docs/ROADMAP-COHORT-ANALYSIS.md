@@ -74,31 +74,31 @@ Small, low-risk work on existing data paths. Highest yield per line of code. No
 new chart machinery. (1-3 is small in code but needs careful statistical
 wording — see its spec.)
 
-- [ ] **1-1 Counts beside percentages.** Everywhere S10 shows a percentage or pp
+- [x] **1-1 Counts beside percentages.** *(v1.2 — on `test`)* Everywhere S10 shows a percentage or pp
   delta, show the student count too ("−8.5pp · 6 students out of NAS").
   *Build note:* implement via a small `levelSetCount(paired, year, predicate)`
   helper shaped so the v1.3 metric descriptor (2-1a) can consume it — avoids
   rewriting the same cells twice. `cohortHeadline` gains count fields.
-- [ ] **1-2 Quantified attrition sentence.** One computed line under the
+- [x] **1-2 Quantified attrition sentence.** *(v1.2 — on `test`)* One computed line under the
   stayers/leavers table quantifying the **baseline-composition difference**
   (stayers vs full-cohort entry NAS rates, in pp). The wording must claim only
   composition — never a "corrected headline", since leavers' exit outcomes are
   unknowable.
-- [ ] **1-3 Detectability note.** The exact-McNemar floor, not a power estimate:
+- [x] **1-3 Detectability note.** *(v1.2 — on `test`)* The exact-McNemar floor, not a power estimate:
   with all discordant movement one-directional, p = 2·0.5^D, so significance
   needs **at least 6 one-way movers** (D=6 → p≈0.031; D=5 → 0.0625). Wording:
   "with n=43 matched students, a NAS change smaller than ±14 pp (6 students)
   cannot reach significance even in the best case" — the "at least / even in
   the best case" framing is mandatory (offsetting movement raises the bar
   further). Hand-verify the D=6 threshold in Vitest. Reused by 4-1.
-- [ ] **1-4 "Improved" list.** Alongside declined/stalled: students who moved out
+- [x] **1-4 "Improved" list.** *(v1.2 — on `test`)* Alongside declined/stalled: students who moved out
   of NAS or up a band, with classes — for recognition and for spotting which
   groups/interventions the improvers shared. (Mirror of `declinedOrStalled`.)
-- [ ] **1-5 Cross-domain follow-up intersection.** One table across all domains
+- [x] **1-5 Cross-domain follow-up intersection.** *(v1.2 — on `test`)* One table across all domains
   in the active phase: each flagged student, which domains they declined/stalled
   in, sorted by domain count. 2+ domains = genuine intervention priority.
   (A `localStudentId` join over the existing `pairings` map.)
-- [ ] **1-6 Joiners analysis.** Mirror of the attrition card: joiners' exit-year
+- [x] **1-6 Joiners analysis.** *(v1.2 — on `test`)* Mirror of the attrition card: joiners' exit-year
   band distribution vs stayers'. `JoinerRow` already carries class, band and
   LBOTE/ATSI — data is in place.
 
