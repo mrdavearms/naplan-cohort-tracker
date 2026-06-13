@@ -7,6 +7,7 @@
  */
 import {
   attritionAnalysis,
+  attritionCompositionSentence,
   bandMovement,
   buildCohortNarrative,
   buildCohortPairings,
@@ -137,6 +138,7 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
       ["*", "auto", "auto", "auto"],
     ),
   );
+  out.push({ text: attritionCompositionSentence(pc), style: "caption" });
   out.push(bulletList(interpretAttrition(pc)));
 
   const sub = equitySubCohorts(pc);

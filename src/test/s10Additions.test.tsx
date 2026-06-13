@@ -22,3 +22,11 @@ describe("1-1 counts beside percentages", () => {
     expect(screen.getAllByText(/\d+ (fewer|more) (at NAS|Meeting\+)|no net change/).length).toBeGreaterThan(0);
   });
 });
+
+describe("1-2 quantified attrition sentence", () => {
+  it("renders the baseline-composition sentence under the attrition table", () => {
+    renderWithApp(<S10CohortTracking />, { store });
+    expect(screen.getByText(/Baseline composition:/)).toBeInTheDocument();
+    expect(screen.getByText(/not a corrected\s+headline/)).toBeInTheDocument();
+  });
+});

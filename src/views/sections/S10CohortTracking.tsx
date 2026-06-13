@@ -10,6 +10,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   attritionAnalysis,
+  attritionCompositionSentence,
   bandMovement,
   buildCohortNarrative,
   buildCohortPairings,
@@ -418,6 +419,9 @@ function DomainDrilldown({
             </tr>
           </tbody>
         </table>
+        <p className="mt-3 rounded-lg bg-alabaster/40 p-3 text-sm text-graphite/80">
+          {attritionCompositionSentence(pc)}
+        </p>
         <div className="mt-3">
           <Bullets items={interpretAttrition(pc)} />
         </div>

@@ -236,6 +236,43 @@ export function attritionAnalysis(pc: PairedCohort): AttritionAnalysis {
   };
 }
 
+export interface AttritionComposition {
+  stayersN: number;
+  leaversN: number;
+  /** Entry-year sitters = stayers + leavers (everyone with an earlier-year record). */
+  fullCohortN: number;
+  stayersEntryNasPct: number;
+  fullCohortEntryNasPct: number;
+  /** stayers − full cohort, in pp. Negative = the matched group started with a
+   *  LOWER NAS rate than the full entry cohort (a lower-need slice stayed). */
+  diffPp: number;
+}
+
+/**
+ * Baseline-composition difference (1-2): how the matched (stayers) group's
+ * entry-year NAS rate compares to the full entry cohort's (stayers + leavers).
+ * This quantifies WHO is in the tracked group; it is NOT a correction to the
+ * headline — leavers' exit-year outcomes are unknowable, so their effect on the
+ * cohort change cannot be recovered.
+ */
+export function attritionComposition(pc: PairedCohort): AttritionComposition {
+  const stayersN = pc.paired.length;
+  const leaversN = pc.leavers.length;
+  const fullCohortN = stayersN + leaversN;
+  const stayersNas = levelSetCount(pc.paired, "Y7", isNas);
+  const leaversNas = pc.leavers.filter((l) => l.proficiencyY7 === NAS).length;
+  const stayersEntryNasPct = stayersN > 0 ? (stayersNas / stayersN) * 100 : 0;
+  const fullCohortEntryNasPct = fullCohortN > 0 ? ((stayersNas + leaversNas) / fullCohortN) * 100 : 0;
+  return {
+    stayersN,
+    leaversN,
+    fullCohortN,
+    stayersEntryNasPct,
+    fullCohortEntryNasPct,
+    diffPp: stayersEntryNasPct - fullCohortEntryNasPct,
+  };
+}
+
 export interface SubCohortRow {
   subgroup: string;
   n: number;

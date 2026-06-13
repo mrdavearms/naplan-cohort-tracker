@@ -16,6 +16,7 @@ import { mcnemarPaired, transitionMatrix } from "../cohort";
 import { cohortNextStep, shortLevel } from "../phase";
 import { wilsonCi } from "../stats";
 import type { McNemarResult, PairedCohort, StudentResultRow } from "../types";
+import { attritionComposition } from "./cohortTracking";
 import type { NarrativeContext } from "./narrative";
 
 const SUPPRESSION_THRESHOLD = 5;
@@ -206,6 +207,33 @@ export function interpretAttrition(pc: PairedCohort): string[] {
   );
 
   return bullets;
+}
+
+/**
+ * 1-2 — one computed sentence quantifying the baseline-composition difference
+ * between the matched (stayers) group and the full entry cohort. Deliberately
+ * claims composition only: it is NOT a corrected headline, because leavers' exit
+ * outcomes are unknowable.
+ */
+export function attritionCompositionSentence(pc: PairedCohort): string {
+  const eL = shortLevel(pc.earlierLevel);
+  const lL = shortLevel(pc.laterLevel);
+  const c = attritionComposition(pc);
+  if (c.leaversN === 0) {
+    return (
+      `Baseline composition: no students left between ${eL} and ${lL}, so the matched group is the ` +
+      `full ${eL} entry cohort — there is no composition difference to note.`
+    );
+  }
+  const same = Math.abs(c.diffPp) < 0.05;
+  const dir = c.diffPp < 0 ? "lower than" : "higher than";
+  const compare = same ? "essentially the same as" : `${f1(Math.abs(c.diffPp))} pp ${dir}`;
+  return (
+    `Baseline composition: the matched (stayers) group started ${eL} with a NAS rate ${compare} the full ` +
+    `${eL} entry cohort (${f1(c.stayersEntryNasPct)}% of ${c.stayersN} stayers vs ${f1(c.fullCohortEntryNasPct)}% of all ` +
+    `${c.fullCohortN} students who sat ${eL}). This describes who is in the tracked group — it is not a corrected ` +
+    `headline: the ${c.leaversN} leavers' ${lL} outcomes are unknowable, so their effect on the cohort change cannot be recovered.`
+  );
 }
 
 // ── Drill-down C — Equity sub-cohorts ───────────────────────────────────────
