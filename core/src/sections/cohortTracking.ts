@@ -23,6 +23,33 @@ function emptyLevelMap(): LevelMap {
 
 export type PairedYear = "Y7" | "Y9";
 
+/** A test over a single proficiency level — the same shape the v1.3 metric
+ *  descriptor (`{label, predicate, lowerIsBetter}`) will supply, so a metric
+ *  retrofit can reuse `levelSetCount` without changing its signature. */
+export type LevelPredicate = (level: string) => boolean;
+
+const isNas: LevelPredicate = (l) => l === NAS;
+const isMeeting: LevelPredicate = (l) => l === "Strong" || l === "Exceeding";
+
+/**
+ * How many paired students sit in a given "level set" (e.g. NAS, or Meeting+)
+ * for the chosen year. The companion student count behind every percentage and
+ * pp delta in Section 10 — so leadership reads "−8.5pp · 6 fewer at NAS", not a
+ * bare percentage on a small cohort.
+ */
+export function levelSetCount(
+  paired: readonly PairedStudent[],
+  year: PairedYear,
+  predicate: LevelPredicate,
+): number {
+  let count = 0;
+  for (const s of paired) {
+    const lvl = year === "Y7" ? s.proficiencyY7 : s.proficiencyY9;
+    if (predicate(lvl)) count += 1;
+  }
+  return count;
+}
+
 /** % of paired students at each proficiency level for the given year. */
 export function pairedProficiencyDistribution(
   paired: readonly PairedStudent[],
@@ -120,23 +147,41 @@ export interface CohortHeadlineRow {
   y7MeetingPct: number;
   y9MeetingPct: number;
   deltaMeetingPp: number;
+  // Student counts behind every percentage (1-1) — the same paired denominator.
+  y7NasCount: number;
+  y9NasCount: number;
+  /** Net change in the number at NAS (y9 − y7); negative = fewer at NAS. */
+  deltaNasCount: number;
+  y7MeetingCount: number;
+  y9MeetingCount: number;
+  /** Net change in the number Meeting+ (y9 − y7); positive = more Meeting+. */
+  deltaMeetingCount: number;
 }
 
-/** Per-domain headline: paired NAS% and Meeting+ (Strong+Exceeding), Y7 vs Y9. */
+/** Per-domain headline: paired NAS% and Meeting+ (Strong+Exceeding), Y7 vs Y9,
+ *  each with the student count behind it. */
 export function cohortHeadline(pc: PairedCohort): CohortHeadlineRow {
-  const p7 = pairedProficiencyDistribution(pc.paired, "Y7");
-  const p9 = pairedProficiencyDistribution(pc.paired, "Y9");
-  const meeting7 = p7.Strong + p7.Exceeding;
-  const meeting9 = p9.Strong + p9.Exceeding;
+  const n = pc.paired.length;
+  const y7NasCount = levelSetCount(pc.paired, "Y7", isNas);
+  const y9NasCount = levelSetCount(pc.paired, "Y9", isNas);
+  const y7MeetingCount = levelSetCount(pc.paired, "Y7", isMeeting);
+  const y9MeetingCount = levelSetCount(pc.paired, "Y9", isMeeting);
+  const toPct = (c: number): number => (n === 0 ? 0 : (c / n) * 100);
   return {
     domain: pc.domain,
-    pairedN: pc.paired.length,
-    y7NasPct: p7[NAS],
-    y9NasPct: p9[NAS],
-    deltaNasPp: p9[NAS] - p7[NAS],
-    y7MeetingPct: meeting7,
-    y9MeetingPct: meeting9,
-    deltaMeetingPp: meeting9 - meeting7,
+    pairedN: n,
+    y7NasPct: toPct(y7NasCount),
+    y9NasPct: toPct(y9NasCount),
+    deltaNasPp: toPct(y9NasCount) - toPct(y7NasCount),
+    y7MeetingPct: toPct(y7MeetingCount),
+    y9MeetingPct: toPct(y9MeetingCount),
+    deltaMeetingPp: toPct(y9MeetingCount) - toPct(y7MeetingCount),
+    y7NasCount,
+    y9NasCount,
+    deltaNasCount: y9NasCount - y7NasCount,
+    y7MeetingCount,
+    y9MeetingCount,
+    deltaMeetingCount: y9MeetingCount - y7MeetingCount,
   };
 }
 
@@ -200,15 +245,30 @@ export interface SubCohortRow {
   y7NasPct: number | null;
   y9NasPct: number | null;
   deltaNasPp: number | null;
+  // Student counts behind the percentages (1-1); null when suppressed.
+  y7NasCount: number | null;
+  y9NasCount: number | null;
 }
 
 function subCohortRow(label: string, group: PairedStudent[]): SubCohortRow {
   const n = group.length;
   if (n < COHORT_SUPPRESSION_THRESHOLD) {
-    return { subgroup: label, n, suppressed: true, caveat: false, y7NasPct: null, y9NasPct: null, deltaNasPp: null };
+    return {
+      subgroup: label,
+      n,
+      suppressed: true,
+      caveat: false,
+      y7NasPct: null,
+      y9NasPct: null,
+      deltaNasPp: null,
+      y7NasCount: null,
+      y9NasCount: null,
+    };
   }
-  const y7 = (group.filter((s) => s.proficiencyY7 === NAS).length / n) * 100;
-  const y9 = (group.filter((s) => s.proficiencyY9 === NAS).length / n) * 100;
+  const y7Count = levelSetCount(group, "Y7", isNas);
+  const y9Count = levelSetCount(group, "Y9", isNas);
+  const y7 = (y7Count / n) * 100;
+  const y9 = (y9Count / n) * 100;
   return {
     subgroup: label,
     n,
@@ -217,6 +277,8 @@ function subCohortRow(label: string, group: PairedStudent[]): SubCohortRow {
     y7NasPct: y7,
     y9NasPct: y9,
     deltaNasPp: y9 - y7,
+    y7NasCount: y7Count,
+    y9NasCount: y9Count,
   };
 }
 

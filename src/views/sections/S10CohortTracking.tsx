@@ -51,6 +51,9 @@ import { CrossDomainOverview } from "../../components/CrossDomainOverview";
 const pp = (x: number | null): string => (x == null ? "—" : `${x >= 0 ? "+" : ""}${x.toFixed(1)}pp`);
 const pct = (x: number | null): string => (x == null ? "—" : `${x.toFixed(1)}%`);
 const formatP = (p: number | null): string => (p == null ? "n/a" : p < 0.001 ? "<0.001" : p.toFixed(3));
+/** Net student count behind a pp delta — "6 fewer at NAS", "2 more Meeting+". */
+const netCountLabel = (count: number, noun: string): string =>
+  count === 0 ? "no net change" : `${Math.abs(count)} ${count < 0 ? "fewer" : "more"} ${noun}`;
 /** Display-only relabel of the core's parity string (avoids school-specific wording). */
 const destLabel = (s: string): string => (s === LEFT_WHS ? "Left the school" : s);
 
@@ -200,13 +203,19 @@ export function S10CohortTracking() {
                 <tr key={dom} className="border-b border-alabaster/60 last:border-0">
                   <td className="py-2 font-medium text-graphite">{dom}</td>
                   <td className="py-2 text-right tabular-nums">{h.pairedN}</td>
-                  <td className="py-2 text-right tabular-nums">{h.y7NasPct.toFixed(1)}</td>
-                  <td className="py-2 text-right tabular-nums">{h.y9NasPct.toFixed(1)}</td>
+                  <td className="py-2 text-right tabular-nums">
+                    {h.y7NasPct.toFixed(1)} <span className="text-graphite/40">({h.y7NasCount})</span>
+                  </td>
+                  <td className="py-2 text-right tabular-nums">
+                    {h.y9NasPct.toFixed(1)} <span className="text-graphite/40">({h.y9NasCount})</span>
+                  </td>
                   <td className={"py-2 text-right tabular-nums " + (better ? "text-sage-text" : h.deltaNasPp > 0 ? "text-coral-text" : "")}>
                     {pp(h.deltaNasPp)}
+                    <div className="text-[11px] font-normal text-graphite/50">{netCountLabel(h.deltaNasCount, "at NAS")}</div>
                   </td>
                   <td className={"py-2 text-right tabular-nums " + (h.deltaMeetingPp > 0 ? "text-sage-text" : h.deltaMeetingPp < 0 ? "text-coral-text" : "")}>
                     {pp(h.deltaMeetingPp)}
+                    <div className="text-[11px] font-normal text-graphite/50">{netCountLabel(h.deltaMeetingCount, "Meeting+")}</div>
                   </td>
                   <td className="py-2 text-right tabular-nums">{formatP(mc.pValue)}</td>
                 </tr>
@@ -449,8 +458,12 @@ function DomainDrilldown({
                   </td>
                 ) : (
                   <>
-                    <td className="py-2 text-right tabular-nums">{pct(r.y7NasPct)}</td>
-                    <td className="py-2 text-right tabular-nums">{pct(r.y9NasPct)}</td>
+                    <td className="py-2 text-right tabular-nums">
+                      {pct(r.y7NasPct)} <span className="text-graphite/40">({r.y7NasCount})</span>
+                    </td>
+                    <td className="py-2 text-right tabular-nums">
+                      {pct(r.y9NasPct)} <span className="text-graphite/40">({r.y9NasCount})</span>
+                    </td>
                     <td
                       className={
                         "py-2 text-right tabular-nums " +
