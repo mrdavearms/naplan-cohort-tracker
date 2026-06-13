@@ -24,6 +24,7 @@ import {
   declinedOrStalled,
   equitySubCohorts,
   getEntry,
+  improved,
   interpretAttrition,
   interpretClassGroups,
   interpretEquity,
@@ -627,6 +628,50 @@ function DomainDrilldown({
                       <td className="py-2 font-medium text-graphite">{s.localStudentId}</td>
                       <td className="py-2">
                         <Pill tone="coral">{flag}</Pill>
+                      </td>
+                      <td className="py-2 text-graphite/70">{s.classGroupY7 ?? "—"}</td>
+                      <td className="py-2 text-graphite/70">{s.classGroupY9 ?? "—"}</td>
+                      <td className="py-2 tabular-nums">
+                        {s.proficiencyY7} → {s.proficiencyY9}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Card>
+        );
+      })()}
+
+      {/* Students who improved — recognition + shared-group spotting (mirror of follow-up) */}
+      {(() => {
+        const imp = improved(pc);
+        return (
+          <Card>
+            <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} — students who improved</h2>
+            <p className="mb-3 text-xs text-graphite/60">
+              Matched students who moved up a proficiency band, or out of “Needs additional support”. For
+              recognition, and to spot which classes or interventions the improvers shared. Local Student IDs only.
+            </p>
+            {imp.length === 0 ? (
+              <p className="text-sm text-graphite/60">No students moved up a band in {pc.domain}.</p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-alabaster text-left text-xs uppercase tracking-wide text-graphite/50">
+                    <th className="py-2">Local ID</th>
+                    <th className="py-2">Flag</th>
+                    <th className="py-2">{eShort} class</th>
+                    <th className="py-2">{lShort} class</th>
+                    <th className="py-2">{eShort} → {lShort} band</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {imp.map((s, i) => (
+                    <tr key={`${s.localStudentId}-${i}`} className="border-b border-alabaster/60 last:border-0">
+                      <td className="py-2 font-medium text-graphite">{s.localStudentId}</td>
+                      <td className="py-2">
+                        <Pill tone="sage">{s.leftNas ? "Moved out of NAS" : "Up a band"}</Pill>
                       </td>
                       <td className="py-2 text-graphite/70">{s.classGroupY7 ?? "—"}</td>
                       <td className="py-2 text-graphite/70">{s.classGroupY9 ?? "—"}</td>

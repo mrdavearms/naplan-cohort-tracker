@@ -39,3 +39,12 @@ describe("1-3 detectability note", () => {
     expect(screen.getByText(/at least 6 students/)).toBeInTheDocument();
   });
 });
+
+describe("1-4 improved list", () => {
+  it("renders the recognition list of students who moved up a band", () => {
+    renderWithApp(<S10CohortTracking />, { store });
+    expect(screen.getByText(/students who improved/i)).toBeInTheDocument();
+    // synthetic Reading cohort has 3 improvers.
+    expect(screen.getAllByText(/Up a band|Moved out of NAS/).length).toBeGreaterThan(0);
+  });
+});

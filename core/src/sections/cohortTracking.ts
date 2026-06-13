@@ -138,6 +138,36 @@ export function declinedOrStalled(pc: PairedCohort): DeclinedStalled {
   return { declined, stalled };
 }
 
+export interface ImprovedStudent extends PairedStudentMove {
+  /** Was NAS at entry, no longer NAS at exit — the recognition headline. */
+  leftNas: boolean;
+}
+
+/**
+ * 1-4 — the recognition list: matched students who moved UP at least one
+ * proficiency band (the mirror of `declinedOrStalled`). Classes are carried so
+ * leadership can spot which groups/interventions the improvers shared.
+ */
+export function improved(pc: PairedCohort): ImprovedStudent[] {
+  const rank = (band: string): number => (PROFICIENCY_LEVELS as readonly string[]).indexOf(band);
+  const out: ImprovedStudent[] = [];
+  for (const s of pc.paired) {
+    const r7 = rank(s.proficiencyY7);
+    const r9 = rank(s.proficiencyY9);
+    if (r7 >= 0 && r9 >= 0 && r9 > r7) {
+      out.push({
+        localStudentId: s.localStudentId,
+        classGroupY7: s.classGroupY7,
+        classGroupY9: s.classGroupY9,
+        proficiencyY7: s.proficiencyY7,
+        proficiencyY9: s.proficiencyY9,
+        leftNas: s.proficiencyY7 === NAS && s.proficiencyY9 !== NAS,
+      });
+    }
+  }
+  return out;
+}
+
 export interface CohortHeadlineRow {
   domain: string;
   pairedN: number;
