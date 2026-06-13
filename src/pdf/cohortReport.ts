@@ -15,6 +15,7 @@ import {
   cohortAttributionNote,
   cohortMatchRate,
   cohortYears,
+  crossDomainFollowUp,
   detectabilityNote,
   inferCohortLevels,
   trackablePhases,
@@ -255,6 +256,23 @@ async function phaseSection(
   if (n.actions.length) {
     out.push({ text: "Suggested actions", style: "h3" });
     out.push(bulletList(n.actions));
+  }
+
+  // Cross-domain follow-up intersection (1-5): students flagged in 2+ domains.
+  const followUp = crossDomainFollowUp(pairings);
+  if (followUp.length > 0) {
+    out.push({ text: "Follow-up across domains", style: "h2" });
+    out.push({
+      text: "Matched students who declined or stalled, joined across all domains in this phase. Two or more domains is the clearest intervention priority. Local Student IDs only.",
+      style: "caption",
+    });
+    out.push(
+      table(
+        ["Local ID", "Domains", "Flagged in"],
+        followUp.map((r) => [r.localStudentId, r.domainCount, r.flags.map((f) => `${f.domain} (${f.flag})`).join(", ")]),
+        ["auto", "auto", "*"],
+      ),
+    );
   }
 
   for (const pc of pairings.values()) {

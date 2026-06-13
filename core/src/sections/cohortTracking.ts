@@ -168,6 +168,52 @@ export function improved(pc: PairedCohort): ImprovedStudent[] {
   return out;
 }
 
+export type FollowUpFlag = "Declined" | "Stalled at NAS";
+
+export interface CrossDomainFollowUpFlag {
+  domain: string;
+  flag: FollowUpFlag;
+}
+
+export interface CrossDomainFollowUpRow {
+  localStudentId: string;
+  /** One entry per domain the student was flagged in (canonical domain order). */
+  flags: CrossDomainFollowUpFlag[];
+  domains: string[];
+  /** Number of domains flagged — 2+ is a genuine intervention priority. */
+  domainCount: number;
+}
+
+/**
+ * 1-5 — cross-domain follow-up intersection. Joins each domain's declined/stalled
+ * list by Local Student ID across the active phase, so a student flagged in
+ * multiple domains surfaces as a priority. Sorted by domain count (desc), then
+ * Local ID. A student is at most one of declined/stalled within a domain (can't
+ * drop a band AND be NAS in both years), so `domainCount` = distinct domains.
+ */
+export function crossDomainFollowUp(pairings: Map<string, PairedCohort>): CrossDomainFollowUpRow[] {
+  const byStudent = new Map<string, CrossDomainFollowUpFlag[]>();
+  const add = (id: string, f: CrossDomainFollowUpFlag): void => {
+    const list = byStudent.get(id);
+    if (list) list.push(f);
+    else byStudent.set(id, [f]);
+  };
+  // pairings iterates in canonical VALID_DOMAINS order, so flags accrue in order.
+  for (const pc of pairings.values()) {
+    const ds = declinedOrStalled(pc);
+    for (const s of ds.declined) add(s.localStudentId, { domain: pc.domain, flag: "Declined" });
+    for (const s of ds.stalled) add(s.localStudentId, { domain: pc.domain, flag: "Stalled at NAS" });
+  }
+  const rows: CrossDomainFollowUpRow[] = [...byStudent.entries()].map(([localStudentId, flags]) => ({
+    localStudentId,
+    flags,
+    domains: flags.map((f) => f.domain),
+    domainCount: flags.length,
+  }));
+  rows.sort((a, b) => b.domainCount - a.domainCount || a.localStudentId.localeCompare(b.localStudentId));
+  return rows;
+}
+
 export interface CohortHeadlineRow {
   domain: string;
   pairedN: number;

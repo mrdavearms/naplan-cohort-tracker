@@ -48,3 +48,12 @@ describe("1-4 improved list", () => {
     expect(screen.getAllByText(/Up a band|Moved out of NAS/).length).toBeGreaterThan(0);
   });
 });
+
+describe("1-5 cross-domain follow-up intersection", () => {
+  it("renders the cross-domain follow-up table with each flagged student's domains", () => {
+    renderWithApp(<S10CohortTracking />, { store });
+    expect(screen.getByText(/Follow-up across domains/)).toBeInTheDocument();
+    // synthetic Reading cohort flags 2 students (1 declined, 1 stalled).
+    expect(screen.getAllByText(/Reading \((Declined|Stalled at NAS)\)/).length).toBeGreaterThan(0);
+  });
+});

@@ -18,6 +18,7 @@ import {
   cohortAttributionNote,
   cohortHeadline,
   cohortYears,
+  crossDomainFollowUp,
   detectabilityNote,
   inferCohortLevels,
   trackablePhases,
@@ -180,6 +181,55 @@ export function S10CohortTracking() {
       <MatchRateBanner store={store} primaryYear={primaryYear} phase={activePhase} />
 
       <CrossDomainOverview pairings={pairings} />
+
+      {/* Cross-domain follow-up intersection — students flagged in 2+ domains */}
+      {(() => {
+        const rows = crossDomainFollowUp(pairings);
+        if (rows.length === 0) return null;
+        const priority = rows.filter((r) => r.domainCount >= 2).length;
+        return (
+          <Card>
+            <h2 className="mb-1 text-lg font-semibold text-graphite">Follow-up across domains</h2>
+            <p className="mb-3 text-xs text-graphite/60">
+              Matched students who declined or stalled, joined across all {domains.length === 1 ? "loaded" : domains.length}{" "}
+              domain{domains.length === 1 ? "" : "s"} in this phase. Students flagged in two or more domains are the
+              clearest intervention priority. Local Student IDs only.
+            </p>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-alabaster text-left text-xs uppercase tracking-wide text-graphite/50">
+                  <th className="py-2">Local ID</th>
+                  <th className="py-2 text-right">Domains</th>
+                  <th className="py-2">Flagged in</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.localStudentId} className="border-b border-alabaster/60 last:border-0 align-top">
+                    <td className="py-2 font-medium text-graphite">
+                      {r.localStudentId}
+                      {r.domainCount >= 2 && (
+                        <span className="ml-2">
+                          <Pill tone="coral">priority</Pill>
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 text-right tabular-nums">{r.domainCount}</td>
+                    <td className="py-2 text-graphite/70">
+                      {r.flags.map((f) => `${f.domain} (${f.flag})`).join(", ")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {priority > 0 && (
+              <p className="mt-3 text-xs text-graphite/60">
+                {priority} student{priority === 1 ? "" : "s"} flagged in two or more domains.
+              </p>
+            )}
+          </Card>
+        );
+      })()}
 
       {/* Per-domain headline */}
       <Card>
