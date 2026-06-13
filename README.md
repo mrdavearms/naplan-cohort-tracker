@@ -20,18 +20,20 @@ Term 2. The preliminary SSSR gives schools the School (IDA) Report, Class Summar
 Report, Class Test Report, Student Reports and proficiency-standard information.
 
 This app reads those files and surfaces participation, proficiency, equity and
-skill gaps and — the headline — the **same students tracked from Year 7 to
-Year 9** (the school's value-add), with both an on-screen view and two PDF
+skill gaps and — the headline — the **same students tracked across two years**
+(Year 3→5 for a primary school, Year 7→9 for a secondary, or Year 5→7 in a
+combined P–12 — the school's value-add), with both an on-screen view and PDF
 reports. No student data leaves the machine; no student names appear anywhere.
 
 ## Which files you need
 
 Add all the files from the **SSSR Preliminary reports** — for your current
-Year 9s, **and** the same students' Year 7 files from two years earlier — across
-every domain (Reading, Numeracy, Spelling, Grammar and Punctuation) and both year
-levels. The files for each year can sit in **different folders**: the app lets you
-add several folders (or pick files directly), confirm the year for anything it
-can't detect, then build the analysis from the whole set.
+exit-year cohort (Year 5 or Year 9), **and** the same students' entry-year files
+(Year 3 or Year 7) from two years earlier — across every domain (Reading,
+Numeracy, Spelling, Grammar and Punctuation) and both year levels. The files for
+each year can sit in **different folders**: the app lets you add several folders
+(or pick files directly), confirm the year for anything it can't detect, then
+build the analysis from the whole set.
 
 **Where to get them:** Principals download the data from the national assessment
 platform (Assessform). Log in to the NAPLAN portal for the year you need, using
@@ -55,6 +57,39 @@ shared.
 
 ## Layout
 
+Three strictly separated layers — the native shell reads bytes, the pure-TS core
+analyses them, the UI renders. Nothing leaves the machine.
+
+```mermaid
+flowchart TB
+    files[("SSSR .xlsx files on your machine")]
+
+    subgraph tauri["src-tauri · native shell"]
+        read["Folder dialog + read file bytes"]
+    end
+
+    subgraph core["core · pure-TS analysis — no UI, Tauri or DOM"]
+        direction TB
+        loader["Loader: parse + normalise 2025/2026 columns, key on Local Student ID"]
+        cohort["Pair cohorts: paired / leavers / joiners"]
+        stats["Stats + Sections 1-10: Wilson CI, McNemar, transitions, narratives"]
+        loader --> cohort --> stats
+    end
+
+    subgraph ui["src · React 19 + Vite UI"]
+        view["Screens + Plotly charts"]
+        pdf["PDF reports"]
+    end
+
+    local["On-device only · no network · no student names, Local IDs only"]
+
+    files --> read --> loader
+    stats --> view
+    stats --> pdf
+    view -.-> local
+    pdf -.-> local
+```
+
 | Path | What |
 |---|---|
 | `core/` | Pure-TypeScript analysis library — **no UI, no Tauri, no filesystem, no DOM.** Loader, stats (Wilson CI, McNemar, transition matrix), all 10 sections, narratives, chart specs. Validated against the legacy Python oracle. |
@@ -69,7 +104,7 @@ then injects them into `core/`.
 ```bash
 npm install
 npm run dev        # Vite dev server in the browser (no Rust needed)
-npm test           # vitest — analysis core (98 tests)
+npm test           # vitest — core + UI projects (216 tests)
 npm run typecheck  # tsc -b (core) + app typecheck
 npm run build      # production web build
 ```
@@ -86,9 +121,10 @@ npm run tauri build  # .dmg/.app (macOS) — unsigned for v1
 v1 ships **unsigned** (the audience is personal/unmanaged machines), so the OS
 will warn the first time:
 
-- **macOS:** right-click the app → **Open** → **Open** (don't double-click the
-  first time). On Apple Silicon the build is ad-hoc signed to avoid the
-  "app is damaged" dialog.
+- **macOS:** after the first launch attempt, open **System Settings → Privacy &
+  Security** and click **Open Anyway** (macOS Sequoia 15+ removed the old
+  right-click → Open shortcut for unsigned apps; it still works on older macOS).
+  On Apple Silicon the build is ad-hoc signed to avoid the "app is damaged" dialog.
 - **Windows:** SmartScreen → **More info** → **Run anyway**.
 
 ## Privacy
@@ -101,6 +137,7 @@ will warn the first time:
 ## Docs
 
 - [docs/USER-GUIDE.md](docs/USER-GUIDE.md) — one-page guide for school leaders.
+- [CHANGELOG.md](CHANGELOG.md) — what changed in each release.
 - [PLAN.md](PLAN.md) — the roadmap and locked architecture decisions.
 - [DECISIONS.md](DECISIONS.md) — build decisions (one line each).
 - [HANDOFF.md](HANDOFF.md) — current status, how to build/run, and outstanding items.
