@@ -4,6 +4,18 @@ All notable changes to NAPLAN Cohort Tracker. Dates are when the version was
 tagged for release. The app is on-device only — every version keeps student data
 on your machine and shows Local Student IDs, never names.
 
+## 1.2.1 — Readable chart labels
+
+A display fix, in response to user feedback. Nothing about your data or analysis
+changes.
+
+- **Left-hand chart labels are no longer cut off.** On the proficiency charts the
+  row labels down the left (class group names and similar) were being clipped to
+  just the last character or two. Every horizontal chart now resizes its left
+  margin to fit its labels in full — on screen and in the exported PDF. This also
+  covers the Section 10 confidence-interval plot and the transition heatmap, where
+  longer labels (e.g. "Needs additional support") could clip.
+
 ## 1.2.0 — Counts and follow-up clarity
 
 Section 10 (cohort tracking) is easier to read and act on. Nothing about your
