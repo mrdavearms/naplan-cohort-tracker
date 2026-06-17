@@ -42,7 +42,7 @@ export function stackedProficiencyBarFigure(
       barmode: "stack",
       title: options.title ? { text: options.title } : undefined,
       xaxis: { range: [0, 100], title: options.xTitle ?? "% of participating students" },
-      yaxis: { title: "" },
+      yaxis: { title: "", automargin: true },
       height: options.height ?? 300,
       margin: { l: 10, r: 10, t: 50, b: 120 },
       legend: { orientation: "h", yanchor: "top", y: -0.4, xanchor: "center", x: 0.5 },

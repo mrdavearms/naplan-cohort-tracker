@@ -185,7 +185,7 @@ export function transitionHeatmapFigure(
         x: 0.5, xanchor: "center", y: 0.97, yanchor: "top",
       },
       xaxis: { title: { text: `${lL} ${y9Year} proficiency →`, standoff: 10 }, side: "top" },
-      yaxis: { title: `${eL} ${y7Year} proficiency →`, autorange: "reversed" },
+      yaxis: { title: `${eL} ${y7Year} proficiency →`, automargin: true, autorange: "reversed" },
       height: 460,
       margin: { l: 160, r: 20, t: 140, b: 60 },
       font: { family: CHART_FONT },

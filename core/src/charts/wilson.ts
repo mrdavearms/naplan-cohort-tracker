@@ -45,7 +45,7 @@ export function wilsonCiDotPlotFigure(
     layout: {
       title: { text: `${pc.domain}: NAS proportion with Wilson 95% CI (${eL} ${y7Year} → ${lL} ${y9Year})` },
       xaxis: { title: "% NAS", range: [0, Math.max(50, y7Hi * 100 + 5, y9Hi * 100 + 5)] },
-      yaxis: { title: "" },
+      yaxis: { title: "", automargin: true },
       height: 240,
       margin: { l: 10, r: 10, t: 50, b: 60 },
       showlegend: false,
