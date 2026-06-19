@@ -15,6 +15,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc -b && tsc -p tsconfig.app.json --noEmit",
     "lint": "eslint .",
+    "check:release": "node scripts/check-release.mjs",
     "tauri": "tauri"
   },
   "devDependencies": {

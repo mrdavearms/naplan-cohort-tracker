@@ -127,6 +127,7 @@ Bundle identifier: `com.dandsarmstrong.naplancohorttracker`. Repo: `github.com/m
 
 Before claiming done, all must be green:
 - `npm run lint` · `npm run typecheck` · `npm test` · `npm run build`
+- `npm run check:release` — release preflight: asserts the four version fields agree and warns if the `CHANGELOG` entry is missing (see the version-sync note under *Branch workflow*).
 - Rust shell: `cd src-tauri && cargo check && cargo clippy`. **Needs `dist/` to exist first** — `generate_context!` embeds the frontend, so run `npm run build` beforehand.
 
 Tests are two Vitest projects: **core** (`core/tests/**`, node env, parses real `.xlsx`) and **ui** (`src/**/*.test.{ts,tsx}`, jsdom, Plotly stubbed via `src/test/stubs/`). CI runs lint + typecheck + test + build on a **Linux** runner only (cheap); the Rust shell and the macOS/Windows installers are compiled by the **release** workflow on a version tag. Run `cargo check`/`clippy` locally when touching Rust — that's the gate.
@@ -228,6 +229,12 @@ the other Antigravity apps:
   `package_info()`. After editing the three, run `cd src-tauri && cargo check` to
   sync `Cargo.lock`'s `app` version too (the 4th place the version lives). Update
   `CHANGELOG.md` (repo root, canonical feature log) each release alongside the bump.
+  **`scripts/check-release.mjs` guards all of this:** `npm run check:release` (or
+  `node scripts/check-release.mjs vX.Y.Z` to also assert the tag matches and require
+  the CHANGELOG entry) verifies the four fields agree before anything ships. It runs
+  in CI on every push to `test`/`main`, and `mirror-release.sh` runs it as a preflight
+  with the tag, so a drifted or un-changelogged release aborts before it reaches the
+  public auto-update feed.
 
 ## Download-page first-run instructions — NON-NEGOTIABLE
 

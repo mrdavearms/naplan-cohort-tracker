@@ -21,6 +21,11 @@ TAG="${1:-}"
 if [ -z "$TAG" ]; then echo "usage: $0 <tag e.g. v0.1.3>"; exit 1; fi
 VERSION="${TAG#v}"
 
+# Preflight: abort before publishing if the four version fields disagree, the tag
+# doesn't match them, or the CHANGELOG entry is missing. (Run from repo root so
+# the relative paths resolve regardless of where the script lives.)
+node "$(dirname "$0")/check-release.mjs" "$TAG"
+
 SRC="mrdavearms/naplan-cohort-tracker"
 PUB="mrdavearms/naplan-cohort-tracker-releases"
 PAGES_URL="https://mrdavearms.github.io/naplan-cohort-tracker-releases/"
