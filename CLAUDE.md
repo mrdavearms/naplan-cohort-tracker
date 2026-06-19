@@ -149,6 +149,17 @@ Tests are two Vitest projects: **core** (`core/tests/**`, node env, parses real 
   **PDF**, render the Sankey on a wide internal canvas (`figureToPng(..., 820, 440)`) and
   let pdfmake scale it to the page — never render it narrow. Don't reintroduce side-by-side
   charts in `CrossDomainOverview`, `S10CohortTracking`, or `cohortReport.ts`.
+- **Every horizontal chart's y-axis needs `automargin: true`** so row labels (class
+  group names, proficiency levels) aren't clipped by a fixed `margin.l` — the bug
+  behind v1.2.1. All five builders in `core/src/charts/` (`bars`, `movement`,
+  `dumbbell`, `wilson`, `transition`) now set it; don't add a new chart with a
+  hard-coded tiny left margin and no `automargin`. UI + PDF share these builders, so
+  fixing it once in `core/src/charts/` covers every screen.
+- **Dependabot triage:** nearly all npm alerts are dev/build tooling (vite, vitest,
+  esbuild, babel, eslint) that never ships in the installer, so user-facing risk is
+  ~nil — assess shipped-vs-dev before acting. The lockfile often already carries the
+  patch while the banner lags a rescan. esbuild is pinned by vite's `^0.27` range;
+  glib (Rust) is tied to the Tauri tree — neither bumps cleanly in isolation.
 - **Pre-load renders no chrome.** When `status !== "loaded"`, `App.tsx` shows a centred
   view with **no sidebar/top bar**; screens reachable before data loads (Import, About,
   Settings) need their own nav. A new screen = add to `ViewId`, the `ActiveView` switch,
