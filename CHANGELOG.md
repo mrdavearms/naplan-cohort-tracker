@@ -4,6 +4,39 @@ All notable changes to NAPLAN Cohort Tracker. Dates are when the version was
 tagged for release. The app is on-device only — every version keeps student data
 on your machine and shows Local Student IDs, never names.
 
+## 1.3.0 — 2026-07-19
+
+### Fixed
+- Blank Local Student IDs are now treated as missing rather than as a join key, so
+  students without a school ID can no longer be incorrectly matched to each other.
+- Files with unrecognised proficiency wording are rejected with a clear message
+  instead of silently reporting zero students needing support.
+- Duplicate spreadsheets covering the same year, year level and domain are now
+  reported instead of silently overwriting one another.
+- Every equity subgroup below 5 students is suppressed, not just the Aboriginal
+  and Torres Strait Islander count.
+- A failed re-import no longer clears the analysis you already had loaded.
+- PDF export now fails with a message instead of hanging on "Generating…".
+- Settings that could not be saved now say so instead of reporting success.
+- "Check for updates" in Settings now asks before restarting the app.
+- Year 7 results at combined P–12 schools are no longer described as feeder-school
+  intake.
+- The improvement-plan target suggestion is now derived from the cohort's own
+  result rather than a fixed range, and names the correct planning year.
+- Class-group commentary no longer assumes classes are streamed.
+
+### Added
+- Save the Section 8 targeted-support list as a CSV.
+- The targeted-support list now appears in the overview PDF.
+- Copy the Section 9 narrative as plain text for planning documents.
+- Sections 1, 2, 6 and 7 open with a plain-English takeaway sentence.
+- Progress is shown while importing files and while generating a PDF.
+- The diagnostics export names the app's log folder for reporting problems.
+
+### Changed
+- The app starts faster: charts and the PDF engine now load only when needed.
+- Statistical language in Section 10 is glossed in plain English.
+
 ## 1.2.1 — Readable chart labels
 
 A display fix, in response to user feedback. Nothing about your data or analysis

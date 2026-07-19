@@ -24,7 +24,7 @@ VERSION="${TAG#v}"
 # Bumped by hand each release, AFTER rewriting the three teacher-facing "what's
 # new" blocks below (release NOTES, HTML download page, README). check-release.mjs
 # refuses to mirror unless this matches the version being released.
-RELEASE_COPY_VERSION=1.2.1
+RELEASE_COPY_VERSION=1.3.0
 
 # Preflight: abort before publishing if the four version fields disagree, the tag
 # doesn't match them, or the CHANGELOG entry is missing. (Run from repo root so
@@ -61,8 +61,12 @@ cat > "$NOTES" <<EOF
 
 > **Early release — may not work properly.** This is an early release and is still being tested, so some figures or screens may not work as expected. **Please check anything important against your source spreadsheets before you rely on it.** Feedback is very welcome — what works, what doesn't, anything that looks off: **dave.armstrong@education.vic.gov.au**. (The Year 3 → Year 5 primary analysis is the newest part and the least validated, so treat primary figures as especially provisional.)
 
-### What's new in $VERSION — readable chart labels
-- **Left-hand chart labels are no longer cut off** — the row labels down the left of the proficiency charts (class group names and similar) now resize to fit and show in full, on screen and in the PDF. Thanks to the staff who reported this.
+### What's new in $VERSION — clearer, safer, faster
+- **Sections now open with a plain-English summary** — Participation, Proficiency, Equity and Class Groups each start with one sentence telling you what the data shows.
+- **Save the targeted-support list** — the list of students needing additional support can now be saved as a spreadsheet file, and it appears in the overview PDF.
+- **Copy the narrative straight into your planning document** — one button, no retyping.
+- **The app opens faster** and shows progress while it reads your files and builds PDFs.
+- **A number of accuracy and privacy fixes**, including stricter protection of small student groups. Full details in the changelog.
 
 ### Which file do I download?
 👉 **Easiest:** use the **[download page]($PAGES_URL)** — one clear button for your computer.
@@ -225,9 +229,13 @@ index = f"""<!doctype html>
   <!-- UPDATE PER RELEASE: teacher-facing "what's new" highlights for {version}. -->
   <div class="card">
     <h3>What's new in {version}</h3>
-    <p style="margin:0 0 8px">A display fix, from user feedback — same private, on-device tool:</p>
+    <p style="margin:0 0 8px">Clearer, safer, faster — same private, on-device tool:</p>
     <ul style="margin:0;padding-left:20px">
-      <li><strong>Left-hand chart labels are no longer cut off</strong> — the row labels down the left of the proficiency charts (class group names and similar) now resize to fit and show in full, on screen and in the exported PDF.</li>
+      <li><strong>Sections now open with a plain-English summary</strong> — Participation, Proficiency, Equity and Class Groups each start with one sentence telling you what the data shows.</li>
+      <li><strong>Save the targeted-support list</strong> — the list of students needing additional support can now be saved as a spreadsheet file, and it appears in the overview PDF.</li>
+      <li><strong>Copy the narrative straight into your planning document</strong> — one button, no retyping.</li>
+      <li><strong>The app opens faster</strong> and shows progress while it reads your files and builds PDFs.</li>
+      <li><strong>A number of accuracy and privacy fixes</strong>, including stricter protection of small student groups. Full details in the changelog.</li>
     </ul>
   </div>
 
@@ -286,11 +294,16 @@ and nothing is uploaded.
 
 ## What's new in {version}
 
-A display fix, from user feedback:
+Clearer, safer, faster:
 
-- **Left-hand chart labels are no longer cut off** — the row labels down the left of the
-  proficiency charts (class group names and similar) now resize to fit and show in full,
-  on screen and in the exported PDF.
+- **Sections now open with a plain-English summary** — Participation, Proficiency, Equity
+  and Class Groups each start with one sentence telling you what the data shows.
+- **Save the targeted-support list** — the list of students needing additional support can
+  now be saved as a spreadsheet file, and it appears in the overview PDF.
+- **Copy the narrative straight into your planning document** — one button, no retyping.
+- **The app opens faster** and shows progress while it reads your files and builds PDFs.
+- **A number of accuracy and privacy fixes**, including stricter protection of small
+  student groups. Full details in the changelog.
 
 ## Updates
 
