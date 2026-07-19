@@ -7,7 +7,7 @@ import { useState } from "react";
 import { ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useApp } from "../state/AppState";
 import { isTauri } from "../lib/dataSource";
-import { appInfo, saveDiagnostics } from "../lib/tauriFs";
+import { appInfo, logDir, saveDiagnostics } from "../lib/tauriFs";
 import { buildDiagnosticsText } from "../lib/diagnostics";
 import { checkForUpdate, installAndRelaunch } from "../lib/updater";
 import { Card } from "./ui";
@@ -25,6 +25,7 @@ export function TauriTools() {
     setMsg(null);
     try {
       const info = await appInfo();
+      const logPath = await logDir();
       const text = buildDiagnosticsText({
         appVersion: info.version,
         os: info.os,
@@ -35,6 +36,7 @@ export function TauriTools() {
         store: state.store,
         skipped: state.skipped,
         unresolved: state.unresolved,
+        logPath,
       });
       const path = await saveDiagnostics(text, "naplan-cohort-tracker-diagnostics.txt");
       setMsg(path ? `Saved diagnostics to ${path}` : "Cancelled.");
@@ -86,7 +88,8 @@ export function TauriTools() {
       <div>
         <h2 className="text-sm font-semibold text-graphite">Diagnostics &amp; updates</h2>
         <p className="text-xs text-graphite/60">
-          Diagnostics contain app version, OS and the ID match-rate only — never student data.
+          Diagnostics contain app version, OS and the ID match-rate only — never student data. The
+          file also tells you where the app's log folder is, in case a problem needs reporting.
         </p>
       </div>
       <div className="flex flex-wrap gap-3">

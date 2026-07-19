@@ -21,6 +21,7 @@ export interface DiagnosticsInput {
   store: Store;
   skipped: SkippedFile[];
   unresolved: SkippedFile[];
+  logPath?: string | null;
 }
 
 export function buildDiagnosticsText(d: DiagnosticsInput): string {
@@ -31,6 +32,13 @@ export function buildDiagnosticsText(d: DiagnosticsInput): string {
   lines.push(`App version: ${d.appVersion}`);
   lines.push(`OS / arch: ${d.os} ${d.arch}`);
   lines.push(`WebView: ${d.userAgent}`);
+  lines.push(
+    d.logPath ? `Log file folder: ${d.logPath}` : "Log file folder: unavailable",
+  );
+  lines.push(
+    "If you are reporting a problem, please attach the most recent log file from that folder " +
+      "along with this diagnostics file.",
+  );
   lines.push("");
   lines.push(`School: ${d.schoolName || "(not set)"}`);
   lines.push(`Primary year: ${d.primaryYear ?? "(none)"}`);

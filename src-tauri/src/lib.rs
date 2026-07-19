@@ -122,6 +122,18 @@ fn app_info(app: tauri::AppHandle) -> AppInfo {
     }
 }
 
+/// The directory the app writes its log file to. Returned so the diagnostics
+/// export can name it and a user can find it without knowing platform paths —
+/// the app sends nothing anywhere on its own.
+#[tauri::command]
+fn log_dir(app: tauri::AppHandle) -> Result<String, String> {
+    use tauri::Manager;
+    app.path()
+        .app_log_dir()
+        .map(|p| p.to_string_lossy().into_owned())
+        .map_err(|e| format!("could not resolve the log directory: {e}"))
+}
+
 /// Write a plain-text file (diagnostics export, CSV table export). The path
 /// comes from a native save dialog. Guarded to an absolute `.txt` or `.csv` path
 /// so the command can't be repurposed to write elsewhere. CSV exports carry
@@ -182,6 +194,7 @@ pub fn run() {
             read_workbook_folder,
             read_workbook_files,
             app_info,
+            log_dir,
             save_text_file,
             save_binary_file
         ])

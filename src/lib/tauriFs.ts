@@ -6,6 +6,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import type { RawWorkbookFile } from "@naplan-cohort-tracker/core";
+import { isTauri } from "./dataSource";
 
 export interface PickedFolder {
   label: string | null;
@@ -62,6 +63,16 @@ export async function loadFilesViaTauri(): Promise<PickedFolder | null> {
 /** Read app version + OS/arch for the diagnostics export (no student data). */
 export async function appInfo(): Promise<{ version: string; os: string; arch: string }> {
   return invoke("app_info");
+}
+
+/** The app's log directory, or null outside Tauri / on failure. */
+export async function logDir(): Promise<string | null> {
+  if (!isTauri()) return null;
+  try {
+    return await invoke<string>("log_dir");
+  } catch {
+    return null;
+  }
 }
 
 /** Persist a plain-text diagnostics file via a native save dialog. Returns the

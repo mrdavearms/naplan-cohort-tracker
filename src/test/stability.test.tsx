@@ -7,6 +7,7 @@ import { reducer, initialState, type AppState } from "../state/AppState";
 import { buildSyntheticStore } from "./fixtures";
 import { saveSettings } from "../lib/persist";
 import { migrate } from "@naplan-cohort-tracker/core";
+import { buildDiagnosticsText } from "../lib/diagnostics";
 
 describe("loadError while data is already loaded", () => {
   it("keeps the loaded store and status so the analysis stays on screen", async () => {
@@ -30,6 +31,29 @@ describe("loadError while data is already loaded", () => {
     const next = reducer(initialState, { type: "loadError", error: "boom" });
     expect(next.status).toBe("error");
     expect(next.error).toBe("boom");
+  });
+});
+
+describe("buildDiagnosticsText", () => {
+  it("names the log folder and still contains no student data", async () => {
+    const store = await buildSyntheticStore();
+    const text = buildDiagnosticsText({
+      appVersion: "1.3.0",
+      os: "macos",
+      arch: "aarch64",
+      userAgent: "test",
+      schoolName: "Test School",
+      primaryYear: 2026,
+      store,
+      skipped: [],
+      unresolved: [],
+      logPath: "/Users/x/Library/Logs/naplan",
+    });
+    expect(text).toContain("/Users/x/Library/Logs/naplan");
+    // No two-capitalised-word patterns (e.g. a student name) outside the known
+    // non-student labels (app title, school name).
+    const withoutKnownLabels = text.replace(/NAPLAN Cohort Tracker/g, "").replace(/Test School/g, "");
+    expect(withoutKnownLabels).not.toMatch(/\b[A-Z][a-z]+ [A-Z][a-z]+\b/);
   });
 });
 
