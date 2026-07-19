@@ -107,6 +107,25 @@ evidence** that informs improvement planning, not as a target-measurement instru
 - **For "highest/biggest" rankings across class groups or sub-cohorts, filter to `n >= 5` first**, then surface excluded small groups separately with the suppression note. (Otherwise a placeholder group like INC, n=2, dominates the summary.)
 - **Overlapping 95% confidence intervals is NOT the same as p>0.05 for the difference.** For paired binary outcomes (NAS / not-NAS in the matched cohort) use **McNemar's test on the discordant 2×2 cells**, not CI overlap, to assess significance.
 - **Wilson CI** is the closed-form score interval. **McNemar p** is the binomial on discordant pairs. Both are hand-ported and unit-tested against the oracle.
+- **Blank is not the same as missing.** `asStr` in `core/src/loader.ts` trims and
+  maps blank/whitespace-only cells to `null`. A `Local student ID` of `""` would
+  otherwise defeat the `{PSI}*` fallback AND pair every blank-ID student against
+  one another in `buildPairedCohort` — fabricated matched rows in the transition
+  matrix and McNemar test.
+- **The proficiency vocabulary is validated at load** (`detectDomainAndYear`).
+  An unrecognised level rejects the file rather than silently reading as zero
+  across every proficiency analytic. If VCAA changes the wording, update
+  `PROFICIENCY_LEVELS` — do not remove the check.
+- **Suppression applies to EVERY subgroup, not just ATSI.** `makeSubgroup` in
+  `core/src/sections/equity.ts` zeroes the percentages of any group with n<5 and
+  sets `suppressed: true`. Never render figures for a suppressed group, and never
+  publish an exact count below the threshold (say "fewer than 5").
+- **Generated prose must not invent numbers.** The Section 9 target action derives
+  its range from the cohort's own achieved change. Never reintroduce a hardcoded
+  "X–Y pp" target — that line ends up in real improvement plans.
+- **Class-group prose must not assert streaming.** The same generator runs for
+  Year 3 classes at primary schools and for mixed-ability secondaries; keep the
+  "if classes are streamed… if mixed-ability…" conditional framing.
 
 ## Stack
 
@@ -173,6 +192,18 @@ Tests are two Vitest projects: **core** (`core/tests/**`, node env, parses real 
   tests, and the dev preview (`preview_start` → `naplan-cohort-tracker-dev`, Vite :5173)
   can't reach the analysis screens without manually picking files (the import file-picker
   isn't drivable headlessly). Render a component with a `fixtures.ts` store via `renderWithApp`.
+- **`loadError` must not discard a loaded store.** A failed RE-load keeps
+  `status: "loaded"` and surfaces the message; dropping to `"error"` renders the
+  pre-load on-ramp and reads to a principal as "the app lost my data".
+- **`saveSettings` returns a boolean.** A false return means storage failed —
+  surface it. Silently showing "Saved." loses the school identity on next launch.
+- **pdfmake's `getBuffer` has no error channel** — `savePdf` wraps it with a
+  30-second watchdog. Never remove it: without it a PDF failure hangs the export
+  button forever with no way out but restarting.
+- **Plotly and pdfmake are lazy-loaded** (`src/App.tsx`, `ExportPdfButton`). Do
+  not reintroduce a static import of either — it puts ~7 MB back into the startup
+  parse. Verify with `grep -o 'modulepreload[^>]*href="[^"]*"' dist/index.html`
+  after a build.
 
 ## Build-minute budget (important)
 
@@ -246,6 +277,13 @@ the other Antigravity apps:
   in CI on every push to `test`/`main`, and `mirror-release.sh` runs it as a preflight
   with the tag, so a drifted or un-changelogged release aborts before it reaches the
   public auto-update feed.
+- **`RELEASE_COPY_VERSION` in `scripts/mirror-release.sh` must match the version
+  being released.** `check-release.mjs` (tag mode) refuses to mirror otherwise —
+  the guard that stops the previous release's "What's new" copy shipping under a
+  new version number. Rewrite all three what's-new blocks, THEN bump the marker.
+- **`mirror-release.sh` verifies the published feed** after publishing (version
+  match, both platforms present, every asset URL reachable). A failure there means
+  the release is half-published — re-run the mirror rather than leaving it.
 
 ## Download-page first-run instructions — NON-NEGOTIABLE
 
