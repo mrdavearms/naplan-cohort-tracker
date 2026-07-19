@@ -21,6 +21,11 @@ TAG="${1:-}"
 if [ -z "$TAG" ]; then echo "usage: $0 <tag e.g. v0.1.3>"; exit 1; fi
 VERSION="${TAG#v}"
 
+# Bumped by hand each release, AFTER rewriting the three teacher-facing "what's
+# new" blocks below (release NOTES, HTML download page, README). check-release.mjs
+# refuses to mirror unless this matches the version being released.
+RELEASE_COPY_VERSION=1.2.1
+
 # Preflight: abort before publishing if the four version fields disagree, the tag
 # doesn't match them, or the CHANGELOG entry is missing. (Run from repo root so
 # the relative paths resolve regardless of where the script lives.)

@@ -121,6 +121,27 @@ if (releaseMode) {
         "       Bump the version fields (or fix the tag) so they agree before mirroring.",
     );
   }
+
+  // The teacher-facing "What's new in X" copy is hardcoded in THREE places in
+  // mirror-release.sh (release NOTES, the HTML download page, the README).
+  // Mirroring without updating it publishes the previous release's copy under
+  // the new version number — invisible to every other check.
+  const mirror = read("scripts/mirror-release.sh");
+  const whatsNewCount = (mirror.match(/What's new in/g) ?? []).length;
+  if (whatsNewCount !== 3) {
+    warnings.push(
+      `scripts/mirror-release.sh has ${whatsNewCount} "What's new in" blocks, expected 3 ` +
+        `(release NOTES, HTML download page, README). If the script was restructured, update ` +
+        `this check in scripts/check-release.mjs.`,
+    );
+  }
+  if (!mirror.includes(`RELEASE_COPY_VERSION=${tagVersion}`)) {
+    errors.push(
+      `scripts/mirror-release.sh has not been updated for ${tagVersion}. Rewrite all three ` +
+        `"What's new in $VERSION" blocks to describe THIS release, then set the marker line ` +
+        `RELEASE_COPY_VERSION=${tagVersion} near the top of the script to confirm.`,
+    );
+  }
 }
 
 // ── Report ───────────────────────────────────────────────────────────────────
