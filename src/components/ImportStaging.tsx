@@ -35,7 +35,18 @@ import { PrivacyNote } from "./ui";
 import { BetaNotice } from "./Beta";
 import { DISCLAIMER } from "../appMeta";
 
-const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
+/** Selectable test years for files whose year couldn't be detected from the
+ *  file or folder name. Derived from today so the list never goes stale: the
+ *  current year, the next one (files arriving early), and four years back
+ *  (cohort tracking needs two years, with headroom for older archives). */
+function yearOptions(now: Date = new Date()): number[] {
+  const current = now.getFullYear();
+  const years: number[] = [];
+  for (let y = current + 1; y >= current - 4; y--) years.push(y);
+  return years;
+}
+
+const YEAR_OPTIONS = yearOptions();
 
 let counter = 0;
 const nextId = (): string => {
