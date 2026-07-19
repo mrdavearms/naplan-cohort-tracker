@@ -4,38 +4,40 @@ All notable changes to NAPLAN Cohort Tracker. Dates are when the version was
 tagged for release. The app is on-device only — every version keeps student data
 on your machine and shows Local Student IDs, never names.
 
-## 1.3.0 — 2026-07-19
+## 1.3.0 — Accuracy, privacy and speed
 
-### Fixed
-- Blank Local Student IDs are now treated as missing rather than as a join key, so
-  students without a school ID can no longer be incorrectly matched to each other.
-- Files with unrecognised proficiency wording are rejected with a clear message
-  instead of silently reporting zero students needing support.
-- Duplicate spreadsheets covering the same year, year level and domain are now
-  reported instead of silently overwriting one another.
-- Every equity subgroup below 5 students is suppressed, not just the Aboriginal
-  and Torres Strait Islander count.
-- A failed re-import no longer clears the analysis you already had loaded.
-- PDF export now fails with a message instead of hanging on "Generating…".
-- Settings that could not be saved now say so instead of reporting success.
-- "Check for updates" in Settings now asks before restarting the app.
-- Year 7 results at combined P–12 schools are no longer described as feeder-school
-  intake.
-- The improvement-plan target suggestion is now derived from the cohort's own
-  result rather than a fixed range, and names the correct planning year.
-- Class-group commentary no longer assumes classes are streamed.
+A correctness and privacy audit, plus a faster start-up and a few new export
+options. Nothing about how your data is analysed changes for the numbers you
+already trust — these fixes make edge cases safer and the app quicker to open.
 
-### Added
-- Save the Section 8 targeted-support list as a CSV.
-- The targeted-support list now appears in the overview PDF.
-- Copy the Section 9 narrative as plain text for planning documents.
-- Sections 1, 2, 6 and 7 open with a plain-English takeaway sentence.
-- Progress is shown while importing files and while generating a PDF.
-- The diagnostics export names the app's log folder for reporting problems.
-
-### Changed
-- The app starts faster: charts and the PDF engine now load only when needed.
-- Statistical language in Section 10 is glossed in plain English.
+- **Blank Local Student IDs are no longer used as a join key.** Students without
+  a school ID can no longer be incorrectly matched to each other across years.
+- **Unrecognised proficiency wording is rejected, not silently miscounted.**
+  Files with unexpected proficiency-level text now show a clear error instead of
+  reporting zero students needing support.
+- **Duplicate spreadsheets are reported, not silently overwritten.** Two files
+  covering the same year, year level and domain now raise a warning instead of
+  one quietly replacing the other.
+- **Every equity subgroup below 5 students is suppressed** — not just the
+  Aboriginal and Torres Strait Islander count.
+- **A failed re-import no longer clears the analysis you already had loaded.**
+- **PDF export now fails with a message instead of hanging on "Generating…".**
+- **Settings that could not be saved now say so** instead of reporting success.
+- **"Check for updates" in Settings now asks before restarting the app.**
+- **Year 7 results at combined P–12 schools are no longer described as
+  feeder-school intake** — those students have been at the school continuously.
+- **The improvement-plan target suggestion is now derived from the cohort's own
+  result** rather than a fixed range, and names the correct planning year.
+- **Class-group commentary no longer assumes classes are streamed.**
+- **Save the Section 8 targeted-support list as a CSV** — it now also appears in
+  the overview PDF.
+- **Copy the Section 9 narrative as plain text** for planning documents.
+- **Sections 1, 2, 6 and 7 open with a plain-English takeaway sentence.**
+- **Progress is shown while importing files and while generating a PDF.**
+- **The diagnostics export names the app's log folder**, for reporting problems.
+- **The app starts faster** — charts and the PDF engine now load only when
+  needed.
+- **Statistical language in Section 10 is glossed in plain English.**
 
 ## 1.2.1 — Readable chart labels
 
