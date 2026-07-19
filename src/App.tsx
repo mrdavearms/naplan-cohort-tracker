@@ -3,17 +3,24 @@
  * present) sits above the body. Before any data is loaded the body is the
  * centred on-ramp; once loaded it becomes the section sidebar + active view.
  */
+import { lazy, Suspense } from "react";
 import { useApp } from "./state/AppState";
 import { Sidebar } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { HomeView } from "./views/HomeView";
 import { SettingsView } from "./views/SettingsView";
-import { SectionRouter } from "./views/SectionRouter";
 import { ImportStaging } from "./components/ImportStaging";
 import { AboutView } from "./views/AboutView";
 import { UpdateNotice } from "./components/UpdateNotice";
 import { BetaStrip } from "./components/Beta";
+
+// Plotly (~4.8 MB) is reachable only through the section views. Loading it
+// lazily keeps it out of the startup parse, so the import screen — which needs
+// no charts at all — paints without waiting for it.
+const SectionRouter = lazy(() =>
+  import("./views/SectionRouter").then((m) => ({ default: m.SectionRouter })),
+);
 
 function ActiveView() {
   const { state } = useApp();
@@ -28,7 +35,15 @@ function ActiveView() {
       return <SettingsView />;
     default:
       // sections require loaded data; fall back home otherwise
-      return state.status === "loaded" ? <SectionRouter /> : <ImportStaging />;
+      return state.status === "loaded" ? (
+        <Suspense
+          fallback={<p className="text-sm text-graphite/60">Loading charts…</p>}
+        >
+          <SectionRouter />
+        </Suspense>
+      ) : (
+        <ImportStaging />
+      );
   }
 }
 

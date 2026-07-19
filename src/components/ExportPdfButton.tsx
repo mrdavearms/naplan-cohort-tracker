@@ -6,9 +6,6 @@
 import { useState } from "react";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { useApp } from "../state/AppState";
-import { buildOverviewDoc } from "../pdf/overviewReport";
-import { buildCohortDoc } from "../pdf/cohortReport";
-import { savePdf } from "../pdf/savePdf";
 
 export function ExportPdfButton({ kind }: { kind: "overview" | "cohort" }) {
   const { state } = useApp();
@@ -22,6 +19,13 @@ export function ExportPdfButton({ kind }: { kind: "overview" | "cohort" }) {
     setBusy(true);
     setMsg(null);
     try {
+      // pdfmake + its embedded fonts are ~2.2 MB and are only ever needed when
+      // the user actually exports, so they stay out of the startup parse.
+      const [{ buildOverviewDoc }, { buildCohortDoc }, { savePdf }] = await Promise.all([
+        import("../pdf/overviewReport"),
+        import("../pdf/cohortReport"),
+        import("../pdf/savePdf"),
+      ]);
       const doc =
         kind === "overview"
           ? await buildOverviewDoc(state.store, primaryYear, state.settings)
