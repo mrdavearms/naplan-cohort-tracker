@@ -314,6 +314,59 @@ PY
   fi
 )
 
+# ── Verify the published feed actually works ────────────────────────────────
+# The delete-then-create publish above is not atomic, and a failed asset upload
+# would leave a latest.json advertising an installer that 404s — a broken
+# "update available" prompt on every installed copy, with no other signal.
+echo
+echo "Verifying the published update feed ..."
+FEED_URL="https://github.com/$PUB/releases/latest/download/latest.json"
+FEED="$WORK/published-latest.json"
+
+if ! curl -fsSL "${FEED_URL}?cachebust=$(date +%s)" -o "$FEED"; then
+  echo "FAIL: could not fetch $FEED_URL" >&2
+  echo "      The release may still be propagating (CDN lag) — retry in a few minutes." >&2
+  exit 1
+fi
+
+python3 - "$FEED" "$VERSION" <<'PY'
+import json, sys, urllib.request
+
+path, expected_version = sys.argv[1], sys.argv[2]
+d = json.load(open(path))
+
+version = str(d.get("version", "")).lstrip("v")
+if version != expected_version.lstrip("v"):
+    sys.exit(f"FAIL: feed advertises version {version!r}, expected {expected_version!r}")
+
+platforms = d.get("platforms", {})
+have_mac = any(k.startswith("darwin") for k in platforms)
+have_win = any(k.startswith("windows") for k in platforms)
+if not have_mac:
+    sys.exit(f"FAIL: no darwin-* platform in the feed (macOS build missing). Platforms: {sorted(platforms)}")
+if not have_win:
+    sys.exit(f"FAIL: no windows-* platform in the feed (Windows build missing). Platforms: {sorted(platforms)}")
+
+for name, p in sorted(platforms.items()):
+    url = p.get("url")
+    if not url:
+        sys.exit(f"FAIL: platform {name} has no url")
+    if not p.get("signature"):
+        sys.exit(f"FAIL: platform {name} has no signature")
+    req = urllib.request.Request(url, method="HEAD")
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            if r.status != 200:
+                sys.exit(f"FAIL: {name} -> HTTP {r.status} for {url}")
+    except Exception as e:
+        sys.exit(f"FAIL: {name} -> {e} for {url}")
+    print(f"  ok  {name}")
+
+print(f"  ok  feed version {version}, {len(platforms)} platform(s), all assets reachable")
+PY
+
+echo "Update feed verified."
+
 echo ""
 echo "Done."
 echo "  Auto-update feed: https://github.com/$PUB/releases/latest/download/latest.json"
