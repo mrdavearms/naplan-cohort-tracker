@@ -156,6 +156,17 @@ describe("buildCohortNarrative — target action", () => {
     expect(targetAction).toMatch(/paired-cohort result|did not achieve a NAS reduction/i);
   });
 
+  it("reports the no-reduction sentence when the cohort did not improve", () => {
+    // All students stay at NAS across the two years: p7 NAS% == p9 NAS%, delta == 0 (no reduction).
+    const noImprovement = pairedCohort(
+      "Reading",
+      Array.from({ length: 10 }, () => pairedStudent(NAS, NAS)),
+    );
+    const n = buildCohortNarrative(new Map([["Reading", noImprovement]]), ctx);
+    const targetAction = n.actions.find((a) => a.includes("target"))!;
+    expect(targetAction).toContain("did not achieve a NAS reduction");
+  });
+
   it("names the NEXT planning year, not the data year", () => {
     // ctx.primaryYear is 2026, so the plan being written is the 2027 one.
     const n = buildCohortNarrative(new Map([["Reading", reading]]), ctx);
