@@ -122,14 +122,16 @@ fn app_info(app: tauri::AppHandle) -> AppInfo {
     }
 }
 
-/// Write a plain-text file (used by "Export diagnostics"). The path comes from a
-/// native save dialog; contents must never include student data. Guarded to an
-/// absolute `.txt` path so the command can't be repurposed to write elsewhere.
+/// Write a plain-text file (diagnostics export, CSV table export). The path
+/// comes from a native save dialog. Guarded to an absolute `.txt` or `.csv` path
+/// so the command can't be repurposed to write elsewhere. CSV exports carry
+/// Local Student IDs only — never names.
 #[tauri::command]
 fn save_text_file(path: String, contents: String) -> Result<(), String> {
     let p = Path::new(&path);
-    if !p.is_absolute() || p.extension().and_then(|e| e.to_str()) != Some("txt") {
-        return Err("refusing to write: path must be an absolute .txt file".into());
+    let ext = p.extension().and_then(|e| e.to_str());
+    if !p.is_absolute() || !matches!(ext, Some("txt") | Some("csv")) {
+        return Err("refusing to write: path must be an absolute .txt or .csv file".into());
     }
     std::fs::write(&path, contents).map_err(|e| format!("{path}: {e}"))
 }

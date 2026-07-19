@@ -5,6 +5,8 @@
  * an ID derived from the VCAA Student ID where the Local ID was blank). Students
  * at NAS in >=2 domains are the higher-priority group and appear first.
  */
+import { useState } from "react";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import {
   getPrimaryYearEntries,
   NAS,
@@ -12,6 +14,7 @@ import {
 } from "@naplan-cohort-tracker/core";
 import { useApp } from "../../state/AppState";
 import { Card, EmptyState, Pill, PrivacyNote, SectionHeading, StatTile } from "../../components/ui";
+import { saveCsv, toCsv } from "../../lib/csv";
 import { AttributionNote, useYearLevel, YearLevelTabs } from "./scope";
 
 export function S8TargetedSupport() {
@@ -21,6 +24,30 @@ export function S8TargetedSupport() {
   const { yearLevels, yearLevel, setYearLevel } = useYearLevel(store, primaryYear);
 
   const table = targetedSupport(getPrimaryYearEntries(store, primaryYear), yearLevel);
+
+  const [csvMsg, setCsvMsg] = useState<string | null>(null);
+
+  async function exportCsv() {
+    setCsvMsg(null);
+    const headers = ["Local Student ID", "Class group", "NAS domains", ...table.domains];
+    const rows = table.students.map((s) => [
+      s.localStudentIdDisplay,
+      s.classGroup ?? "",
+      s.nasDomains,
+      ...table.domains.map((dom) => s.proficiencyByDomain[dom] ?? ""),
+    ]);
+    try {
+      const result = await saveCsv(
+        toCsv(headers, rows),
+        `NAPLAN ${primaryYear} Year ${yearLevel} targeted support.csv`,
+      );
+      setCsvMsg(
+        result === null ? "Cancelled." : result === "downloaded" ? "Downloaded." : `Saved to ${result}`,
+      );
+    } catch (e) {
+      setCsvMsg(`Could not save the CSV: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
 
   return (
     <div>
@@ -47,6 +74,18 @@ export function S8TargetedSupport() {
               value={table.multiNas}
               sub="Higher priority — needs support across multiple domains"
             />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={exportCsv}
+              className="inline-flex items-center gap-2 rounded-xl border border-alabaster bg-white px-4 py-2 text-sm text-graphite shadow-sm transition hover:border-coral/40"
+            >
+              <ArrowDownTrayIcon className="h-4 w-4" />
+              Save this list as CSV
+            </button>
+            {csvMsg && <span className="text-sm text-graphite/60">{csvMsg}</span>}
           </div>
 
           <Card>
