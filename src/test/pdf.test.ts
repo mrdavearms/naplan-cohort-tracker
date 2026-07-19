@@ -91,6 +91,22 @@ describe("cohort PDF (Section 10)", () => {
   });
 });
 
+describe("overview PDF — Section 8", () => {
+  it("includes the targeted-support table", async () => {
+    const store = await buildSyntheticStore();
+    const doc = await buildOverviewDoc(store, 2026, defaultSettings());
+    const text = JSON.stringify(doc);
+    expect(text).toContain("Students needing targeted support");
+    expect(text).toContain("Local Student ID");
+  });
+
+  it("carries no student names into the PDF", async () => {
+    const store = await buildSyntheticStore();
+    const doc = await buildOverviewDoc(store, 2026, defaultSettings());
+    expect(JSON.stringify(doc)).not.toMatch(/Student name|Student Name/);
+  });
+});
+
 describe("savePdf — failure handling", () => {
   // savePdf only calls getBuffer on the Tauri path (the browser path calls
   // pdfmake's download() directly and returns immediately), so these tests

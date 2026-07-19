@@ -21,6 +21,7 @@ import {
   rankDomainsByNas,
   stackedProficiencyBarFigure,
   storeEntries,
+  targetedSupport,
   yearLevelsFor,
   yearOnYearNas,
   type ProficiencyPercentages,
@@ -31,6 +32,41 @@ import {
 import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
 import { figureToPng } from "./chartImage";
 import { bulletList, coverPage, footer, pct1, PDF_STYLES, table } from "./common";
+
+/** Section 8 — the operational list a leader hands to a year-level coordinator.
+ *  Local Student IDs only (the `*` suffix marks an ID derived from the VCAA
+ *  Student ID where the school's Local ID was blank). Never names. */
+function targetedSupportSection(store: Store, primaryYear: number, yearLevel: number): Content[] {
+  const t = targetedSupport(getPrimaryYearEntries(store, primaryYear), yearLevel);
+  if (t.students.length === 0) return [];
+
+  const out: Content[] = [];
+  out.push({ text: "Students needing targeted support", style: "h3" });
+  out.push({
+    text:
+      `${t.totalNas} student(s) are at "Needs additional support" in at least one domain; ` +
+      `${t.multiNas} in two or more (the higher-priority group, listed first).`,
+    style: "caption",
+  });
+  out.push(
+    table(
+      ["Local Student ID", "Class group", "NAS domains", ...t.domains],
+      t.students.map((s) => [
+        s.localStudentIdDisplay,
+        s.classGroup ?? "—",
+        String(s.nasDomains),
+        ...t.domains.map((dom) => s.proficiencyByDomain[dom] ?? "—"),
+      ]),
+    ),
+  );
+  out.push({
+    text:
+      "Local Student IDs only — no student names appear anywhere in this report. A * suffix marks " +
+      "an ID derived from the VCAA Student ID where the school's Local Student ID was blank.",
+    style: "caption",
+  });
+  return out;
+}
 
 async function yearLevelSection(store: Store, primaryYear: number, yearLevel: number): Promise<Content[]> {
   const domains = domainsFor(store, primaryYear, yearLevel);
@@ -124,6 +160,8 @@ async function yearLevelSection(store: Store, primaryYear: number, yearLevel: nu
   }
   out.push(table(["Domain", "Cohort NAS%", "LBOTE gap", "ATSI gap"], eqRows, ["*", "auto", "auto", "auto"]));
   out.push({ text: "Gap = subgroup NAS% minus cohort NAS% (positive = more need). Subgroups under n=5 are suppressed.", style: "caption" });
+
+  out.push(...targetedSupportSection(store, primaryYear, yearLevel));
 
   return out;
 }
