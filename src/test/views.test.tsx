@@ -86,6 +86,11 @@ describe("shell views", () => {
     renderWithApp(<MatchRateBanner store={store} primaryYear={2026} />, { store });
     expect(screen.getByText(/Matched/i)).toBeInTheDocument();
   });
+
+  it("offers a copy-as-text button on the narrative section", () => {
+    renderWithApp(<S9Narrative />, { store });
+    expect(screen.getByRole("button", { name: /copy narrative as text/i })).toBeInTheDocument();
+  });
 });
 
 describe("cross-domain overview", () => {

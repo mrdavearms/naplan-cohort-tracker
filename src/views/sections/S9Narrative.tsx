@@ -6,6 +6,8 @@
  * starting point to support — never replace — professional judgement; NAPLAN
  * is diagnostic evidence, not a target-measurement instrument.
  */
+import { useState } from "react";
+import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import {
   buildSchoolNarrative,
   storeEntries,
@@ -62,6 +64,35 @@ export function S9Narrative() {
 
   const narrative = buildSchoolNarrative(storeEntries(store), ctx);
 
+  const [copied, setCopied] = useState<string | null>(null);
+
+  function narrativeAsText(): string {
+    const blocks: string[] = [narrative.heading, "", narrative.overall, ""];
+    const add = (title: string, items: string[]) => {
+      if (items.length === 0) return;
+      blocks.push(title);
+      // Strip the **bold** markers used for on-screen emphasis — this is going
+      // into a Word document, not a markdown renderer.
+      for (const line of items) blocks.push(`- ${line.replace(/\*\*/g, "")}`);
+      blocks.push("");
+    };
+    add("Strengths", narrative.strengths);
+    add("Concerns", narrative.concerns);
+    add("Year on year", narrative.yearOnYear);
+    add("Recommendations", narrative.recommendations);
+    blocks.push("A rules-based draft to support — not replace — professional judgement.");
+    return blocks.join("\n");
+  }
+
+  async function copyNarrative() {
+    try {
+      await navigator.clipboard.writeText(narrativeAsText());
+      setCopied("Copied — paste it into your planning document.");
+    } catch {
+      setCopied("Couldn't copy automatically — select the text above and copy it manually.");
+    }
+  }
+
   return (
     <div>
       <SectionHeading
@@ -69,6 +100,18 @@ export function S9Narrative() {
         title="Narrative"
         blurb={`A rules-based leadership narrative — ${primaryYear}, whole school.`}
       />
+
+      <div className="mb-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={copyNarrative}
+          className="inline-flex items-center gap-2 rounded-xl border border-alabaster bg-white px-4 py-2 text-sm text-graphite shadow-sm transition hover:border-coral/40"
+        >
+          <ClipboardDocumentIcon className="h-4 w-4" />
+          Copy narrative as text
+        </button>
+        {copied && <span className="text-sm text-graphite/60">{copied}</span>}
+      </div>
 
       {!settings.schoolName && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-alabaster bg-linen/50 px-4 py-3 text-sm text-graphite/70">
