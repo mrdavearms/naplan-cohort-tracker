@@ -181,3 +181,25 @@ describe("interpretClassGroups", () => {
     expect(text).toContain("load-bearing"); // the streaming caveat
   });
 });
+
+describe("interpretClassGroups — streaming language", () => {
+  const paired = [
+    ...Array.from({ length: 5 }, () => ps(NAS, "Strong", { classY7: "7C", classY9: "9A" })),
+    ...Array.from({ length: 5 }, () => ps("Strong", "Strong", { classY7: "7A", classY9: "9A" })),
+  ];
+  const leavers = Array.from({ length: 3 }, () => leaver(NAS, "7C"));
+
+  it("does not assert that classes are streamed", () => {
+    const bullets = interpretClassGroups(cohort(paired, leavers));
+    const joined = bullets.join(" ");
+    expect(joined).not.toMatch(/This is consistent with a lower-stream/);
+    expect(joined).not.toMatch(/the classic streaming-plus-disengagement signal/);
+  });
+
+  it("frames streaming conditionally when it mentions it at all", () => {
+    const bullets = interpretClassGroups(cohort(paired, leavers));
+    const joined = bullets.join(" ");
+    expect(joined).toMatch(/If classes are streamed/);
+    expect(joined).toMatch(/mixed-ability/);
+  });
+});

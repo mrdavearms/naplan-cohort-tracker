@@ -640,8 +640,9 @@ export function interpretClassGroups(pc: PairedCohort): string[] {
   const bullets: string[] = [];
   bullets.push(
     `**Class ${highestNas.cls} had the highest ${eL} NAS concentration**: ${highestNas.y7Nas} of ${highestNas.total} ` +
-      `students (${round0(highestNas.y7NasPct)}%) in this domain. This is consistent with a lower-stream ${eL} class — ` +
-      "the streaming model concentrates need into one class group rather than distributing it across all of them.",
+      `students (${round0(highestNas.y7NasPct)}%) in this domain. If classes are streamed, a concentration ` +
+      `like this is expected in a lower-stream class; if they are mixed-ability, it is worth a closer look at ` +
+      "how support is distributed across class groups.",
   );
   bullets.push(
     `**Class ${highestAttr.cls} had the highest attrition**: ${highestAttr.left} of ${highestAttr.total} students ` +
@@ -650,22 +651,23 @@ export function interpretClassGroups(pc: PairedCohort): string[] {
   );
   if (highestNas.cls === highestAttr.cls) {
     bullets.push(
-      `**Class ${highestNas.cls} has both the highest ${eL} NAS rate and the highest attrition.** These two patterns ` +
-        "co-occurring is the classic streaming-plus-disengagement signal: the lowest-stream class was both the most " +
-        `academically disadvantaged AND lost the most students by ${lL}. Worth a deeper conversation with the relevant ` +
-        "year-level coordinator and student support team about that cohort specifically.",
+      `**Class ${highestNas.cls} has both the highest ${eL} NAS rate and the highest attrition.** One class ` +
+        "carrying both the most academic need AND the most student movement is a pattern worth understanding " +
+        `directly — whether that reflects how the class was formed, how support reached it, or what happened to ` +
+        `those students by ${lL}. Worth a deeper conversation with the relevant year-level coordinator and ` +
+        "student support team about that cohort specifically.",
     );
   }
   if (lowestAttr.cls !== highestAttr.cls) {
     bullets.push(
       `**Class ${lowestAttr.cls} retained students best**: only ${round0(lowestAttr.attritionPct)}% attrition. The ` +
-        `${lowestAttr.stayers} stayers from this class ended ${lL} with ${round0(lowestAttr.y9NasPct)}% NAS rate — a ` +
-        "useful comparator for the streaming model's effects on retention.",
+        `${lowestAttr.stayers} stayers from this class ended ${lL} with a ${round0(lowestAttr.y9NasPct)}% NAS rate — a ` +
+        "useful comparator when looking at what drives retention across class groups.",
     );
   }
   bullets.push(
-    "**Caveat (load-bearing)**: these patterns reflect the school's streaming model and student movement decisions, " +
-      "not teacher performance. Use them for next-cohort resource allocation, not to evaluate teaching. If the " +
+    "**Caveat (load-bearing)**: these patterns reflect how classes were formed and how students moved, not " +
+      "teacher performance. Use them for next-cohort resource allocation, not to evaluate teaching. If the " +
       "leadership team is interpreting these numbers as a teacher-quality signal, redirect that conversation.",
   );
   if (excluded.length > 0) {
