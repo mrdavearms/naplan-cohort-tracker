@@ -160,8 +160,15 @@ function requireColumns(sheet: ParsedSheet, needed: string[], what: string): voi
   }
 }
 
-const asStr = (v: CellValue | undefined): string | null =>
-  v == null ? null : String(v);
+/** Cell → trimmed string, with blank/whitespace-only treated as missing.
+ *  Blank is NOT the same as empty here: an empty `Local student ID` that stayed
+ *  as `""` would defeat both the `{PSI}*` display fallback and the cross-year
+ *  join guard, silently pairing every blank-ID student against one another. */
+const asStr = (v: CellValue | undefined): string | null => {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s.length === 0 ? null : s;
+};
 
 const asNum = (v: CellValue | undefined): number | null => {
   if (v == null) return null;
