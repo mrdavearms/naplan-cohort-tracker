@@ -110,8 +110,8 @@ describe("buildCohortNarrative", () => {
     expect(n.actions.join(" ")).toContain("KIS 1.b");
     // The intervention-list action should cite the at-risk ref.
     expect(n.actions.join(" ")).toContain("KIS 1.e");
-    // Uses the configured plan label + year.
-    expect(n.actions.join(" ")).toContain("2026 AIP");
+    // Uses the configured plan label + NEXT year (the plan being written this year covers next year).
+    expect(n.actions.join(" ")).toContain("2027 AIP");
   });
 
   it("falls back to generic phrasing when no plan references are configured", () => {
@@ -134,5 +134,33 @@ describe("buildCohortNarrative", () => {
     ]);
     const n = buildCohortNarrative(new Map([["Numeracy", flat]]), ctx);
     expect(n.supported.some((s) => s.includes("No domains pass"))).toBe(true);
+  });
+});
+
+describe("buildCohortNarrative — target action", () => {
+  const reading = pairedCohort(
+    "Reading",
+    Array.from({ length: 10 }, () => pairedStudent(NAS, "Strong")),
+  );
+
+  it("does not invent a percentage-point target range", () => {
+    const n = buildCohortNarrative(new Map([["Reading", reading]]), ctx);
+    const targetAction = n.actions.find((a) => a.includes("target"));
+    expect(targetAction).toBeDefined();
+    expect(targetAction).not.toMatch(/5–7 pp|5-7 pp/);
+  });
+
+  it("anchors the target to this cohort's own paired-cohort result", () => {
+    const n = buildCohortNarrative(new Map([["Reading", reading]]), ctx);
+    const targetAction = n.actions.find((a) => a.includes("target"))!;
+    expect(targetAction).toMatch(/paired-cohort result|did not achieve a NAS reduction/i);
+  });
+
+  it("names the NEXT planning year, not the data year", () => {
+    // ctx.primaryYear is 2026, so the plan being written is the 2027 one.
+    const n = buildCohortNarrative(new Map([["Reading", reading]]), ctx);
+    const targetAction = n.actions.find((a) => a.includes("target"))!;
+    expect(targetAction).toContain("2027");
+    expect(targetAction).not.toMatch(/\b2026 (AIP|annual implementation plan)/i);
   });
 });

@@ -367,10 +367,23 @@ export function buildCohortNarrative(
         `(${weakest[1].p9.toFixed(1)}% NAS).${citePlanRef(ctx, "data-inquiry")}`,
     );
   }
+  // Anchor the target to what THIS cohort actually achieved rather than a
+  // hardcoded range. A number invented here reads as evidence-based and would
+  // plausibly end up in a real improvement-plan target.
+  const trackedDeltas = [...summary.values()]
+    .map((d) => d.delta)
+    .filter((d) => Number.isFinite(d));
+  const bestReduction = trackedDeltas.length > 0 ? Math.min(...trackedDeltas) : 0;
+  const evidenceSentence =
+    bestReduction < 0
+      ? `The strongest paired-cohort result here is a ${Math.abs(bestReduction).toFixed(1)} pp NAS reduction ` +
+        `across ${eL} → ${lL} — a target of similar size is defensible; one well beyond it is not yet ` +
+        `supported by this evidence.`
+      : `This cohort did not achieve a NAS reduction across ${eL} → ${lL}, so any target should be set ` +
+        `against the practice changes planned for next year rather than extrapolated from this result.`;
   actions.push(
-    `Use this cohort analysis to inform the NAPLAN target in the ${ctx.primaryYear} ${planLabel(ctx)}. ` +
-      `A 5–7 pp paired-cohort NAS reduction across ${eL} → ${lL} is defensible and achievable based on what the ` +
-      `data shows here.`,
+    `Use this cohort analysis to inform the NAPLAN target in the ${ctx.primaryYear + 1} ${planLabel(ctx)}. ` +
+      evidenceSentence,
   );
   actions.push(
     "Build the named-student intervention list from the transition matrix: students who stayed at NAS " +
