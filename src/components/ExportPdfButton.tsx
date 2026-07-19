@@ -11,6 +11,7 @@ export function ExportPdfButton({ kind }: { kind: "overview" | "cohort" }) {
   const { state } = useApp();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
   if (state.status !== "loaded" || state.primaryYear == null) return null;
   const primaryYear = state.primaryYear;
@@ -18,6 +19,7 @@ export function ExportPdfButton({ kind }: { kind: "overview" | "cohort" }) {
   async function run() {
     setBusy(true);
     setMsg(null);
+    setProgress(null);
     try {
       // pdfmake + its embedded fonts are ~2.2 MB and are only ever needed when
       // the user actually exports, so they stay out of the startup parse.
@@ -26,10 +28,11 @@ export function ExportPdfButton({ kind }: { kind: "overview" | "cohort" }) {
         import("../pdf/cohortReport"),
         import("../pdf/savePdf"),
       ]);
+      const onProgress = (done: number, total: number) => setProgress({ done, total });
       const doc =
         kind === "overview"
-          ? await buildOverviewDoc(state.store, primaryYear, state.settings)
-          : await buildCohortDoc(state.store, primaryYear, state.settings);
+          ? await buildOverviewDoc(state.store, primaryYear, state.settings, onProgress)
+          : await buildCohortDoc(state.store, primaryYear, state.settings, onProgress);
       const filename =
         kind === "overview"
           ? `NAPLAN ${primaryYear} overview.pdf`
@@ -40,6 +43,7 @@ export function ExportPdfButton({ kind }: { kind: "overview" | "cohort" }) {
       setMsg(`Could not generate the PDF: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   }
 
@@ -53,7 +57,9 @@ export function ExportPdfButton({ kind }: { kind: "overview" | "cohort" }) {
       >
         <ArrowDownTrayIcon className="h-4 w-4" />
         {busy
-          ? "Generating…"
+          ? progress
+            ? `Generating… chart ${progress.done} of ${progress.total}`
+            : "Generating…"
           : kind === "overview"
             ? "Export overview PDF"
             : "Export cohort PDF"}

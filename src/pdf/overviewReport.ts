@@ -68,7 +68,12 @@ function targetedSupportSection(store: Store, primaryYear: number, yearLevel: nu
   return out;
 }
 
-async function yearLevelSection(store: Store, primaryYear: number, yearLevel: number): Promise<Content[]> {
+async function yearLevelSection(
+  store: Store,
+  primaryYear: number,
+  yearLevel: number,
+  renderChart: typeof figureToPng,
+): Promise<Content[]> {
   const domains = domainsFor(store, primaryYear, yearLevel);
   if (domains.length === 0) return [];
   const out: Content[] = [];
@@ -99,7 +104,7 @@ async function yearLevelSection(store: Store, primaryYear: number, yearLevel: nu
     percentages: proficiencyPercentages(getEntry(store, primaryYear, yearLevel, dom)!.studentReports),
   }));
   const h = Math.max(160, 70 + rows.length * 42);
-  const png = await figureToPng(
+  const png = await renderChart(
     stackedProficiencyBarFigure(rows, { title: `Year ${yearLevel} proficiency mix`, xTitle: "% of participants" }),
     520,
     h,
@@ -264,9 +269,25 @@ export async function buildOverviewDoc(
   store: Store,
   primaryYear: number,
   settings: Settings,
+  onProgress?: (done: number, total: number) => void,
 ): Promise<TDocumentDefinitions> {
   const generatedAt = new Date();
   const entries = getPrimaryYearEntries(store, primaryYear);
+
+  // One chart (the proficiency stacked bar) per year level that actually has
+  // domains loaded — mirrors yearLevelSection's early return.
+  const totalCharts = yearLevelsFor(store, primaryYear).filter(
+    (yl) => domainsFor(store, primaryYear, yl).length > 0,
+  ).length;
+  let chartsDone = 0;
+  const renderChart: typeof figureToPng = async (figure, w, h) => {
+    const png = await figureToPng(figure, w, h);
+    chartsDone += 1;
+    onProgress?.(chartsDone, totalCharts);
+    // Yield so the WebView can repaint the progress label between heavy renders.
+    await new Promise((r) => setTimeout(r, 0));
+    return png;
+  };
 
   const body: Content[] = [];
   body.push({ text: "Overview", style: "h1" });
@@ -278,7 +299,7 @@ export async function buildOverviewDoc(
   });
 
   for (const yearLevel of yearLevelsFor(store, primaryYear)) {
-    body.push(...(await yearLevelSection(store, primaryYear, yearLevel)));
+    body.push(...(await yearLevelSection(store, primaryYear, yearLevel, renderChart)));
   }
   body.push(...skillGapsSection(store, primaryYear));
   body.push(...yearOnYearSection(store, primaryYear));

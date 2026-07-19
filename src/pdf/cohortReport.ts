@@ -47,10 +47,20 @@ import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
 import { figureToPng } from "./chartImage";
 import { bulletList, coverPage, footer, pct1, PDF_STYLES, table } from "./common";
 
+/** Renders one chart and reports progress; threaded through phaseSection/domainBlock
+ *  in place of calling figureToPng directly. See buildCohortDoc for the total count. */
+type RenderChart = typeof figureToPng;
+
 const fmtP = (p: number | null): string => (p == null ? "n/a" : p < 0.001 ? "<0.001" : p.toFixed(3));
 const ppStr = (x: number | null): string => (x == null ? "—" : `${x >= 0 ? "+" : ""}${x.toFixed(1)} pp`);
 
-async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, store: Store): Promise<Content[]> {
+async function domainBlock(
+  pc: PairedCohort,
+  y7Year: number,
+  y9Year: number,
+  store: Store,
+  renderChart: RenderChart,
+): Promise<Content[]> {
   const out: Content[] = [];
   const earlierLabel = `Year ${pc.earlierLevel}`;
   const laterLabel = `Year ${pc.laterLevel}`;
@@ -71,13 +81,13 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
   // Render the Sankey on a wide internal canvas (820px) so its fixed 200px
   // side margins still leave a generous plot area and the Y7/Y9 year headers
   // can't collide; pdfmake scales it down to the page width (see CLAUDE.md).
-  const sankey = await figureToPng(transitionSankeyFigure(pc, y7Year, y9Year), 820, 440);
-  const heat = await figureToPng(transitionHeatmapFigure(pc, y7Year, y9Year), 560, 380);
+  const sankey = await renderChart(transitionSankeyFigure(pc, y7Year, y9Year), 820, 440);
+  const heat = await renderChart(transitionHeatmapFigure(pc, y7Year, y9Year), 560, 380);
   out.push({ image: sankey, width: 500, margin: [0, 2, 0, 6] });
   out.push({ image: heat, width: 500, margin: [0, 2, 0, 6] });
   out.push(bulletList(interpretTransition(pc)));
 
-  const wilson = await figureToPng(wilsonCiDotPlotFigure(pc, y7Year, y9Year), 520, 200);
+  const wilson = await renderChart(wilsonCiDotPlotFigure(pc, y7Year, y9Year), 520, 200);
   const mc = mcnemarPaired(pc.paired, pc.earlierLevel, pc.laterLevel);
   out.push({ text: `NAS rate, ${earlierLabel} vs ${laterLabel} (Wilson 95% CI · McNemar)`, style: "h3" });
   out.push({ image: wilson, width: 500, margin: [0, 2, 0, 6] });
@@ -85,7 +95,7 @@ async function domainBlock(pc: PairedCohort, y7Year: number, y9Year: number, sto
   out.push({ text: detectabilityNote(pc.paired.length), style: "caption" });
   out.push(bulletList([...interpretMcnemar(mc, pc.domain, pc.paired.length, pc.earlierLevel, pc.laterLevel), ...interpretWilson(pc)]));
 
-  const movePng = await figureToPng(
+  const movePng = await renderChart(
     movementStackedFigure([{ label: `${pc.domain} (n=${pc.paired.length})`, movement: bandMovement(pc) }]),
     520,
     140,
@@ -170,6 +180,7 @@ async function phaseSection(
   phase: CohortPhase,
   ctx: NarrativeContext,
   withHeading: boolean,
+  renderChart: RenderChart,
 ): Promise<Content[]> {
   const [y7Year, y9Year] = cohortYears(primaryYear);
   const pairings = buildCohortPairings(store, primaryYear, phase);
@@ -221,14 +232,14 @@ async function phaseSection(
     direction: r.deltaNasPp < 0 ? "improved" : r.deltaNasPp > 0 ? "worsened" : "flat",
   }));
   // Full-width, stacked — one visualisation wide, never side by side.
-  const dumbbellPng = await figureToPng(dumbbellFigure(dumbbellRows, { axisTitle: "NAS %", earlierLabel, laterLabel }), 720, 300);
-  const deltaPng = await figureToPng(
+  const dumbbellPng = await renderChart(dumbbellFigure(dumbbellRows, { axisTitle: "NAS %", earlierLabel, laterLabel }), 720, 300);
+  const deltaPng = await renderChart(
     divergingDeltaFigure(summary.map((r) => ({ domain: r.domain, deltaNasPp: r.deltaNasPp }))),
     720,
     300,
   );
   const movementRows: MovementBarRow[] = summary.map((r) => ({ label: `${r.domain} (n=${r.pairedN})`, movement: r.movement }));
-  const movementPng = await figureToPng(movementStackedFigure(movementRows), 720, 300);
+  const movementPng = await renderChart(movementStackedFigure(movementRows), 720, 300);
 
   out.push({ text: `Across all domains (${earlierLabel} → ${laterLabel})`, style: "h2" });
   out.push({ text: `NAS % — ${earlierLabel} → ${laterLabel}`, style: "h3" });
@@ -276,19 +287,43 @@ async function phaseSection(
   }
 
   for (const pc of pairings.values()) {
-    out.push(...(await domainBlock(pc, y7Year, y9Year, store)));
+    out.push(...(await domainBlock(pc, y7Year, y9Year, store, renderChart)));
   }
   return out;
+}
+
+/** Counts the charts `phaseSection`/`domainBlock` will actually render for this phase,
+ *  mirroring their early-return logic (no matched cohort / no reconciled students),
+ *  so `onProgress`'s total reflects only what will really be drawn. */
+function countPhaseCharts(store: Store, primaryYear: number, phase: CohortPhase): number {
+  const pairings = buildCohortPairings(store, primaryYear, phase);
+  if (pairings.size === 0) return 0;
+  let n = 3; // dumbbell, delta, movement (cross-domain charts)
+  for (const pc of pairings.values()) {
+    if (pc.paired.length > 0) n += 4; // sankey, heat, wilson, band-movement
+  }
+  return n;
 }
 
 export async function buildCohortDoc(
   store: Store,
   primaryYear: number,
   settings: Settings,
+  onProgress?: (done: number, total: number) => void,
 ): Promise<TDocumentDefinitions> {
   const generatedAt = new Date();
   const [y7Year, y9Year] = cohortYears(primaryYear);
   const phases = trackablePhases(store, primaryYear);
+  const totalCharts = phases.reduce((sum, phase) => sum + countPhaseCharts(store, primaryYear, phase), 0);
+  let chartsDone = 0;
+  const renderChart: RenderChart = async (figure, w, h) => {
+    const png = await figureToPng(figure, w, h);
+    chartsDone += 1;
+    onProgress?.(chartsDone, totalCharts);
+    // Yield so the WebView can repaint the progress label between heavy renders.
+    await new Promise((r) => setTimeout(r, 0));
+    return png;
+  };
   const ctx: NarrativeContext = {
     schoolName: settings.schoolName || "This school",
     schoolNumber: settings.schoolNumber,
@@ -309,7 +344,7 @@ export async function buildCohortDoc(
     });
   } else {
     for (const phase of phases) {
-      body.push(...(await phaseSection(store, primaryYear, phase, ctx, phases.length > 1)));
+      body.push(...(await phaseSection(store, primaryYear, phase, ctx, phases.length > 1, renderChart)));
     }
   }
 
