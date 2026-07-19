@@ -45,6 +45,16 @@ function SubgroupTable({ groups }: { groups: EquitySubgroup[] }) {
       <tbody>
         {groups.map((g) => {
           const gap = g.nasGapVsCohort;
+          if (g.suppressed) {
+            return (
+              <tr key={g.label} className="border-b border-alabaster/60 last:border-0">
+                <td className="py-2 font-medium text-graphite">{g.label}</td>
+                <td colSpan={4} className="py-2 text-sm text-graphite/60">
+                  Suppressed — fewer than {PRIVACY_THRESHOLD} students in this group.
+                </td>
+              </tr>
+            );
+          }
           return (
             <tr key={g.label} className="border-b border-alabaster/60 last:border-0">
               <td className="py-2 font-medium text-graphite">
@@ -167,13 +177,9 @@ export function S6Equity() {
             </h2>
             {breakdown.atsiSuppressed ? (
               <p className="text-sm text-graphite/70">
-                Indigenous results are suppressed for this domain. There{" "}
-                {breakdown.atsiCount === 1 ? "is" : "are"}{" "}
-                {breakdown.atsiCount}{" "}
-                {breakdown.atsiCount === 1 ? "student" : "students"} who identify as Aboriginal
-                and/or Torres Strait Islander — below the privacy threshold of n &lt;{" "}
-                {PRIVACY_THRESHOLD}, so no subgroup figures are shown to protect individual student
-                privacy.
+                Indigenous results are suppressed for this domain. Fewer than {PRIVACY_THRESHOLD}{" "}
+                students identify as Aboriginal and/or Torres Strait Islander, so no subgroup
+                figures are shown — in a small cohort an exact count is itself identifying.
               </p>
             ) : (
               <>

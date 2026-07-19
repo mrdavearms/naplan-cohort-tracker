@@ -110,12 +110,13 @@ async function yearLevelSection(store: Store, primaryYear: number, yearLevel: nu
       : atsiGroup
         ? `${atsiGroup.nasGapVsCohort >= 0 ? "+" : ""}${atsiGroup.nasGapVsCohort.toFixed(1)} pp`
         : "—";
-    eqRows.push([
-      dom,
-      pct1(eq.cohortNasPct),
-      eq.lboteReported && lbote ? `${lbote.nasGapVsCohort >= 0 ? "+" : ""}${lbote.nasGapVsCohort.toFixed(1)} pp` : "not reported",
-      atsiText,
-    ]);
+    const lboteText =
+      eq.lboteReported && lbote
+        ? lbote.suppressed
+          ? "suppressed (n<5)"
+          : `${lbote.nasGapVsCohort >= 0 ? "+" : ""}${lbote.nasGapVsCohort.toFixed(1)} pp`
+        : "not reported";
+    eqRows.push([dom, pct1(eq.cohortNasPct), lboteText, atsiText]);
   }
   out.push(table(["Domain", "Cohort NAS%", "LBOTE gap", "ATSI gap"], eqRows, ["*", "auto", "auto", "auto"]));
   out.push({ text: "Gap = subgroup NAS% minus cohort NAS% (positive = more need). Subgroups under n=5 are suppressed.", style: "caption" });

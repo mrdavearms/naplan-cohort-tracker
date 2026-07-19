@@ -74,12 +74,15 @@ describe("equityBreakdown — Indigenous suppression", () => {
 
 describe("equityBreakdown — LBOTE", () => {
   it("splits Yes/No and flags a priority gap", () => {
-    // 4 LBOTE (2 NAS = 50%), 4 Non-LBOTE (0 NAS). Cohort NAS = 2/8 = 25%.
+    // 5 LBOTE (2 NAS = 40%), 5 Non-LBOTE (0 NAS). Cohort NAS = 2/10 = 20%.
+    // n=5 is at the privacy threshold, so both subgroups are shown, not suppressed.
     const reports = [
       row("Yes", "Not reported", NAS),
       row("Yes", "Not reported", NAS),
       row("Yes", "Not reported", "Developing"),
       row("Yes", "Not reported", "Strong"),
+      row("Yes", "Not reported", "Strong"),
+      row("No", "Not reported", "Strong"),
       row("No", "Not reported", "Strong"),
       row("No", "Not reported", "Strong"),
       row("No", "Not reported", "Strong"),
@@ -87,11 +90,13 @@ describe("equityBreakdown — LBOTE", () => {
     ];
     const eq = equityBreakdown(reports);
     expect(eq.lboteReported).toBe(true);
-    expect(eq.cohortNasPct).toBeCloseTo(25, 10);
+    expect(eq.lboteSuppressed).toBe(false);
+    expect(eq.cohortNasPct).toBeCloseTo(20, 10);
     const lbote = eq.lbote.find((g) => g.label === "LBOTE")!;
-    expect(lbote.n).toBe(4);
-    expect(lbote.percentages[NAS]).toBeCloseTo(50, 10);
-    expect(lbote.nasGapVsCohort).toBeCloseTo(25, 10);
+    expect(lbote.n).toBe(5);
+    expect(lbote.suppressed).toBe(false);
+    expect(lbote.percentages[NAS]).toBeCloseTo(40, 10);
+    expect(lbote.nasGapVsCohort).toBeCloseTo(20, 10);
     expect(lbote.priorityGap).toBe(true);
     expect(eq.atsiSuppressed).toBe(true); // 0 ATSI
   });
