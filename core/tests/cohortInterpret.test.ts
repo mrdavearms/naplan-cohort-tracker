@@ -182,6 +182,62 @@ describe("interpretClassGroups", () => {
   });
 });
 
+describe("interpretMcnemar — plain-English wording", () => {
+  it("glosses 'discordant pairs' rather than using the term bare", () => {
+    // A zero-discordant result: nobody changed NAS status, so McNemar is N/A.
+    const joined = interpretMcnemar(
+      {
+        stayersNas: 0,
+        stayersNotNas: 20,
+        movedOutOfNas: 0,
+        movedIntoNas: 0,
+        pValue: null,
+        note: "",
+      },
+      "Reading",
+      20,
+    ).join(" ");
+    expect(joined).toMatch(/students whose NAS status changed/);
+    expect(joined).not.toMatch(/requires discordant\s+pairs/);
+  });
+
+  it("does not promise named students the app cannot name", () => {
+    // Net-negative: more students moved INTO NAS than out of it.
+    const joined = interpretMcnemar(
+      {
+        stayersNas: 0,
+        stayersNotNas: 15,
+        movedOutOfNas: 1,
+        movedIntoNas: 4,
+        pValue: 0.2,
+        note: "",
+      },
+      "Reading",
+      20,
+    ).join(" ");
+    expect(joined).not.toMatch(/the named students who slipped/);
+    expect(joined).toMatch(/Local Student ID/);
+  });
+
+  it("does not round an improvement ratio up to a misleading whole number", () => {
+    // 3 out / 2 in is 1.5:1 — it must not be reported as "2:1".
+    const joined = interpretMcnemar(
+      {
+        stayersNas: 0,
+        stayersNotNas: 15,
+        movedOutOfNas: 3,
+        movedIntoNas: 2,
+        pValue: 0.4,
+        note: "",
+      },
+      "Reading",
+      20,
+    ).join(" ");
+    expect(joined).not.toMatch(/\b2:1\b/);
+    expect(joined).toMatch(/3 improving for every 2 declining/);
+  });
+});
+
 describe("interpretClassGroups — streaming language", () => {
   const paired = [
     ...Array.from({ length: 5 }, () => ps(NAS, "Strong", { classY7: "7C", classY9: "9A" })),

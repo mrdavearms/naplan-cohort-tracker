@@ -192,7 +192,7 @@ export function S10CohortTracking() {
           <Card>
             <h2 className="mb-1 text-lg font-semibold text-graphite">Follow-up across domains</h2>
             <p className="mb-3 text-xs text-graphite/60">
-              Matched students who declined or stalled, joined across{" "}
+              Matched students who declined or stalled — combined across{" "}
               {domains.length === 1 ? "the one loaded domain" : `all ${domains.length} domains`} in this phase. Students
               flagged in two or more domains are the clearest intervention priority. Local Student IDs only.
             </p>
@@ -426,8 +426,9 @@ function DomainDrilldown({
       <Card>
         <h2 className="mb-1 text-lg font-semibold text-graphite">{pc.domain} — NAS rate, {eShort} vs {lShort}</h2>
         <p className="mb-3 text-xs text-graphite/60">
-          Wilson 95% confidence intervals on the paired NAS rate, with McNemar’s exact test on the
-          discordant pairs.
+          The NAS rate in each year with its 95% uncertainty range (a Wilson interval — the range the
+          true rate is most likely to sit in), plus a paired test (McNemar’s) on the students whose
+          NAS status changed between the two years.
         </p>
         <Chart figure={wilsonCiDotPlotFigure(pc, y7Year, y9Year)} height={220} />
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">

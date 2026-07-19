@@ -63,7 +63,7 @@ export function interpretMcnemar(
     const ratioPhrase =
       movedIn === 0
         ? "no students moved in the wrong direction"
-        : `a ${round0(movedOut / movedIn)}:1 improvement-to-decline ratio`;
+        : `${movedOut} improving for every ${movedIn} declining`;
     bullets.push(
       `**Direction is positive.** ${movedOut} students moved out of NAS, ${movedIn} moved in — ${ratioPhrase}. ` +
         `For a ${dom} cohort of ${n} paired students, this is genuine directional movement, even if the absolute counts are small.`,
@@ -72,7 +72,8 @@ export function interpretMcnemar(
     bullets.push(
       `**Direction is negative.** ${movedIn} students moved into NAS while only ${movedOut} moved out — ` +
         `a net decline of ${Math.abs(net)} students. In this domain the cohort is moving the wrong way, and the ` +
-        `named students who slipped into NAS in ${lL} are the priority list for the leadership team to review.`,
+        `students who slipped into NAS in ${lL} — listed by Local Student ID under "Follow-up across domains" ` +
+        "below — are the priority list for the leadership team to review.",
     );
   } else {
     bullets.push(
@@ -84,8 +85,9 @@ export function interpretMcnemar(
 
   if (r.pValue === null) {
     bullets.push(
-      "**McNemar's test is not applicable** when zero students change NAS status — the test requires discordant " +
-        "pairs. The direction is what it is; statistical inference doesn't add anything.",
+      "**McNemar's test is not applicable** when zero students change NAS status — the test needs students " +
+        "whose NAS status changed (in either direction), and with none there is nothing to test. The direction " +
+        "is what it is; statistical inference doesn't add anything.",
     );
   } else if (r.pValue < 0.05) {
     bullets.push(

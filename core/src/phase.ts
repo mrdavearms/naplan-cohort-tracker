@@ -133,7 +133,7 @@ export function yearOnYearContext(level: number): string {
     case 7:
       return "(feeder-cohort variation — not a secondary-school performance measure)";
     default: // 9
-      return "(consecutive Year 9 cohorts)";
+      return "(consecutive Year 9 cohorts — each reflects the school's own teaching)";
   }
 }
 

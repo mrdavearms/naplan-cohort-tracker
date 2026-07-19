@@ -125,6 +125,10 @@ describe("phase classification + wording", () => {
     expect(yearOnYearContext(3)).not.toContain("secondary");
     expect(yearOnYearContext(7)).toContain("feeder");
   });
+
+  it("explains what consecutive Year 9 cohorts mean", () => {
+    expect(yearOnYearContext(9)).toMatch(/the school's own teaching/);
+  });
 });
 
 describe("mcnemarPaired note is labelled by phase", () => {

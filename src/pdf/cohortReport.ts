@@ -263,7 +263,7 @@ async function phaseSection(
   if (followUp.length > 0) {
     out.push({ text: "Follow-up across domains", style: "h2" });
     out.push({
-      text: "Matched students who declined or stalled, joined across all domains in this phase. Two or more domains is the clearest intervention priority. Local Student IDs only.",
+      text: "Matched students who declined or stalled — combined across all domains in this phase. Two or more domains is the clearest intervention priority. Local Student IDs only.",
       style: "caption",
     });
     out.push(
