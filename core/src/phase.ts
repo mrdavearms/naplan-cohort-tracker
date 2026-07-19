@@ -71,8 +71,17 @@ export function shortLevel(level: number): string {
 /**
  * The attribution caveat shown alongside a single-year view. `year` is the
  * calendar year of the test (e.g. 2026), used only in the Term-1 framing.
+ *
+ * `schoolHasPrimaryLevels` matters only at Year 7: in a standalone secondary,
+ * Year 7 is feeder-school output and must never be read as this school's
+ * teaching — but in a combined P–12 the primary school IS this school, so that
+ * framing would be wrong. Defaults to false (the standalone-secondary reading).
  */
-export function attributionNote(level: number, year: number): string {
+export function attributionNote(
+  level: number,
+  year: number,
+  opts?: { schoolHasPrimaryLevels?: boolean },
+): string {
   switch (level) {
     case 3:
       return (
@@ -88,6 +97,15 @@ export function attributionNote(level: number, year: number): string {
         `planning, not a target-measurement instrument.`
       );
     case 7:
+      if (opts?.schoolHasPrimaryLevels) {
+        return (
+          `Year 7 NAPLAN is sat in Term 1, so it reflects learning up to the end of primary. In a ` +
+          `combined school these are students who have been here since primary, so ${year} Year 7 ` +
+          `results largely reflect this school's own teaching — read them as the end point of the ` +
+          `primary years, not as the secondary years' contribution. For students who arrived from ` +
+          `other primary schools, treat their results as intake.`
+        );
+      }
       return (
         `Year 7 NAPLAN is sat in Term 1 — it reflects students' primary-school learning, not this ` +
         `school's teaching. Treat ${year} Year 7 results as feeder-cohort intake, not a measure of ` +

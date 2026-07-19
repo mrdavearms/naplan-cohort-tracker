@@ -6,8 +6,9 @@
  * primary (Year 3 baseline / Year 5 contribution) and secondary alike.
  */
 import { useMemo, useState } from "react";
-import { attributionNote, yearLevelsFor, type Store } from "@naplan-cohort-tracker/core";
+import { attributionNote, storeEntries, yearLevelsFor, type Store } from "@naplan-cohort-tracker/core";
 import clsx from "clsx";
+import { useApp } from "../../state/AppState";
 
 /** Year levels present for the primary year, defaulting selection to Year 9. */
 export function useYearLevel(store: Store, primaryYear: number) {
@@ -47,11 +48,19 @@ export function YearLevelTabs({
   );
 }
 
-/** The attribution caveat for the selected year level. */
+/** The attribution caveat for the selected year level. Reads the store directly
+ *  so every call site stays unchanged: the Year 7 wording depends on whether
+ *  this school also teaches primary (a combined P–12), which is a property of
+ *  the loaded data, not of the calling section. */
 export function AttributionNote({ yearLevel, year }: { yearLevel: number; year: number }) {
+  const { state } = useApp();
+  const schoolHasPrimaryLevels = useMemo(
+    () => storeEntries(state.store).some((e) => e.yearLevel <= 5),
+    [state.store],
+  );
   return (
     <p className="mb-4 rounded-lg border border-alabaster bg-linen/50 px-3 py-2 text-xs text-graphite/70">
-      {attributionNote(yearLevel, year)}
+      {attributionNote(yearLevel, year, { schoolHasPrimaryLevels })}
     </p>
   );
 }

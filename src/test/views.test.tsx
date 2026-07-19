@@ -153,4 +153,13 @@ describe("combined P–12 school (both cohorts) rendering", () => {
     expect(screen.getByText(/from Year 3 \(2024\) to Year 5 \(2026\)/)).toBeInTheDocument();
     expect(screen.getByText(/from Year 7 \(2024\) to Year 9 \(2026\)/)).toBeInTheDocument();
   });
+
+  it("uses P–12 framing for Year 7 when the school also has primary data", () => {
+    // primaryYear 2024 is when this store's Year 7 file was sat, so the
+    // Year 7 tab is selected by default (yearLevelsFor(store, 2024) = [3, 7]).
+    renderWithApp(<S1Participation />, { store: combinedStore, state: { primaryYear: 2024 } });
+    // The combined store also has Y3/Y5 data, so the feeder-intake framing
+    // must not appear on the Year 7 tab.
+    expect(screen.queryByText(/feeder-cohort intake/)).not.toBeInTheDocument();
+  });
 });

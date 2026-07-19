@@ -37,7 +37,11 @@ async function yearLevelSection(store: Store, primaryYear: number, yearLevel: nu
   if (domains.length === 0) return [];
   const out: Content[] = [];
   out.push({ text: `Year ${yearLevel} — ${primaryYear}`, style: "h2" });
-  out.push({ text: attributionNote(yearLevel, primaryYear), style: "caption" });
+  const schoolHasPrimaryLevels = storeEntries(store).some((e) => e.yearLevel <= 5);
+  out.push({
+    text: attributionNote(yearLevel, primaryYear, { schoolHasPrimaryLevels }),
+    style: "caption",
+  });
 
   // S1 Participation
   out.push({ text: "Participation", style: "h3" });

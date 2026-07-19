@@ -278,6 +278,29 @@ describe("P–12 Year 5 → 7 transition cohort", () => {
   });
 });
 
+describe("attributionNote — combined P–12 schools", () => {
+  it("keeps the feeder-intake framing for a standalone secondary", () => {
+    const note = attributionNote(7, 2026);
+    expect(note).toContain("not this school's teaching");
+    expect(note).toContain("feeder-cohort intake");
+  });
+
+  it("drops the feeder framing when the school also teaches primary", () => {
+    const note = attributionNote(7, 2026, { schoolHasPrimaryLevels: true });
+    expect(note).not.toContain("not this school's teaching");
+    expect(note).not.toContain("feeder-cohort intake");
+    expect(note).toMatch(/students who have been here since primary|continuously enrolled/i);
+  });
+
+  it("leaves years 3, 5 and 9 unchanged by the flag", () => {
+    for (const level of [3, 5, 9]) {
+      expect(attributionNote(level, 2026, { schoolHasPrimaryLevels: true })).toBe(
+        attributionNote(level, 2026),
+      );
+    }
+  });
+});
+
 describe("cohortReadiness — self-diagnosing missing files", () => {
   const mk = (yr: number, lvl: number) => entry(yr, lvl, [row("X", lvl, "Strong")]);
   const store = (...es: [number, number][]): Store =>
