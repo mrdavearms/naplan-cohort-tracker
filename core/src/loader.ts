@@ -8,7 +8,13 @@
  */
 
 import ExcelJS from "exceljs";
-import { PARTICIPATED, VALID_DOMAINS, VALID_YEAR_LEVELS } from "./constants";
+import {
+  PARTICIPATED,
+  PROFICIENCY_LEVEL_SET,
+  PROFICIENCY_LEVELS,
+  VALID_DOMAINS,
+  VALID_YEAR_LEVELS,
+} from "./constants";
 import type { LoadedFile, StudentReportRow, StudentResultRow } from "./types";
 
 export class LoaderError extends Error {
@@ -263,6 +269,25 @@ export function detectDomainAndYear(reports: readonly StudentReportRow[]): {
   }
   if (!(VALID_YEAR_LEVELS as readonly number[]).includes(yearLevel)) {
     throw new LoaderError(`Unexpected year level '${yearLevel}'. Expected 3, 5, 7 or 9.`);
+  }
+
+  // Validate the proficiency vocabulary. Null is expected and fine (Absent /
+  // Withdrawn students are excluded from proficiency analytics but kept in
+  // participation) — an unrecognised *string* is not, and would silently zero
+  // every proficiency analytic rather than failing visibly.
+  const unknownLevels = [
+    ...new Set(
+      reports
+        .map((r) => r.proficiencyLevel)
+        .filter((p): p is string => p != null && !PROFICIENCY_LEVEL_SET.has(p)),
+    ),
+  ];
+  if (unknownLevels.length > 0) {
+    throw new LoaderError(
+      `Unrecognised proficiency level(s): ${unknownLevels.map((l) => `'${l}'`).join(", ")}. ` +
+        `Expected one of: ${PROFICIENCY_LEVELS.join(", ")}. ` +
+        `If VCAA has changed the wording in the SSSR export, this file needs a loader update.`,
+    );
   }
   return { domain, yearLevel };
 }

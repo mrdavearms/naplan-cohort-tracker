@@ -13,6 +13,12 @@ export const PROFICIENCY_LEVELS = [
 
 export type ProficiencyLevel = (typeof PROFICIENCY_LEVELS)[number];
 
+/** Fast membership test for load-time validation. An unrecognised proficiency
+ *  string would otherwise be silently skipped by every analytic (NAS counts,
+ *  transition matrix, band movement all read 0) with no diagnostic — so the
+ *  loader rejects the file instead, the same way it rejects an unknown domain. */
+export const PROFICIENCY_LEVEL_SET: ReadonlySet<string> = new Set(PROFICIENCY_LEVELS);
+
 /** The NAS ("Needs additional support") band — the binary outcome in the
  *  paired McNemar test. */
 export const NAS = "Needs additional support";
