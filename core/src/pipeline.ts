@@ -12,6 +12,7 @@ import {
   detectYearOfTestFromName,
   parseWorkbook,
   type BuildStoreResult,
+  type ParsedWorkbook,
   type SkippedFile,
   type WorkbookInput,
 } from "./loader";
@@ -52,14 +53,24 @@ export interface LoadStoreResult extends BuildStoreResult {
 }
 
 /** Parse + assemble a store from injected workbook bytes. Never throws on a
- *  single bad file — failures land in `skipped` / `unresolved`. */
+ *  single bad file — failures land in `skipped` / `unresolved`.
+ *
+ *  `parsed` is an optional cache of already-parsed workbooks, keyed by
+ *  `RawWorkbookFile.relativePath` (e.g. supplied by the import screen, which
+ *  parses each file once on stage-add). When a file's `relativePath` has an
+ *  entry, that `ParsedWorkbook` is reused instead of re-parsing its bytes —
+ *  behaviour is otherwise identical. `onProgress`, if given, is invoked with
+ *  (done, total) after each file so the UI can show load progress. */
 export async function loadStoreFromFiles(
   files: readonly RawWorkbookFile[],
+  parsed?: ReadonlyMap<string, ParsedWorkbook>,
+  onProgress?: (done: number, total: number) => void,
 ): Promise<LoadStoreResult> {
   const inputs: WorkbookInput[] = [];
   const unresolved: SkippedFile[] = [];
   const parseSkipped: SkippedFile[] = [];
 
+  let done = 0;
   for (const f of files) {
     // A host-assigned year (the import screen's year dropdown) wins; otherwise
     // infer from the `Naplan YYYY` folder / file name as before.
@@ -69,10 +80,17 @@ export async function loadStoreFromFiles(
       continue;
     }
     try {
-      const workbook = await parseWorkbook(f.bytes);
+      const cached = parsed?.get(f.relativePath);
+      const workbook = cached ?? (await parseWorkbook(f.bytes));
       inputs.push({ filename: f.name, yearOfTest, workbook });
     } catch (e) {
       parseSkipped.push({ filename: f.name, reason: e instanceof Error ? e.message : String(e) });
+    } finally {
+      done += 1;
+      onProgress?.(done, files.length);
+      // Yield to the event loop between files so the WebView can repaint the
+      // progress counter instead of freezing until the whole loop finishes.
+      await new Promise((r) => setTimeout(r, 0));
     }
   }
 

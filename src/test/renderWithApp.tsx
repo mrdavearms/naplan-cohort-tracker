@@ -16,6 +16,7 @@ export function makeState(store: Store, overrides: Partial<AppState> = {}): AppS
     settings: defaultSettings(),
     activeView: "home",
     staged: [],
+    loadProgress: null,
     ...overrides,
   };
 }

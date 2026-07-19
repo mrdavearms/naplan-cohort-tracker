@@ -18,6 +18,7 @@ import {
   detectYearOfTestFromName,
   difficultyBand,
   inspectWorkbook,
+  loadStoreFromFiles,
   parseWorkbook,
   type ParsedWorkbook,
 } from "../src/index";
@@ -190,5 +191,50 @@ describe("inspectWorkbook (import-screen classifier)", () => {
     const res = await inspectWorkbook(new Uint8Array([1, 2, 3, 4]));
     expect(res.status).toBe("rejected");
     if (res.status === "rejected") expect(res.reason).toMatch(/read this file/i);
+  });
+});
+
+describe("loadStoreFromFiles — parse reuse", () => {
+  const RELPATH = "Naplan 2026/synthetic_raw_2026.xlsx";
+
+  it("uses a supplied pre-parsed workbook instead of re-parsing the bytes", async () => {
+    const parsed = await parseWorkbook(fixtureBytes);
+    let sheetReads = 0;
+    const counting: ParsedWorkbook = {
+      sheetNames: parsed.sheetNames,
+      sheet: (n) => {
+        sheetReads += 1;
+        return parsed.sheet(n);
+      },
+    };
+
+    const { store } = await loadStoreFromFiles(
+      [
+        {
+          name: "synthetic_raw_2026.xlsx",
+          relativePath: RELPATH,
+          bytes: fixtureBytes,
+          yearOfTest: 2026,
+        },
+      ],
+      new Map([[RELPATH, counting]]),
+    );
+
+    expect(store.size).toBe(1);
+    // Proves the CACHED workbook was the one consumed — a re-parse would have
+    // produced its own ParsedWorkbook and left this counter at zero.
+    expect(sheetReads).toBeGreaterThan(0);
+  });
+
+  it("still parses from bytes when no cache entry exists", async () => {
+    const { store } = await loadStoreFromFiles([
+      {
+        name: "synthetic_raw_2026.xlsx",
+        relativePath: RELPATH,
+        bytes: fixtureBytes,
+        yearOfTest: 2026,
+      },
+    ]);
+    expect(store.size).toBe(1);
   });
 });

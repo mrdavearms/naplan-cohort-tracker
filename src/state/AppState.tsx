@@ -8,6 +8,7 @@ import {
   availableYears,
   defaultSettings,
   loadStoreFromFiles,
+  type ParsedWorkbook,
   type RawWorkbookFile,
   type Settings,
   type SkippedFile,
@@ -74,6 +75,8 @@ export interface AppState {
   activeView: ViewId;
   /** Files staged on the import screen (metadata only; bytes live in a ref). */
   staged: StagedSource[];
+  /** Per-file progress while `status === "loading"`; null outside a load. */
+  loadProgress: { done: number; total: number } | null;
 }
 
 type Action =
@@ -85,6 +88,7 @@ type Action =
       unresolved: SkippedFile[];
     }
   | { type: "loadError"; error: string }
+  | { type: "loadProgress"; done: number; total: number }
   | { type: "setPrimaryYear"; year: number }
   | { type: "setView"; view: ViewId }
   | { type: "setSettings"; settings: Settings }
@@ -105,12 +109,21 @@ export const initialState: AppState = {
   settings: defaultSettings(),
   activeView: "import",
   staged: [],
+  loadProgress: null,
 };
 
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case "loadStart":
-      return { ...state, status: "loading", error: null, sourceLabel: action.sourceLabel };
+      return {
+        ...state,
+        status: "loading",
+        error: null,
+        sourceLabel: action.sourceLabel,
+        loadProgress: null,
+      };
+    case "loadProgress":
+      return { ...state, loadProgress: { done: action.done, total: action.total } };
     case "loadSuccess": {
       const years = availableYears(action.store);
       return {
@@ -186,8 +199,14 @@ export interface AppContextValue {
   setView: (view: ViewId) => void;
   updateSettings: (settings: Settings) => boolean;
   /** Add a picked source (folder or loose files) to the import staging list. The
-   *  bytes Map is keyed by `StagedFile.id`; it is merged into the provider's ref. */
-  stageAdd: (source: StagedSource, bytes: Map<string, ArrayBuffer | Uint8Array>) => void;
+   *  bytes Map is keyed by `StagedFile.id`; the parsed Map is keyed by
+   *  `relativePath` (the survivor into `RawWorkbookFile`); both are merged
+   *  into the provider's refs. */
+  stageAdd: (
+    source: StagedSource,
+    bytes: Map<string, ArrayBuffer | Uint8Array>,
+    parsed: Map<string, ParsedWorkbook>,
+  ) => void;
   stageRemove: (sourceId: string) => void;
   stageRemoveFile: (sourceId: string, fileId: string) => void;
   /** Assign the year of test to a source's files that couldn't auto-detect one. */
@@ -223,11 +242,21 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // can rebuild from the same bytes.
   const bytesRef = useRef<Map<string, ArrayBuffer | Uint8Array>>(new Map());
 
+  // Pre-parsed workbooks from the import screen's inspect-on-add step, keyed
+  // by relativePath, NOT StagedFile.id: loadStaged() strips the id when it
+  // builds RawWorkbookFile[], and relativePath is already the staging dedupe
+  // key, so it is unique across staged files by construction.
+  const parsedRef = useRef<Map<string, ParsedWorkbook>>(new Map());
+
   const value = useMemo<AppContextValue>(() => {
     async function runLoad(files: RawWorkbookFile[], sourceLabel: string | null) {
       dispatch({ type: "loadStart", sourceLabel });
       try {
-        const { store, skipped, unresolved } = await loadStoreFromFiles(files);
+        const { store, skipped, unresolved } = await loadStoreFromFiles(
+          files,
+          parsedRef.current,
+          (done, total) => dispatch({ type: "loadProgress", done, total }),
+        );
         if (store.size === 0) {
           dispatch({
             type: "loadError",
@@ -253,22 +282,32 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "setSettings", settings });
         return persisted;
       },
-      stageAdd: (source, bytes) => {
+      stageAdd: (source, bytes, parsed) => {
         for (const [id, b] of bytes) bytesRef.current.set(id, b);
+        for (const [relativePath, p] of parsed) parsedRef.current.set(relativePath, p);
         dispatch({ type: "stageAdd", source });
       },
       stageRemove: (sourceId) => {
         const src = state.staged.find((s) => s.id === sourceId);
-        if (src) for (const f of src.files) bytesRef.current.delete(f.id);
+        if (src) {
+          for (const f of src.files) {
+            bytesRef.current.delete(f.id);
+            parsedRef.current.delete(f.relativePath);
+          }
+        }
         dispatch({ type: "stageRemove", sourceId });
       },
       stageRemoveFile: (sourceId, fileId) => {
+        const src = state.staged.find((s) => s.id === sourceId);
+        const file = src?.files.find((f) => f.id === fileId);
         bytesRef.current.delete(fileId);
+        if (file) parsedRef.current.delete(file.relativePath);
         dispatch({ type: "stageRemoveFile", sourceId, fileId });
       },
       stageSetYear: (sourceId, year) => dispatch({ type: "stageSetYear", sourceId, year }),
       stageClear: () => {
         bytesRef.current.clear();
+        parsedRef.current.clear();
         dispatch({ type: "stageClear" });
       },
       async loadStaged() {

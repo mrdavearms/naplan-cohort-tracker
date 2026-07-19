@@ -20,7 +20,9 @@ import {
 import {
   COHORT_PHASES,
   inspectWorkbook,
+  parseWorkbook,
   resolveYearOfTest,
+  type ParsedWorkbook,
   type RawWorkbookFile,
 } from "@naplan-cohort-tracker/core";
 import {
@@ -119,10 +121,23 @@ export function ImportStaging() {
       return;
     }
     const bytes = new Map<string, ArrayBuffer | Uint8Array>();
+    // Keyed by relativePath (not id) — that's what survives into RawWorkbookFile
+    // at Load, letting loadStoreFromFiles reuse this parse instead of redoing it.
+    const parsed = new Map<string, ParsedWorkbook>();
     const files: StagedFile[] = [];
     for (const r of fresh) {
       const id = nextId();
       bytes.set(id, r.bytes);
+      // Parsed once here for caching; inspectWorkbook still parses its own copy
+      // internally (no pre-parsed variant exists yet) — that duplicate parse at
+      // staging time is out of scope. The win is skipping the SECOND parse at Load.
+      try {
+        parsed.set(r.relativePath, await parseWorkbook(r.bytes));
+      } catch {
+        // Unreadable bytes — inspectWorkbook (below) will surface the same
+        // failure as a rejection; no cache entry means Load falls back to
+        // parsing from bytes and rejecting again, same as today.
+      }
       files.push({
         id,
         name: r.name,
@@ -132,7 +147,7 @@ export function ImportStaging() {
         inspection: await inspectWorkbook(r.bytes),
       });
     }
-    stageAdd({ id: nextId(), kind, label, files }, bytes);
+    stageAdd({ id: nextId(), kind, label, files }, bytes, parsed);
   }
 
   async function pickFolder(): Promise<void> {
@@ -424,7 +439,9 @@ export function ImportStaging() {
               >
                 <ArrowUpTrayIcon className="h-5 w-5" />
                 {loading
-                  ? "Loading…"
+                  ? state.loadProgress
+                    ? `Loading… ${state.loadProgress.done} of ${state.loadProgress.total}`
+                    : "Loading…"
                   : missingYear
                     ? "Confirm the year above"
                     : `Load ${loadableCount} spreadsheet${loadableCount === 1 ? "" : "s"}`}
