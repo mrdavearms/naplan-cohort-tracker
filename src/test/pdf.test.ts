@@ -90,3 +90,43 @@ describe("cohort PDF (Section 10)", () => {
     expect(Buffer.from(bytes.slice(0, 5)).toString()).toBe("%PDF-");
   });
 });
+
+describe("savePdf — failure handling", () => {
+  // savePdf only calls getBuffer on the Tauri path (the browser path calls
+  // pdfmake's download() directly and returns immediately), so these tests
+  // force the Tauri branch by stubbing isTauri() and the two dynamic
+  // @tauri-apps imports savePdf uses on that path.
+  it("rejects rather than hanging when the PDF engine never calls back", async () => {
+    vi.resetModules();
+    vi.doMock("../pdf/pdfmake", () => ({
+      createPdf: () => ({
+        getBuffer: () => {
+          /* never calls back — the hang this test guards against */
+        },
+        download: () => {},
+      }),
+    }));
+    vi.doMock("../lib/dataSource", () => ({ isTauri: () => true }));
+    vi.doMock("@tauri-apps/plugin-dialog", () => ({ save: async () => "/tmp/x.pdf" }));
+    vi.doMock("@tauri-apps/api/core", () => ({ invoke: async () => {} }));
+    const { savePdf } = await import("../pdf/savePdf");
+    await expect(savePdf({ content: [] }, "x.pdf")).rejects.toThrow(/timed out|could not/i);
+  }, 40_000);
+
+  it("rejects when the PDF engine throws synchronously", async () => {
+    vi.resetModules();
+    vi.doMock("../pdf/pdfmake", () => ({
+      createPdf: () => ({
+        getBuffer: () => {
+          throw new Error("vfs missing");
+        },
+        download: () => {},
+      }),
+    }));
+    vi.doMock("../lib/dataSource", () => ({ isTauri: () => true }));
+    vi.doMock("@tauri-apps/plugin-dialog", () => ({ save: async () => "/tmp/x.pdf" }));
+    vi.doMock("@tauri-apps/api/core", () => ({ invoke: async () => {} }));
+    const { savePdf } = await import("../pdf/savePdf");
+    await expect(savePdf({ content: [] }, "x.pdf")).rejects.toThrow(/vfs missing/);
+  });
+});
