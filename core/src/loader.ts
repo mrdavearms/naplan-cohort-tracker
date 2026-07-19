@@ -373,6 +373,18 @@ export function buildStore(inputs: readonly WorkbookInput[]): BuildStoreResult {
   const store = new Map<string, LoadedFile>();
   const skipped: SkippedFile[] = [];
 
+  /** Record that `incoming` supersedes an already-registered file at the same
+   *  (yearOfTest, yearLevel, domain). Last file still wins — but the conflict is
+   *  now visible instead of silent, so the user knows two exports collided. */
+  function noteDuplicate(previousFilename: string, incomingFilename: string, key: string): void {
+    skipped.push({
+      filename: previousFilename,
+      reason:
+        `duplicate of ${incomingFilename} for ${key} — both files cover the same year, year ` +
+        `level and domain, so only ${incomingFilename} was used. Remove one of them if that's wrong.`,
+    });
+  }
+
   interface PendingReports {
     filename: string;
     reports: StudentReportRow[];
@@ -392,14 +404,17 @@ export function buildStore(inputs: readonly WorkbookInput[]): BuildStoreResult {
         const reports = cleanStudentReports(workbook.sheet(SHEET_REPORTS)!);
         const results = cleanStudentResults(workbook.sheet(SHEET_RESULTS)!);
         const { domain, yearLevel } = detectDomainAndYear(reports);
-        store.set(
-          storeKey(yearOfTest, yearLevel, domain),
-          makeLoadedFile(yearOfTest, yearLevel, domain, reports, results, filename),
-        );
+        const key = storeKey(yearOfTest, yearLevel, domain);
+        const existing = store.get(key);
+        if (existing) noteDuplicate(existing.sourceFilename, filename, key);
+        store.set(key, makeLoadedFile(yearOfTest, yearLevel, domain, reports, results, filename));
       } else if (hasSr) {
         const reports = cleanStudentReports(workbook.sheet(SHEET_REPORTS)!);
         const { domain, yearLevel } = detectDomainAndYear(reports);
-        pairSr.set(storeKey(yearOfTest, yearLevel, domain), {
+        const srKey = storeKey(yearOfTest, yearLevel, domain);
+        const priorSr = pairSr.get(srKey);
+        if (priorSr) noteDuplicate(priorSr.filename, filename, srKey);
+        pairSr.set(srKey, {
           filename,
           reports,
           yearOfTest,
@@ -409,7 +424,10 @@ export function buildStore(inputs: readonly WorkbookInput[]): BuildStoreResult {
       } else if (hasSrt) {
         const results = cleanStudentResults(workbook.sheet(SHEET_RESULTS)!);
         const { domain, yearLevel } = detectDomainAndYearFromResults(results);
-        pairSrt.set(storeKey(yearOfTest, yearLevel, domain), { filename, results });
+        const srtKey = storeKey(yearOfTest, yearLevel, domain);
+        const priorSrt = pairSrt.get(srtKey);
+        if (priorSrt) noteDuplicate(priorSrt.filename, filename, srtKey);
+        pairSrt.set(srtKey, { filename, results });
       } else {
         skipped.push({ filename, reason: `no '${SHEET_REPORTS}' or '${SHEET_RESULTS}' sheet` });
       }
@@ -423,6 +441,8 @@ export function buildStore(inputs: readonly WorkbookInput[]): BuildStoreResult {
     const sr = pairSr.get(key);
     const srt = pairSrt.get(key);
     if (sr && srt) {
+      const existing = store.get(key);
+      if (existing) noteDuplicate(existing.sourceFilename, `${sr.filename} + ${srt.filename}`, key);
       store.set(
         key,
         makeLoadedFile(

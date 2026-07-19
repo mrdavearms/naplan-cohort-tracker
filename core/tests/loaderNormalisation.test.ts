@@ -4,7 +4,14 @@
  * cross-year join (see CLAUDE.md "Keying rule — critical").
  */
 import { describe, expect, it } from "vitest";
-import { cleanStudentReports, detectDomainAndYear, LoaderError, type ParsedSheet } from "../src/index";
+import {
+  buildStore,
+  cleanStudentReports,
+  detectDomainAndYear,
+  LoaderError,
+  type ParsedSheet,
+  type ParsedWorkbook,
+} from "../src/index";
 
 const HEADERS = [
   "Student ID",
@@ -110,5 +117,54 @@ describe("detectDomainAndYear — proficiency vocabulary validation", () => {
     const reports = reportsWithProficiency(["Strong", "Emerging", "Consolidating"]);
     expect(() => detectDomainAndYear(reports)).toThrow(/Emerging/);
     expect(() => detectDomainAndYear(reports)).toThrow(/Consolidating/);
+  });
+});
+
+/** Minimal in-memory workbook carrying just a Student Reports sheet. */
+function reportsWorkbook(domain: string, yearLevel: number, proficiency: string): ParsedWorkbook {
+  const s: ParsedSheet = {
+    headers: HEADERS,
+    rows: [
+      {
+        "Student ID": "PSI1",
+        "Local student ID": "L1",
+        "Year level": yearLevel,
+        "Class groups": "7A",
+        Domain: domain,
+        "Proficiency level": proficiency,
+        "Participation code": "Participated",
+        "Indigenous Status": "Neither Aboriginal nor Torres Strait Islander origin",
+        "LBOTE Status": "No",
+      },
+    ],
+  };
+  return {
+    sheetNames: ["Student Reports"],
+    sheet: (name) => (name === "Student Reports" ? s : null),
+  };
+}
+
+describe("buildStore — duplicate key reporting", () => {
+  it("reports a superseded duplicate in `skipped` and keeps the last file", () => {
+    const { store, skipped } = buildStore([
+      { filename: "Reading.xlsx", yearOfTest: 2026, workbook: reportsWorkbook("Reading", 7, "Strong") },
+      { filename: "Reading (1).xlsx", yearOfTest: 2026, workbook: reportsWorkbook("Reading", 7, "Developing") },
+    ]);
+
+    // Both are reports-only, so neither registers without a results partner —
+    // but the DUPLICATE must be reported before the pairing stage discards it.
+    const dupes = skipped.filter((s) => /already loaded|duplicate/i.test(s.reason));
+    expect(dupes).toHaveLength(1);
+    expect(dupes[0]!.filename).toBe("Reading.xlsx");
+    expect(dupes[0]!.reason).toContain("Reading (1).xlsx");
+    expect(store.size).toBe(0);
+  });
+
+  it("does not report distinct keys as duplicates", () => {
+    const { skipped } = buildStore([
+      { filename: "Reading.xlsx", yearOfTest: 2026, workbook: reportsWorkbook("Reading", 7, "Strong") },
+      { filename: "Numeracy.xlsx", yearOfTest: 2026, workbook: reportsWorkbook("Numeracy", 7, "Strong") },
+    ]);
+    expect(skipped.filter((s) => /already loaded|duplicate/i.test(s.reason))).toHaveLength(0);
   });
 });
