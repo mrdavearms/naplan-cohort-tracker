@@ -212,7 +212,7 @@ export function SettingsView() {
         </button>
         {saved === "saved" && <span className="text-sm text-sage-text">Saved.</span>}
         {saved === "memory-only" && (
-          <span className="text-sm text-coral">
+          <span className="text-sm text-coral-text">
             Saved for this session only — your device wouldn't let the app store settings, so these
             details will be gone next time you open it. If this keeps happening, please report it.
           </span>
