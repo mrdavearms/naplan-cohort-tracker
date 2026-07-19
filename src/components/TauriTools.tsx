@@ -16,6 +16,7 @@ export function TauriTools() {
   const { state } = useApp();
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState<"diag" | "update" | null>(null);
+  const [pendingUpdate, setPendingUpdate] = useState<Awaited<ReturnType<typeof checkForUpdate>>>(null);
 
   if (!isTauri()) return null;
 
@@ -47,17 +48,34 @@ export function TauriTools() {
   async function checkForUpdates() {
     setBusy("update");
     setMsg(null);
+    setPendingUpdate(null);
     try {
       const update = await checkForUpdate();
       if (!update) {
         setMsg("You're up to date.");
         return;
       }
-      setMsg(`Update available: ${update.version}. Downloading & installing…`);
-      await installAndRelaunch(update); // restarts the app on success
-      setMsg("Update installed — restarting…");
+      setPendingUpdate(update);
+      setMsg(null);
     } catch (e) {
       setMsg(`Could not check for updates. Details: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function installPendingUpdate() {
+    if (!pendingUpdate) return;
+    setBusy("update");
+    setMsg("Downloading and installing…");
+    try {
+      await installAndRelaunch(pendingUpdate); // restarts the app on success
+      setMsg("Update installed — restarting…");
+    } catch (e) {
+      setMsg(
+        `Could not install the update: ${e instanceof Error ? e.message : String(e)}. ` +
+          "You can also download the latest version from the download page.",
+      );
     } finally {
       setBusy(null);
     }
@@ -92,6 +110,32 @@ export function TauriTools() {
         </button>
       </div>
       {msg && <p className="text-sm text-graphite/70">{msg}</p>}
+      {pendingUpdate && (
+        <div className="rounded-xl border border-coral/40 bg-coral/5 px-4 py-3">
+          <p className="text-sm text-graphite">
+            Version {pendingUpdate.version} is available. Installing it restarts the app — any data
+            you have loaded will need to be imported again, so finish what you're doing first.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={installPendingUpdate}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-2 rounded-xl bg-coral px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-coral-dark disabled:opacity-60"
+            >
+              {busy === "update" ? "Installing…" : "Install & restart"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPendingUpdate(null)}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-2 rounded-xl border border-alabaster bg-white px-4 py-2 text-sm text-graphite shadow-sm transition disabled:opacity-60"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
