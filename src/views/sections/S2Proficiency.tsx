@@ -7,7 +7,9 @@
 import {
   domainsFor,
   getEntry,
+  getPrimaryYearEntries,
   proficiencyCounts,
+  proficiencyHeadline,
   proficiencyPercentages,
   PROFICIENCY_LEVELS,
   stackedProficiencyBarFigure,
@@ -24,6 +26,7 @@ export function S2Proficiency() {
   const primaryYear = state.primaryYear!;
   const { yearLevels, yearLevel, setYearLevel } = useYearLevel(store, primaryYear);
   const domains = domainsFor(store, primaryYear, yearLevel);
+  const headline = proficiencyHeadline(getPrimaryYearEntries(store, primaryYear), yearLevel);
 
   const rows: StackedBarRow[] = domains.map((dom) => {
     const reports = getEntry(store, primaryYear, yearLevel, dom)!.studentReports;
@@ -41,6 +44,10 @@ export function S2Proficiency() {
       <SectionHeading number={2} title="Proficiency" blurb={`Proficiency-level mix — ${primaryYear} Year ${yearLevel}.`} />
       <YearLevelTabs yearLevels={yearLevels} value={yearLevel} onChange={setYearLevel} />
       <AttributionNote yearLevel={yearLevel} year={primaryYear} />
+
+      {headline && (
+        <p className="mb-4 text-sm font-medium text-graphite">{headline}</p>
+      )}
 
       {domains.length === 0 ? (
         <EmptyState title="No data for this year level" />

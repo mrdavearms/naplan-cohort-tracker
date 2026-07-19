@@ -6,7 +6,14 @@
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
-import { buildCohortPairings, type Store } from "@naplan-cohort-tracker/core";
+import {
+  buildCohortPairings,
+  PARTICIPATED,
+  storeKey,
+  type LoadedFile,
+  type StudentReportRow,
+  type Store,
+} from "@naplan-cohort-tracker/core";
 import { buildCombinedStore, buildPrimaryStore, buildSyntheticStore } from "./fixtures";
 import { renderWithApp } from "./renderWithApp";
 
@@ -166,5 +173,82 @@ describe("combined P–12 school (both cohorts) rendering", () => {
     // The combined store also has Y3/Y5 data, so the feeder-intake framing
     // must not appear on the Year 7 tab.
     expect(screen.queryByText(/feeder-cohort intake/)).not.toBeInTheDocument();
+  });
+});
+
+describe("section headlines (computed takeaway sentences)", () => {
+  // A small synthetic Year 7 Reading store with a deliberate equity gap and
+  // two substantive (n>=5) class groups, so S6/S7's headlines have something
+  // to say — the committed fixture .xlsx don't produce a notable gap or a
+  // ranking (only one small class), so they're built inline here.
+  function makeReport(overrides: Partial<StudentReportRow>): StudentReportRow {
+    return {
+      studentId: overrides.studentId ?? null,
+      localStudentId: null,
+      localStudentIdDisplay: "S*",
+      yearLevel: 7,
+      classGroups: "7A",
+      domain: "Reading",
+      proficiencyLevel: "Strong",
+      participationCode: PARTICIPATED,
+      indigenousStatus: "No",
+      lboteStatus: "No",
+      atsiGroup: "Non-ATSI",
+      ...overrides,
+    };
+  }
+
+  let headlineStore: Store;
+  beforeAll(() => {
+    const reports: StudentReportRow[] = [
+      // 7A: 6 students, 1 NAS, all Non-LBOTE — low need.
+      ...Array.from({ length: 5 }, (_, i) =>
+        makeReport({ studentId: `A${i}`, classGroups: "7A", proficiencyLevel: "Strong" }),
+      ),
+      makeReport({ studentId: "A5", classGroups: "7A", proficiencyLevel: "Needs additional support" }),
+      // 7B: 6 students, 5 NAS, all LBOTE — high need, drives the equity gap.
+      ...Array.from({ length: 5 }, (_, i) =>
+        makeReport({
+          studentId: `B${i}`,
+          classGroups: "7B",
+          proficiencyLevel: "Needs additional support",
+          lboteStatus: "Yes",
+        }),
+      ),
+      makeReport({ studentId: "B5", classGroups: "7B", proficiencyLevel: "Strong", lboteStatus: "Yes" }),
+      // One student who did not sit, so Section 1 has something to report.
+      makeReport({ studentId: "C0", classGroups: "7A", participationCode: "Absent" }),
+    ];
+    const entry: LoadedFile = {
+      yearOfTest: 2026,
+      yearLevel: 7,
+      domain: "Reading",
+      studentReports: reports,
+      studentResults: [],
+      sourceFilename: "headline-fixture.xlsx",
+      participants: reports.filter((r) => r.participationCode === PARTICIPATED).length,
+      totalStudents: reports.length,
+    };
+    headlineStore = new Map([[storeKey(entry.yearOfTest, entry.yearLevel, entry.domain), entry]]);
+  });
+
+  it("leads Section 1 with a computed takeaway sentence", () => {
+    renderWithApp(<S1Participation />, { store: headlineStore });
+    expect(screen.getByText(/lowest participation at Year 7/i)).toBeInTheDocument();
+  });
+
+  it("leads Section 2 with a computed takeaway sentence", () => {
+    renderWithApp(<S2Proficiency />, { store: headlineStore });
+    expect(screen.getByText(/need additional support|needing additional support/i)).toBeInTheDocument();
+  });
+
+  it("leads Section 6 with a computed takeaway sentence naming the priority gap", () => {
+    renderWithApp(<S6Equity />, { store: headlineStore });
+    expect(screen.getByText(/LBOTE students need additional support/i)).toBeInTheDocument();
+  });
+
+  it("leads Section 7 with a computed takeaway sentence naming the class with the highest NAS", () => {
+    renderWithApp(<S7ClassGroups />, { store: headlineStore });
+    expect(screen.getByText(/class 7B has the highest/i)).toBeInTheDocument();
   });
 });

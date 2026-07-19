@@ -7,7 +7,9 @@
 import {
   domainsFor,
   getEntry,
+  getPrimaryYearEntries,
   participationBreakdown,
+  participationHeadline,
   participationSummary,
 } from "@naplan-cohort-tracker/core";
 import { useApp } from "../../state/AppState";
@@ -21,12 +23,17 @@ export function S1Participation() {
   const { yearLevels, yearLevel, setYearLevel } = useYearLevel(store, primaryYear);
 
   const domains = domainsFor(store, primaryYear, yearLevel);
+  const headline = participationHeadline(getPrimaryYearEntries(store, primaryYear), yearLevel);
 
   return (
     <div>
       <SectionHeading number={1} title="Participation" blurb={`Who sat the test — ${primaryYear} Year ${yearLevel}.`} />
       <YearLevelTabs yearLevels={yearLevels} value={yearLevel} onChange={setYearLevel} />
       <AttributionNote yearLevel={yearLevel} year={primaryYear} />
+
+      {headline && (
+        <p className="mb-4 text-sm font-medium text-graphite">{headline}</p>
+      )}
 
       {domains.length === 0 ? (
         <EmptyState title="No data for this year level" />

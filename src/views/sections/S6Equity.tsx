@@ -10,6 +10,7 @@ import { useState } from "react";
 import {
   domainsFor,
   equityBreakdown,
+  equityHeadline,
   getEntry,
   PRIVACY_THRESHOLD,
   type EquityBreakdown,
@@ -105,6 +106,7 @@ export function S6Equity() {
   const breakdown: EquityBreakdown | null = entry
     ? equityBreakdown(entry.studentReports)
     : null;
+  const headline = breakdown ? equityHeadline(breakdown) : null;
 
   return (
     <div>
@@ -115,6 +117,10 @@ export function S6Equity() {
       />
       <YearLevelTabs yearLevels={yearLevels} value={yearLevel} onChange={setYearLevel} />
       <AttributionNote yearLevel={yearLevel} year={primaryYear} />
+
+      {headline && (
+        <p className="mb-4 text-sm font-medium text-graphite">{headline}</p>
+      )}
 
       {domains.length === 0 || !breakdown ? (
         <EmptyState title="No data for this year level" />

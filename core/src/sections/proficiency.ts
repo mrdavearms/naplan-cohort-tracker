@@ -6,8 +6,8 @@
  * participant count (including participants whose proficiency is null /
  * Absent-in-domain), matching the legacy `len(parts)` denominator.
  */
-import { PARTICIPATED, PROFICIENCY_LEVELS, type ProficiencyLevel } from "../constants";
-import type { StudentReportRow } from "../types";
+import { NAS, PARTICIPATED, PROFICIENCY_LEVELS, type ProficiencyLevel } from "../constants";
+import type { LoadedFile, StudentReportRow } from "../types";
 
 export type ProficiencyCounts = Record<ProficiencyLevel, number>;
 export type ProficiencyPercentages = Record<ProficiencyLevel, number>;
@@ -43,4 +43,27 @@ export function proficiencyPercentages(
     pct[lvl] = n === 0 ? 0 : (counts[lvl] / n) * 100;
   }
   return pct;
+}
+
+/** One-sentence takeaway for the top of Section 2. */
+export function proficiencyHeadline(
+  entries: readonly LoadedFile[],
+  yearLevel: number,
+): string | null {
+  const forLevel = entries.filter((e) => e.yearLevel === yearLevel);
+  if (forLevel.length === 0) return null;
+
+  const byDomain = forLevel.map((e) => ({
+    domain: e.domain,
+    nasPct: proficiencyPercentages(e.studentReports)[NAS],
+  }));
+  const worst = byDomain.reduce((a, b) => (b.nasPct > a.nasPct ? b : a));
+  const best = byDomain.reduce((a, b) => (b.nasPct < a.nasPct ? b : a));
+  if (worst.domain === best.domain) {
+    return `At Year ${yearLevel}, ${worst.nasPct.toFixed(1)}% of students need additional support in ${worst.domain}.`;
+  }
+  return (
+    `At Year ${yearLevel}, ${worst.domain} has the largest group needing additional support ` +
+    `(${worst.nasPct.toFixed(1)}%) and ${best.domain} the smallest (${best.nasPct.toFixed(1)}%).`
+  );
 }

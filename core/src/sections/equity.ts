@@ -106,3 +106,17 @@ export function equityBreakdown(reports: readonly StudentReportRow[]): EquityBre
     atsi,
   };
 }
+
+/** One-sentence takeaway for the top of Section 6. Null when no shown subgroup
+ *  has a notable gap — suppressed subgroups never drive the headline. */
+export function equityHeadline(breakdown: EquityBreakdown): string | null {
+  const shown = [...breakdown.lbote, ...breakdown.atsi].filter((g) => !g.suppressed);
+  const gaps = shown.filter((g) => g.priorityGap);
+  if (gaps.length === 0) return null;
+  const worst = gaps.reduce((a, b) => (b.nasGapVsCohort > a.nasGapVsCohort ? b : a));
+  return (
+    `${worst.label} students need additional support at a rate ` +
+    `${worst.nasGapVsCohort.toFixed(1)} percentage points above the whole cohort ` +
+    `(${worst.n} students in this group) — the largest equity gap in this domain.`
+  );
+}

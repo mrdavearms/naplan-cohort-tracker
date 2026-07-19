@@ -9,8 +9,10 @@
 import { useState } from "react";
 import {
   classDistribution,
+  classGroupsHeadline,
   domainsFor,
   getEntry,
+  getPrimaryYearEntries,
   stackedProficiencyBarFigure,
   type StackedBarRow,
 } from "@naplan-cohort-tracker/core";
@@ -45,6 +47,7 @@ export function S7ClassGroups() {
   }));
 
   const chartHeight = Math.max(220, 90 + rows.length * 46);
+  const headline = classGroupsHeadline(getPrimaryYearEntries(store, primaryYear), yearLevel);
 
   return (
     <div>
@@ -55,6 +58,10 @@ export function S7ClassGroups() {
       />
       <YearLevelTabs yearLevels={yearLevels} value={yearLevel} onChange={setYearLevel} />
       <AttributionNote yearLevel={yearLevel} year={primaryYear} />
+
+      {headline && (
+        <p className="mb-4 text-sm font-medium text-graphite">{headline}</p>
+      )}
 
       {domains.length === 0 ? (
         <EmptyState title="No data for this year level" />

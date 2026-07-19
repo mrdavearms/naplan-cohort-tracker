@@ -12,14 +12,22 @@ import {
   accuracyBySubdomainAndBand,
   bottomDescriptors,
   classDistribution,
+  classGroupsHeadline,
   cleanStudentReports,
   cleanStudentResults,
+  equityHeadline,
+  NAS,
   parseWorkbook,
+  PARTICIPATED,
   participationBreakdown,
+  participationHeadline,
   participationSummary,
   proficiencyCounts,
+  proficiencyHeadline,
   proficiencyPercentages,
   rankDomainsByNas,
+  type EquityBreakdown,
+  type LoadedFile,
   type ProficiencyPercentages,
   type StudentReportRow,
   type StudentResultRow,
@@ -154,5 +162,192 @@ describe("Section 5 — skill gap", () => {
       expect(g.studentsAttempted).toBe(w.studentsAttempted);
       expect(g.accuracyPct).toBeCloseTo(w.accuracyPct, 10);
     }
+  });
+});
+
+function makeReport(overrides: Partial<StudentReportRow> = {}): StudentReportRow {
+  return {
+    studentId: "S1",
+    localStudentId: "L1",
+    localStudentIdDisplay: "L1",
+    yearLevel: 7,
+    classGroups: "7A",
+    domain: "Reading",
+    proficiencyLevel: "Strong",
+    participationCode: PARTICIPATED,
+    indigenousStatus: "No",
+    lboteStatus: "No",
+    atsiGroup: "Non-ATSI",
+    ...overrides,
+  };
+}
+
+function makeEntry(
+  overrides: Partial<LoadedFile> & { studentReports?: StudentReportRow[] } = {},
+): LoadedFile {
+  const studentReports = overrides.studentReports ?? [];
+  return {
+    yearOfTest: 2026,
+    yearLevel: 7,
+    domain: "Reading",
+    studentReports,
+    studentResults: [],
+    sourceFilename: "test.xlsx",
+    participants: studentReports.filter((r) => r.participationCode === PARTICIPATED).length,
+    totalStudents: studentReports.length,
+    ...overrides,
+  };
+}
+
+function pct(nasPct: number): ProficiencyPercentages {
+  return {
+    "Needs additional support": nasPct,
+    Developing: 0,
+    Strong: 100 - nasPct,
+    Exceeding: 0,
+  };
+}
+
+describe("section headlines", () => {
+  it("participation headline names the lowest-participation domain", () => {
+    const entries = [
+      makeEntry({ domain: "Reading", yearLevel: 7, participants: 10, totalStudents: 10 }),
+      makeEntry({ domain: "Numeracy", yearLevel: 7, participants: 8, totalStudents: 10 }),
+    ];
+    const line = participationHeadline(entries, 7);
+    expect(line).toContain("Numeracy");
+    expect(line).toMatch(/\d/);
+  });
+
+  it("proficiency headline names the domain with the most students needing support", () => {
+    const readingReports = [
+      ...Array(6)
+        .fill(0)
+        .map(() => makeReport({ domain: "Reading", proficiencyLevel: NAS })),
+      ...Array(4)
+        .fill(0)
+        .map(() => makeReport({ domain: "Reading", proficiencyLevel: "Strong" })),
+    ];
+    const numeracyReports = [
+      ...Array(2)
+        .fill(0)
+        .map(() => makeReport({ domain: "Numeracy", proficiencyLevel: NAS })),
+      ...Array(8)
+        .fill(0)
+        .map(() => makeReport({ domain: "Numeracy", proficiencyLevel: "Strong" })),
+    ];
+    const entries = [
+      makeEntry({ domain: "Reading", yearLevel: 7, studentReports: readingReports }),
+      makeEntry({ domain: "Numeracy", yearLevel: 7, studentReports: numeracyReports }),
+    ];
+    const line = proficiencyHeadline(entries, 7);
+    expect(line).toContain("Reading");
+  });
+
+  it("equity headline names a priority gap when one exists", () => {
+    const breakdown: EquityBreakdown = {
+      cohortNasPct: 20,
+      lboteReported: true,
+      lbote: [
+        {
+          label: "LBOTE",
+          n: 12,
+          percentages: pct(35),
+          nasGapVsCohort: 15,
+          priorityGap: true,
+          suppressed: false,
+        },
+        {
+          label: "Non-LBOTE",
+          n: 20,
+          percentages: pct(18),
+          nasGapVsCohort: -2,
+          priorityGap: false,
+          suppressed: false,
+        },
+      ],
+      lboteSuppressed: false,
+      atsiSuppressed: true,
+      atsiCount: 2,
+      nonAtsiCount: 30,
+      nonAtsiSuppressed: false,
+      atsi: [],
+    };
+    const line = equityHeadline(breakdown);
+    expect(line).toMatch(/LBOTE/);
+    expect(line).toMatch(/percentage points|pp/);
+  });
+
+  it("equity headline returns null when no subgroup gap is notable", () => {
+    const breakdown: EquityBreakdown = {
+      cohortNasPct: 20,
+      lboteReported: true,
+      lbote: [
+        {
+          label: "LBOTE",
+          n: 12,
+          percentages: pct(22),
+          nasGapVsCohort: 2,
+          priorityGap: false,
+          suppressed: false,
+        },
+        {
+          label: "Non-LBOTE",
+          n: 20,
+          percentages: pct(19),
+          nasGapVsCohort: -1,
+          priorityGap: false,
+          suppressed: false,
+        },
+      ],
+      lboteSuppressed: false,
+      atsiSuppressed: true,
+      atsiCount: 2,
+      nonAtsiCount: 30,
+      nonAtsiSuppressed: false,
+      atsi: [],
+    };
+    expect(equityHeadline(breakdown)).toBeNull();
+  });
+
+  it("class-groups headline names the class with the highest NAS concentration", () => {
+    const reports = [
+      ...Array(5)
+        .fill(0)
+        .map(() => makeReport({ classGroups: "7A", proficiencyLevel: "Strong" })),
+      ...Array(1)
+        .fill(0)
+        .map(() => makeReport({ classGroups: "7A", proficiencyLevel: NAS })),
+      ...Array(5)
+        .fill(0)
+        .map(() => makeReport({ classGroups: "7B", proficiencyLevel: NAS })),
+      ...Array(1)
+        .fill(0)
+        .map(() => makeReport({ classGroups: "7B", proficiencyLevel: "Strong" })),
+    ];
+    const entries = [makeEntry({ domain: "Reading", yearLevel: 7, studentReports: reports })];
+    const line = classGroupsHeadline(entries, 7);
+    expect(line).toContain("7B");
+  });
+
+  it("class-groups headline ignores groups below n=5", () => {
+    // A placeholder group (INC, n=2) with 100% NAS must not become the headline.
+    const reports = [
+      ...Array(5)
+        .fill(0)
+        .map(() => makeReport({ classGroups: "7A", proficiencyLevel: "Strong" })),
+      ...Array(1)
+        .fill(0)
+        .map(() => makeReport({ classGroups: "7A", proficiencyLevel: NAS })),
+      ...Array(6)
+        .fill(0)
+        .map(() => makeReport({ classGroups: "7B", proficiencyLevel: "Strong" })),
+      ...Array(2)
+        .fill(0)
+        .map(() => makeReport({ classGroups: "INC", proficiencyLevel: NAS })),
+    ];
+    const entries = [makeEntry({ domain: "Reading", yearLevel: 7, studentReports: reports })];
+    const line = classGroupsHeadline(entries, 7);
+    expect(line).not.toContain("INC");
   });
 });
