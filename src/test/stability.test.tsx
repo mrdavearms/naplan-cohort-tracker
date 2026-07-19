@@ -5,6 +5,8 @@
 import { describe, expect, it } from "vitest";
 import { reducer, initialState, type AppState } from "../state/AppState";
 import { buildSyntheticStore } from "./fixtures";
+import { saveSettings } from "../lib/persist";
+import { migrate } from "@naplan-cohort-tracker/core";
 
 describe("loadError while data is already loaded", () => {
   it("keeps the loaded store and status so the analysis stays on screen", async () => {
@@ -28,5 +30,23 @@ describe("loadError while data is already loaded", () => {
     const next = reducer(initialState, { type: "loadError", error: "boom" });
     expect(next.status).toBe("error");
     expect(next.error).toBe("boom");
+  });
+});
+
+describe("saveSettings", () => {
+  it("returns true when storage works", () => {
+    expect(saveSettings(migrate(null))).toBe(true);
+  });
+
+  it("returns false when storage throws", () => {
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => {
+      throw new Error("QuotaExceededError");
+    };
+    try {
+      expect(saveSettings(migrate(null))).toBe(false);
+    } finally {
+      Storage.prototype.setItem = original;
+    }
   });
 });

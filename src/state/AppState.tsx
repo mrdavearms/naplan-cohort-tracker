@@ -184,7 +184,7 @@ export interface AppContextValue {
   loadFiles: (files: RawWorkbookFile[], sourceLabel: string | null) => Promise<void>;
   setPrimaryYear: (year: number) => void;
   setView: (view: ViewId) => void;
-  updateSettings: (settings: Settings) => void;
+  updateSettings: (settings: Settings) => boolean;
   /** Add a picked source (folder or loose files) to the import staging list. The
    *  bytes Map is keyed by `StagedFile.id`; it is merged into the provider's ref. */
   stageAdd: (source: StagedSource, bytes: Map<string, ArrayBuffer | Uint8Array>) => void;
@@ -249,8 +249,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setPrimaryYear: (year) => dispatch({ type: "setPrimaryYear", year }),
       setView: (view) => dispatch({ type: "setView", view }),
       updateSettings: (settings) => {
-        saveSettings(settings);
+        const persisted = saveSettings(settings);
         dispatch({ type: "setSettings", settings });
+        return persisted;
       },
       stageAdd: (source, bytes) => {
         for (const [id, b] of bytes) bytesRef.current.set(id, b);

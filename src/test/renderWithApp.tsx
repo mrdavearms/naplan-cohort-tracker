@@ -40,7 +40,7 @@ export function renderWithApp(
     loadFiles: async () => {},
     setPrimaryYear: () => {},
     setView: () => {},
-    updateSettings: () => {},
+    updateSettings: () => true,
     stageAdd: () => {},
     stageRemove: () => {},
     stageRemoveFile: () => {},

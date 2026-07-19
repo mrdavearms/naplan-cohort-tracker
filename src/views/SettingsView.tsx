@@ -21,11 +21,11 @@ const labelCls = "block text-sm font-medium text-graphite";
 export function SettingsView() {
   const { state, updateSettings } = useApp();
   const [draft, setDraft] = useState<Settings>(state.settings);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState<"saved" | "memory-only" | null>(null);
 
   function set<K extends keyof Settings>(key: K, value: Settings[K]) {
     setDraft((d) => ({ ...d, [key]: value }));
-    setSaved(false);
+    setSaved(null);
   }
 
   function setRef(i: number, patch: Partial<ImprovementPlanRef>) {
@@ -33,7 +33,7 @@ export function SettingsView() {
       ...d,
       improvementPlanRefs: d.improvementPlanRefs.map((r, j) => (j === i ? { ...r, ...patch } : r)),
     }));
-    setSaved(false);
+    setSaved(null);
   }
 
   function addRef() {
@@ -59,9 +59,9 @@ export function SettingsView() {
       ...draft,
       improvementPlanRefs: draft.improvementPlanRefs.filter((r) => r.role.trim() && r.code.trim()),
     };
-    updateSettings(clean);
+    const persisted = updateSettings(clean);
     setDraft(clean);
-    setSaved(true);
+    setSaved(persisted ? "saved" : "memory-only");
   }
 
   return (
@@ -210,7 +210,13 @@ export function SettingsView() {
         >
           Save settings
         </button>
-        {saved && <span className="text-sm text-sage-text">Saved.</span>}
+        {saved === "saved" && <span className="text-sm text-sage-text">Saved.</span>}
+        {saved === "memory-only" && (
+          <span className="text-sm text-coral">
+            Saved for this session only — your device wouldn't let the app store settings, so these
+            details will be gone next time you open it. If this keeps happening, please report it.
+          </span>
+        )}
       </div>
 
       <TauriTools />

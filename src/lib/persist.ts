@@ -17,10 +17,13 @@ export function loadSettings(): Settings {
   }
 }
 
-export function saveSettings(settings: Settings): void {
+/** Returns false when storage is unavailable or full — the caller MUST surface
+ *  that, or the school identity silently vanishes on the next launch. */
+export function saveSettings(settings: Settings): boolean {
   try {
     localStorage.setItem(KEY, JSON.stringify(settings));
+    return true;
   } catch {
-    /* storage unavailable — settings stay in-memory for this session */
+    return false;
   }
 }
