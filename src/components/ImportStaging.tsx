@@ -295,6 +295,12 @@ export function ImportStaging() {
           </div>
         )}
 
+        {state.status === "loaded" && state.error && (
+          <div className="mb-4 rounded-xl border border-coral/40 bg-coral/5 px-4 py-3 text-sm text-graphite">
+            {state.error} Your previously loaded analysis is still available — use the sidebar to go back to it.
+          </div>
+        )}
+
         {staged.length > 0 && (
           <div className="mx-auto mt-8 max-w-2xl space-y-4">
             <div className="flex items-center justify-between">

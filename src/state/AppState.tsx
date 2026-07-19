@@ -94,7 +94,7 @@ type Action =
   | { type: "stageSetYear"; sourceId: string; year: number }
   | { type: "stageClear" };
 
-const initialState: AppState = {
+export const initialState: AppState = {
   status: "empty",
   store: new Map(),
   skipped: [],
@@ -107,7 +107,7 @@ const initialState: AppState = {
   staged: [],
 };
 
-function reducer(state: AppState, action: Action): AppState {
+export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case "loadStart":
       return { ...state, status: "loading", error: null, sourceLabel: action.sourceLabel };
@@ -128,7 +128,13 @@ function reducer(state: AppState, action: Action): AppState {
       };
     }
     case "loadError":
-      return { ...state, status: "error", error: action.error };
+      // A failed RE-load must not discard a working analysis. The store is
+      // still in memory; dropping to "error" would render the pre-load on-ramp
+      // and read to the user as "the app lost my data". Keep them where they
+      // are and surface the message instead.
+      return state.status === "loaded" && state.store.size > 0
+        ? { ...state, error: action.error }
+        : { ...state, status: "error", error: action.error };
     case "setPrimaryYear":
       return { ...state, primaryYear: action.year };
     case "setView":
