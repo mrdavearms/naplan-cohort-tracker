@@ -284,6 +284,14 @@ the other Antigravity apps:
 - **`mirror-release.sh` verifies the published feed** after publishing (version
   match, both platforms present, every asset URL reachable). A failure there means
   the release is half-published — re-run the mirror rather than leaving it.
+- **Before tagging any release, confirm the updater signing key backup is still
+  current.** `~/.naplan-cohort-tracker-updater.key` (mirrored as the
+  `TAURI_SIGNING_PRIVATE_KEY` GitHub secret, no password) has no other copy unless
+  Dave has put one in his password manager — first backed up 2026-07-20. If both the
+  local file and the GitHub secret are ever lost, **no installed copy of the app can
+  ever auto-update again**, with no recovery path. This is a standing pre-tag check,
+  not a one-off — re-verify the password-manager entry still exists (not just that it
+  once did) before every future `git tag vX.Y.Z`.
 
 ## Download-page first-run instructions — NON-NEGOTIABLE
 

@@ -111,11 +111,14 @@ and shipped in v0.1.2:
 
 ## NEEDS DAVE (what's actually left)
 
-### 1. Back up the updater private key (HIGH — 2 min, the one thing only you can do)
-If this key is ever lost, **no installed app can ever auto-update**. Copy
-`~/.naplan-cohort-tracker-updater.key` into your password manager. (It's already an
-encrypted GitHub Actions secret and lives on this Mac, but keep your own copy.)
-I deliberately did not print it into the chat for security.
+### 1. ~~Back up the updater private key~~ — DONE 2026-07-20
+Dave confirmed `~/.naplan-cohort-tracker-updater.key` is now backed up in his
+password manager, in addition to the encrypted GitHub Actions secret and the copy
+on this Mac. **This is not a one-off** — before cutting any future release, confirm
+the password-manager entry still exists (not just that it once did); see the
+matching reminder in `CLAUDE.md`'s Branch workflow section. If both the local file
+and the GitHub secret are ever lost with no other backup, no installed app can ever
+auto-update again.
 
 ### 2. (Optional, later) Windows offline robustness + code-signing
 - Windows currently uses `downloadBootstrapper` (fetches WebView2 at install if
